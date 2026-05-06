@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fenomena — Influencers</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --feno-purple:#240354; --feno-purple2:#2d0468; --feno-purple3:#1a0240;
+  --feno-pink:#EEB1D7; --feno-cyan:#00AFEC; --feno-lime:#B2F56A; --feno-white:#FFFFFF;
+  --surface:#1a0240; --surface2:#240354; --surface3:#2d0468;
+  --border:rgba(238,177,215,0.13); --border2:rgba(238,177,215,0.26);
+  --text:#f5f0ff; --muted:rgba(238,177,215,0.45);
+  --green:#B2F56A; --green-s:rgba(178,245,106,0.1);
+  --amber:#f4d03f; --amber-s:rgba(244,208,63,0.1);
+  --red:#ff6b8a; --red-s:rgba(255,107,138,0.1);
+  --cyan:#00AFEC; --cyan-s:rgba(0,175,236,0.1);
+  --pink:#EEB1D7; --pink-s:rgba(238,177,215,0.1);
+  --orange:#ff9f43; --orange-s:rgba(255,159,67,0.1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--feno-purple3);color:var(--text);font-family:'Hanken Grotesk',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:0;left:224px;right:0;height:300px;background:radial-gradient(ellipse 60% 100% at 50% 0%,rgba(238,177,215,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* PAGE SWITCHER */
+.ps-bar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:300;display:flex;background:var(--feno-purple);border:1px solid var(--border2);border-radius:30px;padding:4px;gap:2px;box-shadow:0 4px 24px rgba(0,0,0,0.5);}
+.ps-btn{font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;border-radius:24px;border:none;cursor:pointer;transition:all 0.2s;color:var(--muted);background:transparent;}
+.ps-btn.active{background:var(--feno-pink);color:var(--feno-purple);}
+.ps-btn:hover:not(.active):not(:disabled){color:var(--text);background:var(--pink-s);}
+.ps-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* LOGO */
+.feno-logo{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:16px;letter-spacing:4px;text-transform:uppercase;color:var(--feno-white);}
+.feno-logo span{display:inline-block;}
+.lf{transform:rotate(-8deg);}.le1{transform:rotate(4deg);}.ln1{transform:rotate(-5deg);}.lo1{transform:rotate(6deg);}.lm{transform:rotate(-4deg);}.le2{transform:rotate(5deg);}.ln2{transform:rotate(-6deg);}.la{transform:rotate(4deg);}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:224px;background:var(--feno-purple);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;}
+.sb-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+.tagline{font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--feno-pink);margin-top:5px;opacity:0.7;}
+.sb-user{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--feno-pink),var(--feno-cyan));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--feno-purple);flex-shrink:0;}
+.u-name{font-size:13px;font-weight:700;color:var(--feno-white);}
+.u-role{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--feno-pink);margin-top:1px;opacity:0.8;}
+.nav{padding:14px 12px;flex:1;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;margin-bottom:2px;}
+.ni:hover{background:var(--pink-s);color:var(--feno-white);}
+.ni.active{background:rgba(238,177,215,0.12);color:var(--feno-pink);}
+.ni-icon{font-size:14px;flex-shrink:0;}
+.ni-badge{margin-left:auto;font-size:9px;font-weight:700;background:var(--amber-s);color:var(--amber);border-radius:10px;padding:1px 7px;}
+.sb-footer{padding:16px 24px;border-top:1px solid var(--border);}
+.d-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.d-big{font-size:30px;font-weight:800;color:var(--feno-white);line-height:1;margin-top:2px;}
+.d-month{font-size:11px;font-weight:600;color:var(--feno-pink);margin-top:2px;opacity:0.8;}
+
+/* MAIN */
+.main{margin-left:224px;min-height:100vh;position:relative;z-index:1;}
+.topbar{position:sticky;top:0;background:rgba(26,2,64,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:20px 36px 13px;display:flex;align-items:center;justify-content:space-between;z-index:40;}
+.t-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+.t-title span{font-weight:300;color:var(--muted);margin-left:8px;font-size:14px;}
+.content{padding:26px 36px;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;animation:fIn 0.4s ease;}
+@keyframes fIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.stat.pk::after{background:var(--feno-pink);}
+.stat.am::after{background:var(--amber);}
+.stat.rd::after{background:var(--red);}
+.stat.gn::after{background:var(--feno-lime);}
+.stat.cy::after{background:var(--feno-cyan);}
+.sv{font-size:28px;font-weight:800;line-height:1;margin-bottom:3px;}
+.stat.pk .sv{color:var(--feno-pink);}
+.stat.am .sv{color:var(--amber);}
+.stat.rd .sv{color:var(--red);}
+.stat.gn .sv{color:var(--feno-lime);}
+.stat.cy .sv{color:var(--feno-cyan);}
+.sl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+
+/* FILTERS BAR */
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.filter-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:4px;}
+
+.filter-btn{font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
+.filter-btn:hover{color:var(--text);border-color:var(--border2);}
+.filter-btn.active{background:var(--pink-s);color:var(--feno-pink);border-color:rgba(238,177,215,0.3);}
+
+.search-box{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
+.search-box input{background:none;border:none;outline:none;font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--text);width:160px;}
+.search-box input::placeholder{color:var(--muted);}
+.search-icon{font-size:12px;color:var(--muted);}
+
+/* CLIENT SECTIONS */
+.client-section{margin-bottom:28px;animation:secIn 0.35s ease both;}
+@keyframes secIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.client-section:nth-child(1){animation-delay:0.04s;}
+.client-section:nth-child(2){animation-delay:0.08s;}
+.client-section:nth-child(3){animation-delay:0.12s;}
+.client-section:nth-child(4){animation-delay:0.16s;}
+.client-section:nth-child(5){animation-delay:0.2s;}
+.client-section:nth-child(6){animation-delay:0.24s;}
+.client-section:nth-child(7){animation-delay:0.28s;}
+
+.client-hd{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px 12px 0 0;
+  cursor:pointer;
+  transition:background 0.15s;
+  user-select:none;
+}
+.client-hd:hover{background:var(--surface2);}
+.client-hd.collapsed{border-radius:12px;}
+
+.ch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ch-name{font-size:14px;font-weight:800;letter-spacing:-0.3px;flex:1;}
+.ch-planner{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.ch-count{font-size:11px;font-weight:600;color:var(--muted);}
+.ch-arrow{font-size:12px;color:var(--muted);transition:transform 0.2s;}
+.client-hd.collapsed .ch-arrow{transform:rotate(-90deg);}
+
+.ch-summary{display:flex;gap:8px;margin-left:auto;margin-right:12px;}
+.ch-pill{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;}
+
+/* INFLUENCER TABLE */
+.influ-table-wrap{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden;}
+.influ-table-wrap.hidden{display:none;}
+
+table.it{width:100%;border-collapse:collapse;}
+table.it thead th{
+  font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);padding:10px 14px;text-align:left;
+  background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+table.it tbody tr{
+  background:var(--surface);transition:background 0.12s;cursor:pointer;
+}
+table.it tbody tr:hover{background:var(--surface2);}
+table.it tbody tr:not(:last-child) td{border-bottom:1px solid var(--border);}
+table.it tbody td{padding:11px 14px;font-size:12px;vertical-align:middle;}
+
+/* influencer name cell */
+.i-name-cell{display:flex;align-items:center;gap:8px;}
+.i-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--feno-purple);flex-shrink:0;}
+.i-name{font-weight:700;font-size:12px;color:var(--text);}
+.i-handle{font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* social platform */
+.soc{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap;display:inline-block;}
+.soc-ig{background:rgba(193,53,132,0.15);color:#e1699a;}
+.soc-tt{background:rgba(0,0,0,0.3);color:#e0e0e0;border:1px solid rgba(255,255,255,0.08);}
+.soc-yt{background:rgba(255,0,0,0.12);color:#ff7070;}
+.soc-tw{background:rgba(0,175,236,0.12);color:var(--feno-cyan);}
+
+/* phone */
+.phone{font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--text);display:flex;align-items:center;gap:5px;}
+.phone-copy{font-size:10px;cursor:pointer;opacity:0;transition:opacity 0.15s;color:var(--feno-cyan);}
+table.it tbody tr:hover .phone-copy{opacity:1;}
+
+/* amount */
+.amount{font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:800;}
+.amount.confirmed{color:var(--feno-lime);}
+.amount.pending{color:var(--amber);}
+.amount.none{color:var(--muted);}
+
+/* delivery date */
+.del-date{font-size:11px;font-weight:600;}
+.del-date.overdue{color:var(--red);}
+.del-date.today{color:var(--feno-lime);}
+.del-date.upcoming{color:var(--feno-cyan);}
+.del-date.future{color:var(--muted);}
+.del-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* STATUS BADGE */
+.status{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:20px;white-space:nowrap;cursor:pointer;transition:opacity 0.15s;}
+.status:hover{opacity:0.8;}
+.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.s-pend{background:var(--amber-s);color:var(--amber);}
+.s-recv{background:var(--cyan-s);color:var(--feno-cyan);}
+.s-appr{background:var(--green-s);color:var(--feno-lime);}
+.s-pub{background:rgba(238,177,215,0.12);color:var(--feno-pink);}
+.s-late{background:var(--red-s);color:var(--red);}
+
+/* PAYMENT BADGE */
+.pay{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:20px;white-space:nowrap;cursor:pointer;transition:all 0.15s;}
+.pay:hover{filter:brightness(1.1);}
+.pay-pend{background:var(--red-s);color:var(--red);}
+.pay-done{background:var(--green-s);color:var(--feno-lime);}
+.pay-partial{background:var(--amber-s);color:var(--amber);}
+
+/* action btn */
+.row-act{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;opacity:0;}
+table.it tbody tr:hover .row-act{opacity:1;}
+.row-act:hover{color:var(--feno-pink);border-color:rgba(238,177,215,0.3);}
+
+/* ADD ROW */
+.add-influ-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(238,177,215,0.03);cursor:pointer;transition:background 0.12s;}
+.add-influ-row:hover{background:rgba(238,177,215,0.07);}
+.add-influ-txt{font-size:11px;font-weight:600;color:var(--muted);}
+.add-influ-row:hover .add-influ-txt{color:var(--feno-pink);}
+
+/* BTNS */
+.btn{font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:8px;border:1px solid;cursor:pointer;transition:all 0.15s;}
+.b-ghost{background:transparent;color:var(--muted);border-color:var(--border);}
+.b-ghost:hover{color:var(--text);border-color:var(--border2);}
+.b-pink{background:var(--feno-pink);color:var(--feno-purple);border-color:var(--feno-pink);}
+.b-pink:hover{background:#f5c9e4;}
+.b-lime{background:var(--feno-lime);color:var(--feno-purple);border-color:var(--feno-lime);}
+.b-lime:hover{background:#c8f88a;}
+.b-cyan{background:var(--feno-cyan);color:var(--feno-purple);border-color:var(--feno-cyan);}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(26,2,64,0.82);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--feno-purple);border:1px solid var(--border2);border-radius:14px;padding:28px;width:540px;max-width:92vw;animation:mIn 0.22s ease;max-height:90vh;overflow-y:auto;}
+@keyframes mIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.m-title{font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;}
+.m-sub{font-size:12px;color:var(--muted);margin-bottom:22px;}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.mrow.single{grid-template-columns:1fr;}
+.mrow.triple{grid-template-columns:1fr 1fr 1fr;}
+.mf{margin-bottom:0;}
+.ml{display:block;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.mi{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color 0.12s;}
+.mi:focus{border-color:var(--feno-pink);}
+.mta{resize:vertical;min-height:70px;}
+.m-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.m-divider{height:1px;background:var(--border);margin:18px 0;}
+
+/* STATUS FLOW in modal */
+.status-flow{display:flex;align-items:center;gap:0;margin-bottom:4px;}
+.sf-step{flex:1;text-align:center;padding:9px 6px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;position:relative;}
+.sf-step:first-child{border-radius:8px 0 0 8px;}
+.sf-step:last-child{border-radius:0 8px 8px 0;}
+.sf-step:not(:first-child){border-left:none;}
+.sf-step.active{color:var(--feno-purple);z-index:1;}
+.sf-step.s-pend-a.active{background:var(--amber);border-color:var(--amber);}
+.sf-step.s-recv-a.active{background:var(--feno-cyan);border-color:var(--feno-cyan);}
+.sf-step.s-appr-a.active{background:var(--feno-lime);border-color:var(--feno-lime);}
+.sf-step.s-pub-a.active{background:var(--feno-pink);border-color:var(--feno-pink);}
+
+/* influ detail in modal */
+.influ-detail-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.idb-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.idb-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--feno-purple);flex-shrink:0;}
+.idb-name{font-size:15px;font-weight:800;}
+.idb-handle{font-size:11px;color:var(--muted);}
+.idb-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;}
+.idb-f{font-size:10px;}
+.idb-fl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.idb-fv{font-size:12px;font-weight:700;color:var(--text);}
+
+/* payment toggle */
+.pay-toggle{display:flex;gap:8px;margin-top:6px;}
+.pt-opt{flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);cursor:pointer;text-align:center;font-size:11px;font-weight:700;color:var(--muted);transition:all 0.15s;}
+.pt-opt:hover{border-color:var(--border2);color:var(--text);}
+.pt-opt.sel-pend{background:var(--red-s);color:var(--red);border-color:rgba(255,107,138,0.3);}
+.pt-opt.sel-done{background:var(--green-s);color:var(--feno-lime);border-color:rgba(178,245,106,0.3);}
+
+.arc{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--feno-pink);opacity:0.35;padding:6px;border-top:1px solid var(--border);text-align:center;}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- PAGE SWITCHER -->
+<div class="ps-bar">
+  <button class="ps-btn" onclick="location.href='fenomena-dashboard-brand.html'">📋 Planning</button>
+  <button class="ps-btn" onclick="location.href='fenomena-designer-view.html'">🎨 Diseño</button>
+  <button class="ps-btn" onclick="location.href='fenomena-media-view.html'">📡 Media</button>
+  <button class="ps-btn active">👥 Influencers</button>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="feno-logo">
+      <span class="lf">F</span><span class="le1">E</span><span class="ln1">N</span><span class="lo1">O</span><span class="lm">M</span><span class="le2">E</span><span class="ln2">N</span><span class="la">A</span>
+    </div>
+    <div class="tagline">A real click.</div>
+  </div>
+  <div class="sb-user">
+    <div class="avatar">P</div>
+    <div><div class="u-name">Planning</div><div class="u-role">Ian · Shelsea · Megan</div></div>
+  </div>
+  <nav class="nav">
+    <div class="ni"><span class="ni-icon">📋</span> Tablero</div>
+    <div class="ni"><span class="ni-icon">✅</span> Mis To-Dos</div>
+    <div class="ni"><span class="ni-icon">🏢</span> Clientes</div>
+    <div class="ni"><span class="ni-icon">🎨</span> Entregas</div>
+    <div class="ni"><span class="ni-icon">📡</span> Media Bridge</div>
+    <div class="ni active"><span class="ni-icon">👥</span> Influencers <span class="ni-badge">4 pend.</span></div>
+    <div class="ni"><span class="ni-icon">🟢</span> Equipo</div>
+    <div class="ni" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px"><span class="ni-icon">🔒</span> Admin</div>
+  </nav>
+  <div class="sb-footer">
+    <div class="d-lbl">Mayo 2026</div>
+    <div class="d-big">05</div>
+    <div class="d-month">Martes</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="t-title">Influencers <span>— Vista Planning · Mayo 2026</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="padding:6px 12px;background:var(--amber-s);border:1px solid rgba(244,208,63,0.3);border-radius:8px;font-size:10px;font-weight:700;color:var(--amber)">
+        💰 4 pagos pendientes
+      </div>
+      <button class="btn b-pink" onclick="openAddModal()">+ Agregar influencer</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat pk"><div class="sv">23</div><div class="sl">Influencers activos</div></div>
+      <div class="stat am"><div class="sv">4</div><div class="sl">Contenido pendiente</div></div>
+      <div class="stat rd"><div class="sv">4</div><div class="sl">Pagos pendientes</div></div>
+      <div class="stat gn"><div class="sv">11</div><div class="sl">Publicados este mes</div></div>
+      <div class="stat cy"><div class="sv">$4,850</div><div class="sl">Monto aprobado total</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <span class="filter-label">Filtrar:</span>
+      <button class="filter-btn active" onclick="setFilter(this,'all')">Todos</button>
+      <button class="filter-btn" onclick="setFilter(this,'pending')">⏳ Pendiente</button>
+      <button class="filter-btn" onclick="setFilter(this,'received')">📥 Recibido</button>
+      <button class="filter-btn" onclick="setFilter(this,'approved')">✓ Aprobado</button>
+      <button class="filter-btn" onclick="setFilter(this,'published')">🌟 Publicado</button>
+      <button class="filter-btn" onclick="setFilter(this,'pay-pending')" style="color:var(--red);border-color:rgba(255,107,138,0.3)">💸 Pago pendiente</button>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar influencer, cliente..." oninput="searchInflu(this.value)" />
+      </div>
+    </div>
+
+    <!-- ═══ RELOJÍN ═══ -->
+    <div class="client-section" data-client="relojin">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:#c084fc"></div>
+        <div class="ch-name">Relojín</div>
+        <div class="ch-planner">Shelsea · Panamá</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--red-s);color:var(--red)">1 atrasado</span>
+          <span class="ch-pill" style="background:var(--amber-s);color:var(--amber)">2 pago pend.</span>
+        </div>
+        <div class="ch-count">3 influs</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead>
+            <tr>
+              <th style="width:200px">Influencer</th>
+              <th>Red</th>
+              <th>Teléfono</th>
+              <th>Monto aprobado</th>
+              <th>Entrega contenido</th>
+              <th>Status contenido</th>
+              <th>Pago</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="openEdit('Sofía Reyes','@sofiarey_pty','IG','+507 6123-4567','$350','10 mayo','approved','done')">
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,#c084fc,#EEB1D7)">S</div><div><div class="i-name">Sofía Reyes</div><div class="i-handle">@sofiarey_pty</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6123-4567 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6123-4567')">📋</span></div></td>
+              <td><span class="amount confirmed">$350.00</span></td>
+              <td><div class="del-date upcoming">10 mayo</div><div class="del-sub">Reel + story</div></td>
+              <td><span class="status s-appr" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Aprobado</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation();openEdit('Sofía Reyes','@sofiarey_pty','IG','+507 6123-4567','$350','10 mayo','approved','done')">Editar</button></td>
+            </tr>
+            <tr onclick="openEdit('Mariana López','@mariana.pty','IG','+507 6234-5678','$400','8 mayo','received','pending')">
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,#00AFEC,#c084fc)">M</div><div><div class="i-name">Mariana López</div><div class="i-handle">@mariana.pty</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6234-5678 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6234-5678')">📋</span></div></td>
+              <td><span class="amount confirmed">$400.00</span></td>
+              <td><div class="del-date today">8 mayo</div><div class="del-sub">Video orgánico</div></td>
+              <td><span class="status s-recv" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Recibido</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr onclick="openEdit('Carlos Vega','@carlosvega_cr','TT','+507 6345-6789','$280','15 mayo','late','pending')">
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,#f4d03f,#ff9f43)">C</div><div><div class="i-name">Carlos Vega</div><div class="i-handle">@carlosvega_cr</div></div></div></td>
+              <td><span class="soc soc-tt">TT</span></td>
+              <td><div class="phone">+507 6345-6789 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6345-6789')">📋</span></div></td>
+              <td><span class="amount confirmed">$280.00</span></td>
+              <td><div class="del-date overdue">3 mayo</div><div class="del-sub">⚠️ Venció</div></td>
+              <td><span class="status s-late" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Atrasado</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Relojín')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Relojín</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BELLA HOLANDESA PTY ═══ -->
+    <div class="client-section" data-client="bella-pty">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--feno-lime)"></div>
+        <div class="ch-name">Bella Holandesa Panamá</div>
+        <div class="ch-planner">Shelsea · PTY</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--green-s);color:var(--feno-lime)">Todos aprobados</span>
+        </div>
+        <div class="ch-count">2 influs</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead><tr><th style="width:200px">Influencer</th><th>Red</th><th>Teléfono</th><th>Monto aprobado</th><th>Entrega contenido</th><th>Status contenido</th><th>Pago</th><th></th></tr></thead>
+          <tbody>
+            <tr onclick="openEdit('Valentina Cruz','@vale.cruz.pty','IG','+507 6456-7890','$500','5 mayo','published','done')">
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--feno-lime),var(--feno-cyan))">V</div><div><div class="i-name">Valentina Cruz</div><div class="i-handle">@vale.cruz.pty</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6456-7890 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6456-7890')">📋</span></div></td>
+              <td><span class="amount confirmed">$500.00</span></td>
+              <td><div class="del-date today" style="color:var(--feno-lime)">5 mayo</div><div class="del-sub">Publicado ✓</div></td>
+              <td><span class="status s-pub" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Publicado</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr onclick="openEdit('Daniela Mora','@dani.mora','IG','+507 6567-8901','$450','12 mayo','approved','done')">
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--feno-pink),#c084fc)">D</div><div><div class="i-name">Daniela Mora</div><div class="i-handle">@dani.mora</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6567-8901 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6567-8901')">📋</span></div></td>
+              <td><span class="amount confirmed">$450.00</span></td>
+              <td><div class="del-date upcoming">12 mayo</div><div class="del-sub">Reel + carrusel</div></td>
+              <td><span class="status s-appr" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Aprobado</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Bella Holandesa PTY')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Bella Holandesa PTY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BELLA HOLANDESA PERÚ ═══ -->
+    <div class="client-section" data-client="bella-peru">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--feno-cyan)"></div>
+        <div class="ch-name">Bella Holandesa Perú</div>
+        <div class="ch-planner">Shelsea · Perú</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--cyan-s);color:var(--feno-cyan)">1 recibido</span>
+        </div>
+        <div class="ch-count">2 influs</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead><tr><th style="width:200px">Influencer</th><th>Red</th><th>Teléfono</th><th>Monto aprobado</th><th>Entrega contenido</th><th>Status contenido</th><th>Pago</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--feno-cyan),var(--feno-lime))">L</div><div><div class="i-name">Lucia Quispe</div><div class="i-handle">@lu.quispe</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+51 987-654-321 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+51 987-654-321')">📋</span></div></td>
+              <td><span class="amount confirmed">$380.00</span></td>
+              <td><div class="del-date upcoming">14 mayo</div><div class="del-sub">Reel</div></td>
+              <td><span class="status s-recv" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Recibido</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,#ff9f43,var(--feno-pink))">R</div><div><div class="i-name">Rodrigo Torres</div><div class="i-handle">@rodri.pe</div></div></div></td>
+              <td><span class="soc soc-tt">TT</span></td>
+              <td><div class="phone">+51 956-789-012 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+51 956-789-012')">📋</span></div></td>
+              <td><span class="amount confirmed">$320.00</span></td>
+              <td><div class="del-date upcoming">18 mayo</div><div class="del-sub">Video TikTok</div></td>
+              <td><span class="status s-pend" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Pendiente</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Bella Holandesa Perú')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Bella Holandesa Perú</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ COORS LIGHT PTY ═══ -->
+    <div class="client-section" data-client="coors-pty">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--amber)"></div>
+        <div class="ch-name">Coors Light PTY</div>
+        <div class="ch-planner">Megan · Campaña mar–ago</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--amber-s);color:var(--amber)">1 pago pend.</span>
+        </div>
+        <div class="ch-count">3 influs</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead><tr><th style="width:200px">Influencer</th><th>Red</th><th>Teléfono</th><th>Monto aprobado</th><th>Entrega contenido</th><th>Status contenido</th><th>Pago</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--amber),#ff9f43)">A</div><div><div class="i-name">Andrés Herrera</div><div class="i-handle">@andresH_pty</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6678-9012 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6678-9012')">📋</span></div></td>
+              <td><span class="amount confirmed">$600.00</span></td>
+              <td><div class="del-date today" style="color:var(--feno-lime)">2 mayo</div><div class="del-sub">Publicado ✓</div></td>
+              <td><span class="status s-pub" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Publicado</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--feno-cyan),var(--amber))">P</div><div><div class="i-name">Paula Salas</div><div class="i-handle">@paulasalas</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6789-0123 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6789-0123')">📋</span></div></td>
+              <td><span class="amount confirmed">$550.00</span></td>
+              <td><div class="del-date upcoming">20 mayo</div><div class="del-sub">Reel campaña</div></td>
+              <td><span class="status s-appr" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Aprobado</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,#c084fc,var(--amber))">J</div><div><div class="i-name">Javier Núñez</div><div class="i-handle">@javinunez</div></div></div></td>
+              <td><span class="soc soc-tt">TT</span></td>
+              <td><div class="phone">+507 6890-1234 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6890-1234')">📋</span></div></td>
+              <td><span class="amount confirmed">$420.00</span></td>
+              <td><div class="del-date upcoming">25 mayo</div><div class="del-sub">Video TikTok</div></td>
+              <td><span class="status s-pend" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Pendiente</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Coors Light PTY')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Coors Light PTY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BARILLA ═══ -->
+    <div class="client-section" data-client="barilla">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--red)"></div>
+        <div class="ch-name">Barilla</div>
+        <div class="ch-planner">Megan · Proyecto especial agosto</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--amber-s);color:var(--amber)">Agendando influs</span>
+        </div>
+        <div class="ch-count">1 influ</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead><tr><th style="width:200px">Influencer</th><th>Red</th><th>Teléfono</th><th>Monto aprobado</th><th>Entrega contenido</th><th>Status contenido</th><th>Pago</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--red),#ff9f43)">G</div><div><div class="i-name">Gabriela Ruiz</div><div class="i-handle">@gabi.chef</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+507 6901-2345 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+507 6901-2345')">📋</span></div></td>
+              <td><span class="amount pending">$750.00</span><div style="font-size:9px;color:var(--amber);margin-top:2px">Por confirmar</div></td>
+              <td><div class="del-date future">Agosto</div><div class="del-sub">Proyecto especial</div></td>
+              <td><span class="status s-pend" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Pendiente</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Barilla')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Barilla</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LOLITA LEMPICKA ═══ -->
+    <div class="client-section" data-client="lolita">
+      <div class="client-hd collapsed" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--feno-pink)"></div>
+        <div class="ch-name">Lolita Lempicka</div>
+        <div class="ch-planner">Megan · Activo: jun / nov / dic</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--pink-s);color:var(--feno-pink)">Inactivo este mes</span>
+        </div>
+        <div class="ch-count">0 activos</div>
+        <div class="ch-arrow" style="transform:rotate(-90deg)">▾</div>
+      </div>
+      <div class="influ-table-wrap hidden">
+        <div style="padding:20px 18px;text-align:center;font-size:12px;color:var(--muted)">
+          Esta cuenta se activa en junio, noviembre y diciembre. Los influencers se agregarán cuando inicie el mes activo.
+        </div>
+        <div class="add-influ-row" onclick="openAddModal('Lolita Lempicka')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Lolita Lempicka</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MILLER LITE HN ═══ -->
+    <div class="client-section" data-client="miller">
+      <div class="client-hd" onclick="toggleSection(this)">
+        <div class="ch-dot" style="background:var(--orange)"></div>
+        <div class="ch-name">Miller Lite Honduras</div>
+        <div class="ch-planner">Megan · Mundial en curso</div>
+        <div class="ch-summary">
+          <span class="ch-pill" style="background:var(--orange-s);color:var(--orange)">Coordinando</span>
+        </div>
+        <div class="ch-count">2 influs</div>
+        <div class="ch-arrow">▾</div>
+      </div>
+      <div class="influ-table-wrap">
+        <table class="it">
+          <thead><tr><th style="width:200px">Influencer</th><th>Red</th><th>Teléfono</th><th>Monto aprobado</th><th>Entrega contenido</th><th>Status contenido</th><th>Pago</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--orange),var(--amber))">K</div><div><div class="i-name">Kevin Aguilar</div><div class="i-handle">@kev_hn</div></div></div></td>
+              <td><span class="soc soc-tt">TT</span></td>
+              <td><div class="phone">+504 9123-4567 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+504 9123-4567')">📋</span></div></td>
+              <td><span class="amount confirmed">$350.00</span></td>
+              <td><div class="del-date upcoming">30 mayo</div><div class="del-sub">Video mundial</div></td>
+              <td><span class="status s-pend" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Pendiente</span></td>
+              <td><span class="pay pay-done" onclick="event.stopPropagation();cyclePay(this)">✓ Pagado</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div class="i-name-cell"><div class="i-avatar" style="background:linear-gradient(135deg,var(--feno-cyan),var(--orange))">F</div><div><div class="i-name">Fernanda Lara</div><div class="i-handle">@fercy.hn</div></div></div></td>
+              <td><span class="soc soc-ig">IG</span></td>
+              <td><div class="phone">+504 9234-5678 <span class="phone-copy" onclick="event.stopPropagation();copyPhone('+504 9234-5678')">📋</span></div></td>
+              <td><span class="amount pending">$300.00</span><div style="font-size:9px;color:var(--amber);margin-top:2px">Por confirmar</div></td>
+              <td><div class="del-date upcoming">30 mayo</div><div class="del-sub">Reel mundial</div></td>
+              <td><span class="status s-pend" onclick="event.stopPropagation();cycleStatus(this)"><span class="sdot"></span>Pendiente</span></td>
+              <td><span class="pay pay-pend" onclick="event.stopPropagation();cyclePay(this)">💸 Pendiente</span></td>
+              <td><button class="row-act" onclick="event.stopPropagation()">Editar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-influ-row" onclick="openAddModal('Miller Lite HN')">
+          <span style="font-size:14px">+</span>
+          <span class="add-influ-txt">Agregar influencer a Miller Lite HN</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ═══ MODAL AGREGAR INFLUENCER ═══ -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div class="m-title">👥 Agregar influencer</div>
+    <div class="m-sub" id="add-modal-sub">Nuevo influencer para el cliente</div>
+
+    <div class="mrow">
+      <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" placeholder="Ej: Sofía Reyes" /></div>
+      <div class="mf"><label class="ml">@Handle / usuario</label><input class="mi" type="text" placeholder="@handle" /></div>
+    </div>
+
+    <div class="mrow triple">
+      <div class="mf"><label class="ml">Red social</label>
+        <select class="mi">
+          <option>Instagram</option><option>TikTok</option><option>YouTube</option><option>X / Twitter</option>
+        </select>
+      </div>
+      <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" placeholder="+507 6000-0000" /></div>
+      <div class="mf"><label class="ml">Cliente</label>
+        <select class="mi" id="add-client-sel">
+          <option>Relojín</option><option>Bella Holandesa PTY</option><option>Bella Holandesa Perú</option>
+          <option>Coors Light PTY</option><option>Barilla</option><option>Lolita Lempicka</option><option>Miller Lite HN</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="m-divider"></div>
+
+    <div class="mrow triple">
+      <div class="mf">
+        <label class="ml">Monto aprobado</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:var(--muted);font-size:13px;font-weight:700">$</span>
+          <input class="mi" type="number" placeholder="0.00" style="flex:1"/>
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date" /></div>
+      <div class="mf"><label class="ml">Fecha publicación</label><input class="mi" type="date" /></div>
+    </div>
+
+    <div class="mrow">
+      <div class="mf">
+        <label class="ml">Status contenido</label>
+        <div class="status-flow">
+          <div class="sf-step s-pend-a active" onclick="selectStatus(this)">Pendiente</div>
+          <div class="sf-step s-recv-a" onclick="selectStatus(this)">Recibido</div>
+          <div class="sf-step s-appr-a" onclick="selectStatus(this)">Aprobado</div>
+          <div class="sf-step s-pub-a" onclick="selectStatus(this)">Publicado</div>
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">Estado del pago</label>
+        <div class="pay-toggle">
+          <div class="pt-opt sel-pend" onclick="selectPay(this,'pend')">💸 Pendiente</div>
+          <div class="pt-opt" onclick="selectPay(this,'done')">✓ Pagado</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mrow single">
+      <div class="mf"><label class="ml">Notas / Brief del contenido</label><textarea class="mi mta" placeholder="Describir qué debe publicar el influencer, formato, mensajes clave, restricciones..."></textarea></div>
+    </div>
+
+    <div class="m-acts">
+      <button class="btn b-ghost" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn b-pink" onclick="closeModal('modal-add')">Agregar influencer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL EDITAR / VER INFLUENCER ═══ -->
+<div class="overlay" id="modal-edit">
+  <div class="modal">
+    <div class="m-title">✏️ Editar influencer</div>
+    <div class="m-sub" id="edit-modal-sub">Actualiza los datos y status</div>
+
+    <div class="influ-detail-box">
+      <div class="idb-row">
+        <div class="idb-av" id="edit-av" style="background:linear-gradient(135deg,var(--feno-pink),var(--feno-cyan))">S</div>
+        <div>
+          <div class="idb-name" id="edit-name">Sofía Reyes</div>
+          <div class="idb-handle" id="edit-handle">@sofiarey_pty</div>
+        </div>
+      </div>
+      <div class="idb-fields">
+        <div class="idb-f"><div class="idb-fl">Red social</div><div class="idb-fv" id="edit-soc">Instagram</div></div>
+        <div class="idb-f"><div class="idb-fl">Teléfono</div><div class="idb-fv" id="edit-phone">+507 6123-4567</div></div>
+        <div class="idb-f"><div class="idb-fl">Monto aprobado</div><div class="idb-fv" id="edit-amount" style="color:var(--feno-lime)">$350.00</div></div>
+      </div>
+    </div>
+
+    <div class="mrow">
+      <div class="mf"><label class="ml">Teléfono</label><input class="mi" id="edit-phone-input" type="tel" /></div>
+      <div class="mf"><label class="ml">Monto aprobado</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:var(--muted);font-size:13px;font-weight:700">$</span>
+          <input class="mi" id="edit-amount-input" type="number" style="flex:1"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="mf" style="margin-bottom:14px">
+      <label class="ml">Status contenido</label>
+      <div class="status-flow" id="edit-status-flow">
+        <div class="sf-step s-pend-a" onclick="selectStatus(this)">Pendiente</div>
+        <div class="sf-step s-recv-a" onclick="selectStatus(this)">Recibido</div>
+        <div class="sf-step s-appr-a active" onclick="selectStatus(this)">Aprobado</div>
+        <div class="sf-step s-pub-a" onclick="selectStatus(this)">Publicado</div>
+      </div>
+    </div>
+
+    <div class="mf" style="margin-bottom:14px">
+      <label class="ml">Estado del pago</label>
+      <div class="pay-toggle" id="edit-pay-toggle">
+        <div class="pt-opt" onclick="selectPay(this,'pend')">💸 Pendiente</div>
+        <div class="pt-opt sel-done" onclick="selectPay(this,'done')">✓ Pagado</div>
+      </div>
+    </div>
+
+    <div class="mf">
+      <label class="ml">Notas</label>
+      <textarea class="mi mta" placeholder="Brief, instrucciones, observaciones..."></textarea>
+    </div>
+
+    <div class="m-acts">
+      <button class="btn b-ghost" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn b-lime" onclick="closeModal('modal-edit')">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TOGGLE SECTIONS ──
+function toggleSection(hd) {
+  const wrap = hd.nextElementSibling;
+  const collapsed = hd.classList.contains('collapsed');
+  if (collapsed) {
+    hd.classList.remove('collapsed');
+    wrap.classList.remove('hidden');
+  } else {
+    hd.classList.add('collapsed');
+    wrap.classList.add('hidden');
+  }
+}
+
+// ── CYCLE STATUS ──
+const statusCycle = ['s-pend','s-recv','s-appr','s-pub','s-late'];
+const statusLabels = {
+  's-pend': 'Pendiente', 's-recv': 'Recibido',
+  's-appr': 'Aprobado', 's-pub': 'Publicado', 's-late': 'Atrasado'
+};
+function cycleStatus(el) {
+  const cur = statusCycle.find(s => el.classList.contains(s));
+  const idx = statusCycle.indexOf(cur);
+  const next = statusCycle[(idx + 1) % (statusCycle.length - 1)]; // skip 'late' in cycle
+  el.className = 'status ' + next;
+  el.innerHTML = `<span class="sdot"></span>${statusLabels[next]}`;
+}
+
+// ── CYCLE PAY ──
+function cyclePay(el) {
+  if (el.classList.contains('pay-done')) {
+    el.className = 'pay pay-pend';
+    el.textContent = '💸 Pendiente';
+  } else {
+    el.className = 'pay pay-done';
+    el.textContent = '✓ Pagado';
+  }
+}
+
+// ── STATUS FLOW SELECTOR ──
+function selectStatus(el) {
+  el.closest('.status-flow').querySelectorAll('.sf-step').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── PAY TOGGLE ──
+function selectPay(el, type) {
+  el.closest('.pay-toggle').querySelectorAll('.pt-opt').forEach(o => {
+    o.classList.remove('sel-pend','sel-done');
+  });
+  el.classList.add(type === 'pend' ? 'sel-pend' : 'sel-done');
+}
+
+// ── MODALS ──
+function openAddModal(client) {
+  if (client) {
+    document.getElementById('add-modal-sub').textContent = 'Nuevo influencer para ' + client;
+    const sel = document.getElementById('add-client-sel');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text.includes(client.split(' ')[0])) { sel.selectedIndex = i; break; }
+    }
+  }
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openEdit(name, handle, soc, phone, amount, date, status, pay) {
+  document.getElementById('edit-modal-sub').textContent = name + ' · ' + handle;
+  document.getElementById('edit-av').textContent = name[0];
+  document.getElementById('edit-name').textContent = name;
+  document.getElementById('edit-handle').textContent = handle;
+  document.getElementById('edit-soc').textContent = soc === 'IG' ? 'Instagram' : soc === 'TT' ? 'TikTok' : soc;
+  document.getElementById('edit-phone').textContent = phone;
+  document.getElementById('edit-amount').textContent = amount;
+  document.getElementById('edit-phone-input').value = phone;
+  document.getElementById('edit-amount-input').value = amount.replace('$','');
+
+  // set status flow
+  const flow = document.getElementById('edit-status-flow');
+  const map = {pending:'s-pend-a',received:'s-recv-a',approved:'s-appr-a',published:'s-pub-a',late:'s-pend-a'};
+  flow.querySelectorAll('.sf-step').forEach(s => s.classList.remove('active'));
+  const target = flow.querySelector('.' + (map[status] || 's-pend-a'));
+  if (target) target.classList.add('active');
+
+  // set pay
+  const payT = document.getElementById('edit-pay-toggle');
+  payT.querySelectorAll('.pt-opt').forEach(o => o.classList.remove('sel-pend','sel-done'));
+  payT.querySelectorAll('.pt-opt')[pay === 'done' ? 1 : 0].classList.add(pay === 'done' ? 'sel-done' : 'sel-pend');
+
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── FILTER ──
+function setFilter(btn, type) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // in real app: filter rows by status/pay
+}
+
+// ── SEARCH ──
+function searchInflu(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('table.it tbody tr').forEach(row => {
+    const txt = row.textContent.toLowerCase();
+    row.style.display = txt.includes(q) ? '' : 'none';
+  });
+  // show/hide sections if all rows hidden
+  document.querySelectorAll('.client-section').forEach(sec => {
+    const visRows = [...sec.querySelectorAll('tbody tr')].filter(r => r.style.display !== 'none');
+    sec.style.display = q && visRows.length === 0 ? 'none' : '';
+  });
+}
+
+// ── COPY PHONE ──
+function copyPhone(phone) {
+  navigator.clipboard.writeText(phone).catch(() => {});
+  // small visual feedback
+  event.target.textContent = '✓';
+  setTimeout(() => { event.target.textContent = '📋'; }, 1200);
+}
+</script>
+</body>
+</html>
