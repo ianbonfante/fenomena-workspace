@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fenomena — Tablero Planning</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --p:#240354;--p2:#2d0468;--p3:#1a0240;
+  --pink:#EEB1D7;--cyan:#00AFEC;--lime:#B2F56A;--white:#fff;
+  --s:#1a0240;--s2:#240354;--s3:#2d0468;
+  --bdr:rgba(238,177,215,0.13);--bdr2:rgba(238,177,215,0.26);
+  --txt:#f5f0ff;--mut:rgba(238,177,215,0.45);
+  --gn:#B2F56A;--gns:rgba(178,245,106,0.1);
+  --am:#f4d03f;--ams:rgba(244,208,63,0.1);
+  --rd:#ff6b8a;--rds:rgba(255,107,138,0.1);
+  --cy:#00AFEC;--cys:rgba(0,175,236,0.1);
+  --or:#ff9f43;--ors:rgba(255,159,67,0.1);
+  --pu:#c084fc;--pus:rgba(192,132,252,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--p3);color:var(--txt);font-family:'Hanken Grotesk',sans-serif;min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(26,2,64,0.97);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bdr);
+  padding:0 24px;height:52px;
+  display:flex;align-items:center;gap:10px;
+}
+.tb-logo{height:16px;flex-shrink:0;}
+.tb-sep{width:1px;height:18px;background:var(--bdr2);flex-shrink:0;}
+.tb-month{display:flex;gap:2px;background:var(--s);border:1px solid var(--bdr);border-radius:7px;padding:3px;}
+.tm{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:5px;border:none;cursor:pointer;color:var(--mut);background:transparent;transition:all 0.15s;}
+.tm.active{background:var(--cyan);color:var(--p);}
+.nav-btn{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:7px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.nav-btn:hover{color:var(--txt);border-color:var(--bdr2);}
+.nav-btn.hi{background:var(--cys);color:var(--cyan);border-color:rgba(0,175,236,0.3);}
+
+/* CONTRACT BADGE */
+.contract-badge{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:7px;
+  background:var(--ams);border:1px solid rgba(244,208,63,0.3);
+  color:var(--am);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.15s;animation:pulse-am 2s ease infinite;
+}
+@keyframes pulse-am{0%,100%{border-color:rgba(244,208,63,0.3)}50%{border-color:rgba(244,208,63,0.6)}}
+.cb-dot{width:6px;height:6px;border-radius:50%;background:var(--am);}
+
+.tb-spacer{flex:1;}
+.tb-user{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.tb-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--lime));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--p);}
+.tb-name{font-size:12px;font-weight:700;}
+.tb-role{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);opacity:0.8;}
+.logout{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:6px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;}
+.logout:hover{color:var(--rd);}
+
+/* ── DIRECTOR LOAD BAR ── */
+.director-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--bdr);
+  border-bottom:1px solid var(--bdr);
+}
+.dir-card{
+  background:var(--s2);padding:10px 16px;
+  display:flex;flex-direction:column;gap:4px;
+  cursor:pointer;transition:background 0.12s;position:relative;
+}
+.dir-card:hover{background:var(--s3);}
+.dc-top{display:flex;align-items:center;gap:8px;}
+.dc-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--p);flex-shrink:0;}
+.dc-name{font-size:12px;font-weight:800;flex:1;}
+.dc-role{font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);}
+.dc-sem{width:7px;height:7px;border-radius:50%;}
+.dc-gn{background:var(--gn);box-shadow:0 0 5px var(--gn);}
+.dc-am{background:var(--am);box-shadow:0 0 5px var(--am);}
+.dc-rd{background:var(--rd);box-shadow:0 0 5px var(--rd);}
+.dc-or{background:var(--or);box-shadow:0 0 5px var(--or);}
+.dc-bar-bg{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.dc-bar{height:100%;border-radius:2px;transition:width 1.2s ease;}
+.dc-pts{display:flex;align-items:center;justify-content:space-between;font-size:9px;}
+.dc-pts-val{font-weight:800;}
+.dc-pts-lbl{color:var(--mut);}
+.dc-30{
+  position:absolute;right:10px;top:10px;
+  font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;
+  background:rgba(255,159,67,0.1);color:var(--or);
+}
+
+/* ── STATS BAR ── */
+.sbar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--bdr);border-bottom:1px solid var(--bdr);}
+.sb{background:var(--s);padding:10px 16px;}
+.sbv{font-size:20px;font-weight:800;line-height:1;margin-bottom:2px;}
+.sbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);}
+
+/* ── FILTER BAR ── */
+.fbar{padding:9px 24px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--bdr);background:rgba(26,2,64,0.5);flex-wrap:wrap;}
+.fl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-right:2px;flex-shrink:0;}
+.fb{font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.fb:hover{color:var(--txt);border-color:var(--bdr2);}
+.fb.active{background:var(--s2);border-color:var(--bdr2);color:var(--txt);}
+.sw{margin-left:auto;display:flex;align-items:center;gap:5px;background:var(--s);border:1px solid var(--bdr);border-radius:7px;padding:5px 9px;}
+.sw input{background:none;border:none;outline:none;font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--txt);width:130px;}
+.sw input::placeholder{color:var(--mut);}
+
+/* ── MAIN ── */
+.main{padding:18px 24px;display:flex;flex-direction:column;gap:7px;}
+
+/* ── CLIENT CARD ── */
+.cc{background:var(--s);border:1px solid var(--bdr);border-radius:11px;overflow:hidden;transition:border-color 0.15s;animation:cin 0.3s ease both;}
+@keyframes cin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.cc:hover{border-color:var(--bdr2);}
+.cc.ian{border-left:3px solid var(--cyan);}
+.cc.shelsea{border-left:3px solid var(--pink);}
+.cc.megan{border-left:3px solid var(--lime);}
+
+/* ── CARD HEADER ── */
+.cc-hd{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;user-select:none;transition:background 0.12s;}
+.cc-hd:hover{background:rgba(255,255,255,0.02);}
+.sem{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sem.gn{background:var(--gn);box-shadow:0 0 5px var(--gn);}
+.sem.am{background:var(--am);box-shadow:0 0 5px var(--am);}
+.sem.rd{background:var(--rd);box-shadow:0 0 5px var(--rd);}
+.sem.cy{background:var(--cy);box-shadow:0 0 5px var(--cy);}
+
+.cc-main{flex:1;min-width:0;}
+.cc-name{font-size:13px;font-weight:800;letter-spacing:-0.3px;}
+.cc-meta{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;}
+
+/* PLANNER TAG */
+.planner-wrap{position:relative;display:inline-block;}
+.ptag{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:5px;display:inline-flex;align-items:center;gap:3px;cursor:default;}
+.ptag.ian{background:var(--cys);color:var(--cyan);}
+.ptag.shelsea{background:rgba(238,177,215,0.1);color:var(--pink);}
+.ptag.megan{background:var(--gns);color:var(--gn);}
+.edit-p{font-size:9px;opacity:0;cursor:pointer;color:var(--mut);transition:opacity 0.15s;background:none;border:none;padding:0 1px;}
+.cc-hd:hover .edit-p{opacity:1;}
+.pdd{position:absolute;top:calc(100% + 3px);left:0;background:var(--s2);border:1px solid var(--bdr2);border-radius:8px;padding:4px;z-index:50;display:none;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.pdd.open{display:block;}
+.pdd-o{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:600;padding:6px 9px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.pdd-o:hover{background:var(--s3);}
+
+/* DESIGNER CHIP */
+.dchip{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;background:rgba(238,177,215,0.06);border:1px solid var(--bdr);display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:border-color 0.15s;}
+.dchip:hover{border-color:var(--bdr2);}
+.dchip.support{background:var(--pus);border-color:rgba(192,132,252,0.2);color:var(--pu);}
+.d-av{width:13px;height:13px;border-radius:50%;font-size:7px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--p);flex-shrink:0;}
+
+.cc-pills{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.pill{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.p-ok{background:var(--gns);color:var(--gn);}
+.p-prog{background:var(--cys);color:var(--cy);}
+.p-wait{background:var(--ams);color:var(--am);}
+.p-late{background:var(--rds);color:var(--rd);}
+.p-done{background:rgba(238,177,215,0.06);color:var(--mut);}
+.p-inf{background:var(--pus);color:var(--pu);}
+.p-media{background:var(--gns);color:var(--gn);}
+.p-plan{background:var(--ors);color:var(--or);}
+
+.cc-arrow{font-size:10px;color:var(--mut);transition:transform 0.2s;flex-shrink:0;}
+.cc.open .cc-arrow{transform:rotate(180deg);}
+
+/* ── CARD BODY ── */
+.cc-body{display:none;border-top:1px solid var(--bdr);}
+.cc.open .cc-body{display:block;}
+.cc-grid{display:grid;grid-template-columns:1fr 1fr 220px;gap:1px;background:var(--bdr);}
+
+/* ── BATCH SECTION ── */
+.bsec{background:var(--s2);padding:13px 15px;}
+.bsec-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;}
+.ssel{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap;}
+.ss{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.15s;}
+.ss:hover{color:var(--txt);border-color:var(--bdr2);}
+.ss.ok{background:var(--gns);color:var(--gn);border-color:rgba(178,245,106,0.3);}
+.ss.prog{background:var(--cys);color:var(--cy);border-color:rgba(0,175,236,0.3);}
+.ss.wait{background:var(--ams);color:var(--am);border-color:rgba(244,208,63,0.3);}
+.ss.late{background:var(--rds);color:var(--rd);border-color:rgba(255,107,138,0.3);}
+
+/* PIECE ROW */
+.pieces-list{display:flex;flex-direction:column;gap:4px;margin-bottom:6px;}
+.pr{display:flex;align-items:center;gap:5px;}
+.pr-name{font-size:11px;font-weight:600;flex:1;}
+
+/* EDITABLE PTS */
+.pr-pts{
+  display:flex;align-items:center;gap:2px;
+  background:rgba(255,255,255,0.05);border:1px solid var(--bdr);
+  border-radius:4px;padding:1px 4px;cursor:pointer;transition:border-color 0.12s;
+}
+.pr-pts:hover{border-color:var(--bdr2);}
+.pr-pts input{
+  background:none;border:none;outline:none;
+  font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;
+  color:var(--mut);width:26px;text-align:center;cursor:pointer;
+}
+.pr-pts input:focus{color:var(--or);}
+.pr-pts-lbl{font-size:8px;color:var(--mut);}
+
+.pc{display:flex;align-items:center;gap:2px;}
+.pc-btn{width:20px;height:20px;border-radius:4px;border:1px solid var(--bdr);background:transparent;color:var(--txt);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
+.pc-btn:hover{background:var(--s3);}
+.pc-num{font-size:12px;font-weight:800;min-width:22px;text-align:center;}
+.pr-total{font-size:10px;color:var(--mut);white-space:nowrap;}
+
+.pb-bg{height:3px;background:rgba(238,177,215,0.07);border-radius:2px;overflow:hidden;margin-top:2px;margin-bottom:2px;}
+.pb{height:100%;border-radius:2px;transition:width 1s ease;}
+
+.add-piece-btn{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px dashed var(--bdr);background:transparent;color:var(--mut);cursor:pointer;width:100%;transition:all 0.15s;margin-top:3px;}
+.add-piece-btn:hover{color:var(--txt);border-color:var(--bdr2);}
+
+/* ── RIGHT: NOTIFY + INFLUS ── */
+.rsec{background:var(--s2);padding:13px 15px;display:flex;flex-direction:column;gap:7px;}
+.rs-title{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);}
+.mbadge{font-size:10px;color:var(--mut);display:flex;align-items:center;gap:4px;padding:4px 7px;background:rgba(0,175,236,0.05);border-radius:5px;border:1px solid var(--bdr);}
+.lf{display:flex;flex-direction:column;gap:3px;}
+.lf-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);}
+.lf-wrap{display:flex;gap:3px;}
+.lf-name{flex:1;background:var(--s);border:1px solid var(--bdr);border-radius:5px;padding:5px 8px;font-family:'Hanken Grotesk',sans-serif;font-size:10px;color:var(--cyan);outline:none;transition:border-color 0.12s;}
+.lf-name:focus{border-color:var(--cyan);}
+.lf-url{width:30px;background:var(--s);border:1px solid var(--bdr);border-left:none;border-radius:0 5px 5px 0;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.lf-url:hover{background:var(--cys);}
+.mi-sm{width:100%;background:var(--s);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--txt);outline:none;transition:border-color 0.12s;}
+.mi-sm:focus{border-color:var(--cyan);}
+.nb{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:8px;border-radius:7px;border:none;cursor:pointer;width:100%;transition:all 0.15s;}
+.nb-go{background:var(--cyan);color:var(--p);}
+.nb-go:hover{background:#33c4f5;}
+.nb-sent{background:var(--gns);color:var(--gn);border:1px solid rgba(178,245,106,0.3);}
+.im-row{padding:5px 0;border-bottom:1px solid var(--bdr);cursor:pointer;}
+.im-row:last-child{border-bottom:none;}
+.im-top{display:flex;align-items:center;gap:5px;}
+.im-name{font-size:10px;font-weight:700;flex:1;}
+.im-amt{font-size:10px;font-weight:800;color:var(--gn);}
+.im-st{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 5px;border-radius:8px;}
+.im-sub{font-size:9px;color:var(--mut);margin-top:1px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.im-link{color:var(--cyan);text-decoration:none;font-size:9px;}
+.im-link:hover{text-decoration:underline;}
+.add-influ{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px;border-radius:6px;border:1px dashed var(--bdr);background:transparent;color:var(--mut);cursor:pointer;width:100%;transition:all 0.15s;}
+.add-influ:hover{color:var(--pink);border-color:rgba(238,177,215,0.3);}
+
+/* CARD FOOTER */
+.cc-ft{padding:8px 14px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:7px;background:rgba(0,0,0,0.1);}
+.cf-note{flex:1;font-size:11px;color:var(--mut);background:none;border:none;outline:none;font-family:'Hanken Grotesk',sans-serif;resize:none;height:20px;}
+.cf-note::placeholder{color:var(--mut);opacity:0.55;}
+.cf-save{font-family:'Hanken Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px solid rgba(178,245,106,0.3);background:var(--gns);color:var(--gn);cursor:pointer;white-space:nowrap;}
+
+/* ── EXTRAS SECTION ── */
+.extras-sec{margin-top:10px;}
+.extras-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.extras-title{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;}
+.extras-ct{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--mut);background:var(--s2);padding:2px 8px;border-radius:10px;}
+.add-extra-btn{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 13px;border-radius:7px;border:none;background:var(--or);color:var(--p);cursor:pointer;transition:all 0.15s;}
+.add-extra-btn:hover{background:#ffb366;}
+.extras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:7px;}
+.extra-card{background:var(--s);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;animation:cin 0.3s ease both;}
+.extra-card.design{border-left:3px solid var(--or);}
+.extra-card.planning{border-left:3px solid var(--cy);}
+.ec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;margin-bottom:9px;}
+.ec-client{font-size:12px;font-weight:800;}
+.ec-sub{font-size:9px;color:var(--mut);margin-top:1px;}
+.ec-pts{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+.ec-del{background:none;border:none;font-size:11px;cursor:pointer;color:var(--mut);opacity:0;transition:opacity 0.15s;}
+.extra-card:hover .ec-del{opacity:1;}
+.ec-pieces{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.ecp{display:flex;align-items:center;gap:6px;font-size:10px;}
+.ecp-name{flex:1;font-weight:600;}
+.ecp-qty{font-weight:800;color:var(--or);}
+.ecp-pts{color:var(--mut);}
+.ec-bottom{display:flex;align-items:center;justify-content:space-between;font-size:10px;}
+.ec-who{color:var(--mut);display:flex;align-items:center;gap:4px;}
+.ec-dl{font-weight:700;color:var(--am);}
+.ec-type-badge{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:10px;}
+.type-design{background:var(--ors);color:var(--or);}
+.type-plan{background:var(--cys);color:var(--cy);}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(26,2,64,0.88);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--p);border:1px solid var(--bdr2);border-radius:13px;padding:24px;width:500px;max-width:92vw;animation:min 0.22s ease;max-height:90vh;overflow-y:auto;}
+@keyframes min{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.m-title{font-size:18px;font-weight:800;margin-bottom:3px;letter-spacing:-0.4px;}
+.m-sub{font-size:11px;color:var(--mut);margin-bottom:16px;}
+.mf{margin-bottom:11px;}
+.ml{display:block;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:5px;}
+.mi{width:100%;background:var(--s);border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:var(--txt);outline:none;transition:border-color 0.12s;}
+.mi:focus{border-color:var(--cyan);}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:11px;}
+.mrow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:11px;}
+.m-acts{display:flex;gap:7px;justify-content:flex-end;margin-top:14px;}
+.btn{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;border-radius:7px;border:1px solid;cursor:pointer;transition:all 0.15s;}
+.b-ghost{background:transparent;color:var(--mut);border-color:var(--bdr);}
+.b-ghost:hover{color:var(--txt);}
+.b-cyan{background:var(--cyan);color:var(--p);border-color:var(--cyan);}
+.b-lime{background:var(--lime);color:var(--p);border-color:var(--lime);}
+.b-pink{background:var(--pink);color:var(--p);border-color:var(--pink);}
+.b-or{background:var(--or);color:var(--p);border-color:var(--or);}
+.b-am{background:var(--am);color:var(--p);border-color:var(--am);}
+.m-divider{height:1px;background:var(--bdr);margin:12px 0;}
+
+/* DIRECTOR PANEL in modal */
+.dir-team{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.dt-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border-radius:7px;font-size:11px;}
+.dt-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--p);flex-shrink:0;}
+.dt-name{font-weight:700;flex:1;}
+.dt-pts{font-size:10px;font-weight:700;}
+.dt-sem{width:6px;height:6px;border-radius:50%;}
+.dt-remove{background:none;border:none;font-size:11px;cursor:pointer;color:var(--mut);opacity:0;}
+.dt-row:hover .dt-remove{opacity:1;}
+.dt-30{font-size:8px;color:var(--or);font-weight:700;padding:1px 5px;background:var(--ors);border-radius:4px;}
+
+/* designer select grid */
+.ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
+.ds-opt{padding:8px;border-radius:7px;border:1px solid var(--bdr);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--mut);transition:all 0.15s;}
+.ds-opt:hover{border-color:var(--bdr2);color:var(--txt);}
+.ds-opt.sel{border-color:rgba(0,175,236,0.4);background:var(--cys);color:var(--cyan);}
+.ds-opt.sel-sup{border-color:rgba(192,132,252,0.4);background:var(--pus);color:var(--pu);}
+.ds-av{width:24px;height:24px;border-radius:50%;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--p);}
+
+/* lib suggestions */
+.lib-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.lib-tag{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.15s;}
+.lib-tag:hover{background:var(--ors);color:var(--or);border-color:rgba(255,159,67,0.3);}
+.lib-tag.sel{background:var(--ors);color:var(--or);border-color:rgba(255,159,67,0.3);}
+
+/* planning-only toggle */
+.plan-toggle{display:flex;gap:6px;margin-bottom:10px;}
+.pt-opt{flex:1;padding:9px;border-radius:7px;border:1px solid var(--bdr);cursor:pointer;text-align:center;font-size:11px;font-weight:700;color:var(--mut);transition:all 0.15s;}
+.pt-opt:hover{border-color:var(--bdr2);color:var(--txt);}
+.pt-opt.sel-design{background:var(--ors);color:var(--or);border-color:rgba(255,159,67,0.3);}
+.pt-opt.sel-plan{background:var(--cys);color:var(--cy);border-color:rgba(0,175,236,0.3);}
+
+/* contract list */
+.contract-list{display:flex;flex-direction:column;gap:5px;}
+.cl-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:8px;border-left:3px solid var(--am);}
+.cl-client{font-size:12px;font-weight:700;flex:1;}
+.cl-type{font-size:10px;color:var(--mut);}
+.cl-due{font-size:10px;font-weight:700;color:var(--am);}
+.cl-sign{font-family:'Hanken Grotesk',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:6px;background:var(--am);color:var(--p);border:none;cursor:pointer;}
+.cl-sign:hover{background:#f7dc6f;}
+
+/* notify preview */
+.np{background:var(--gns);border:1px solid rgba(178,245,106,0.2);border-radius:8px;padding:11px;margin-bottom:11px;}
+.np-row{font-size:11px;display:flex;gap:7px;margin-bottom:3px;}
+.np-lbl{font-weight:700;color:var(--gn);width:70px;flex-shrink:0;}
+
+.arc{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--pink);opacity:0.2;text-align:center;padding:18px;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <svg class="tb-logo" viewBox="0 0 2000 400" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#fff" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
+    <path fill="#fff" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+    <path fill="#fff" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+    <path fill="#fff" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
+    <path fill="#fff" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
+    <path fill="#fff" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+    <path fill="#fff" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+    <path fill="#fff" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
+  </svg>
+  <div class="tb-sep"></div>
+  <div class="tb-month">
+    <button class="tm">Abr</button>
+    <button class="tm active">May</button>
+    <button class="tm">Jun</button>
+  </div>
+  <button class="nav-btn hi" onclick="location.href='fenomena-media-v2.html'">📡 Media</button>
+  <button class="nav-btn" onclick="location.href='fenomena-admin.html'">🔒 Admin</button>
+  <button class="nav-btn" onclick="location.href='fenomena-pipeline.html'">🎯 Pipeline</button>
+
+  <!-- CONTRACT ALERT -->
+  <div class="contract-badge" onclick="openContracts()">
+    <div class="cb-dot"></div>
+    2 contratos pendientes
+  </div>
+
+  <div class="tb-spacer"></div>
+  <div class="tb-user">
+    <div style="text-align:right">
+      <div class="tb-name">Ian</div>
+      <div class="tb-role">Director Planning · Admin</div>
+    </div>
+    <div class="tb-av">I</div>
+    <button class="logout" onclick="location.href='index.html'">Salir</button>
+  </div>
+</header>
+
+<!-- ══ DIRECTOR LOAD BAR ══ -->
+<div class="director-bar">
+
+  <!-- IAN -->
+  <div class="dir-card" onclick="openDirPanel('ian')">
+    <div class="dc-30">30% gestión</div>
+    <div class="dc-top">
+      <div class="dc-av" style="background:linear-gradient(135deg,var(--cyan),var(--lime))">I</div>
+      <div style="flex:1">
+        <div class="dc-name">Ian</div>
+        <div class="dc-role">Director Planning</div>
+      </div>
+      <div class="dc-sem dc-am"></div>
+    </div>
+    <div class="dc-bar-bg"><div class="dc-bar" style="width:78%;background:var(--am)"></div></div>
+    <div class="dc-pts">
+      <span class="dc-pts-val" style="color:var(--am)">38h / 40h</span>
+      <span class="dc-pts-lbl">🟡 Al límite</span>
+    </div>
+  </div>
+
+  <!-- ANDRÉ -->
+  <div class="dir-card" onclick="openDirPanel('andre')">
+    <div class="dc-30">30% gestión</div>
+    <div class="dc-top">
+      <div class="dc-av" style="background:linear-gradient(135deg,var(--pink),var(--pu))">A</div>
+      <div style="flex:1">
+        <div class="dc-name">André</div>
+        <div class="dc-role">Dir. Creativa · 5 diseñadores</div>
+      </div>
+      <div class="dc-sem dc-rd"></div>
+    </div>
+    <div class="dc-bar-bg"><div class="dc-bar" style="width:92%;background:var(--rd)"></div></div>
+    <div class="dc-pts">
+      <span class="dc-pts-val" style="color:var(--rd)">44h / 40h</span>
+      <span class="dc-pts-lbl">🔴 Sobrecargada</span>
+    </div>
+  </div>
+
+  <!-- VALERIA -->
+  <div class="dir-card" onclick="openDirPanel('valeria')">
+    <div class="dc-30">30% gestión</div>
+    <div class="dc-top">
+      <div class="dc-av" style="background:linear-gradient(135deg,var(--lime),var(--cyan))">V</div>
+      <div style="flex:1">
+        <div class="dc-name">Valeria</div>
+        <div class="dc-role">Dir. Creativa · 3 diseñadores</div>
+      </div>
+      <div class="dc-sem dc-gn"></div>
+    </div>
+    <div class="dc-bar-bg"><div class="dc-bar" style="width:55%;background:var(--gn)"></div></div>
+    <div class="dc-pts">
+      <span class="dc-pts-val" style="color:var(--gn)">22h / 40h</span>
+      <span class="dc-pts-lbl">🟢 Disponible</span>
+    </div>
+  </div>
+
+  <!-- BELKYS -->
+  <div class="dir-card" onclick="openDirPanel('belkys')">
+    <div class="dc-30">30% gestión</div>
+    <div class="dc-top">
+      <div class="dc-av" style="background:linear-gradient(135deg,var(--am),var(--or))">B</div>
+      <div style="flex:1">
+        <div class="dc-name">Belkys</div>
+        <div class="dc-role">Dir. Media · Christian</div>
+      </div>
+      <div class="dc-sem dc-gn"></div>
+    </div>
+    <div class="dc-bar-bg"><div class="dc-bar" style="width:45%;background:var(--gn)"></div></div>
+    <div class="dc-pts">
+      <span class="dc-pts-val" style="color:var(--gn)">18h / 40h</span>
+      <span class="dc-pts-lbl">🟢 Disponible</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ STATS BAR ══ -->
+<div class="sbar">
+  <div class="sb"><div class="sbv" style="color:var(--cy)">27</div><div class="sbl">Clientes activos</div></div>
+  <div class="sb"><div class="sbv" style="color:var(--gn)">11</div><div class="sbl">En track</div></div>
+  <div class="sb"><div class="sbv" style="color:var(--am)">8</div><div class="sbl">En progreso</div></div>
+  <div class="sb"><div class="sbv" style="color:var(--rd)">2</div><div class="sbl">Atrasados</div></div>
+  <div class="sb"><div class="sbv" style="color:var(--pu)">7</div><div class="sbl">Con influencers</div></div>
+  <div class="sb"><div class="sbv" style="color:var(--or)">4</div><div class="sbl">Proyectos extra</div></div>
+</div>
+
+<!-- ══ FILTER BAR ══ -->
+<div class="fbar">
+  <span class="fl">Ver:</span>
+  <button class="fb active" onclick="filt(this,'all')">Todos</button>
+  <button class="fb" onclick="filt(this,'ian')" style="color:var(--cy)">Ian</button>
+  <button class="fb" onclick="filt(this,'shelsea')" style="color:var(--pink)">Shelsea</button>
+  <button class="fb" onclick="filt(this,'megan')" style="color:var(--gn)">Megan</button>
+  <button class="fb" onclick="filt(this,'late')" style="color:var(--rd)">🔴 Atrasados</button>
+  <button class="fb" onclick="filt(this,'influs')" style="color:var(--pu)">👥 Influs</button>
+  <button class="fb" onclick="filt(this,'media-p')" style="color:var(--cy)">📡 Pend. Media</button>
+  <div class="sw"><span style="font-size:12px;color:var(--mut)">🔍</span><input type="text" placeholder="Buscar cliente..." oninput="search(this.value)"/></div>
+</div>
+
+<!-- ══ CLIENT CARDS ══ -->
+<div class="main" id="client-list">
+
+  <!-- ═ RELOJÍN ═ -->
+  <div class="cc shelsea" data-planner="shelsea" data-status="late" data-influs="true" data-media-p="true" id="cc-r">
+    <div class="cc-hd" onclick="tog(event,'cc-r')">
+      <div class="sem rd"></div>
+      <div class="cc-main">
+        <div class="cc-name">Relojín</div>
+        <div class="cc-meta">
+          <div class="planner-wrap" onclick="event.stopPropagation()">
+            <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+            <div class="pdd" id="pd-r">
+              <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','ian','Ian')"><span style="width:7px;height:7px;border-radius:50%;background:var(--cy);display:inline-block"></span>Ian</div>
+              <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','shelsea','Shelsea')"><span style="width:7px;height:7px;border-radius:50%;background:var(--pink);display:inline-block"></span>Shelsea</div>
+              <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','megan','Megan')"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>Megan</div>
+            </div>
+          </div>
+          <span style="font-size:9px;color:var(--mut)">Tipo C · Panamá · Grabación tienda</span>
+          <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-r')"><div class="d-av" style="background:var(--pink)">D</div>Didi ✎</div>
+        </div>
+      </div>
+      <div class="cc-pills">
+        <span class="pill p-late">🚨 Atrasado</span>
+        <span class="pill p-inf">👥 3 influs</span>
+        <span class="pill p-wait">📡 Pend. Media</span>
+      </div>
+      <span class="cc-arrow">▾</span>
+    </div>
+    <div class="cc-body">
+      <div class="cc-grid">
+        <div class="bsec">
+          <div class="bsec-title">Batch 1 — Día 15 mayo <span style="color:var(--rd)">0/14</span></div>
+          <div class="ssel">
+            <button class="ss late" onclick="setSt(this)">🔴 Atrasado</button>
+            <button class="ss" onclick="setSt(this)">En progreso</button>
+            <button class="ss" onclick="setSt(this)">✓ Listo</button>
+          </div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎥 Videos grabados</span>
+              <div class="pr-pts"><input type="number" value="5" min="1" max="20" title="Editar puntos de complejidad"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/10</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:0%;background:var(--rd)"></div></div>
+            <div class="pr" style="margin-top:3px">
+              <span class="pr-name">🎬 Vectoriales</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20" title="Editar puntos"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/4</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:0%;background:var(--rd)"></div></div>
+          </div>
+          <button class="add-piece-btn" onclick="openPiece('Relojín B1')">+ Agregar pieza</button>
+        </div>
+        <div class="bsec">
+          <div class="bsec-title">Batch 2 — Día 25 mayo <span style="color:var(--mut)">0/14</span></div>
+          <div class="ssel">
+            <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
+            <button class="ss" onclick="setSt(this)">En progreso</button>
+          </div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎥 Videos grabados</span>
+              <div class="pr-pts"><input type="number" value="5" min="1" max="20" title="Editar puntos"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/10</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:0%;background:var(--cy)"></div></div>
+          </div>
+          <button class="add-piece-btn" onclick="openPiece('Relojín B2')">+ Agregar pieza</button>
+        </div>
+        <div class="rsec">
+          <div class="rs-title">Media Bridge</div>
+          <div class="mbadge">📡 Christian · META · TikTok · Google</div>
+          <div class="lf">
+            <label class="lf-lbl">Paper</label>
+            <div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div>
+          </div>
+          <input class="mi-sm" type="date"/>
+          <button class="nb nb-go" onclick="openNotify('Relojín','Christian')">📡 Notificar a Media</button>
+          <div class="rs-title">Influencers (3)</div>
+          <div class="influ-mini">
+            <div class="im-row" onclick="openInfluEdit('Sofía Reyes','@sofiarey_pty','+507 6123-4567','350','Aprobado','Pagado')">
+              <div class="im-top"><span class="im-name">Sofía Reyes</span><span class="im-amt">$350</span><span class="im-st p-ok">OK</span></div>
+              <div class="im-sub">@sofiarey_pty · +507 6123-4567<a class="im-link" href="#">📋 Brief</a><a class="im-link" href="#">📄 Contrato</a></div>
+            </div>
+            <div class="im-row" onclick="openInfluEdit('Mariana López','@mariana.pty','+507 6234-5678','400','Recibido','Pendiente')">
+              <div class="im-top"><span class="im-name">Mariana López</span><span class="im-amt">$400</span><span class="im-st p-prog">Recibido</span></div>
+              <div class="im-sub">@mariana.pty · +507 6234-5678<a class="im-link" href="#">📋 Brief</a></div>
+            </div>
+            <div class="im-row" onclick="openInfluEdit('Carlos Vega','@carlosvega','+507 6345-6789','280','Atrasado','Pendiente')">
+              <div class="im-top"><span class="im-name">Carlos Vega</span><span class="im-amt">$280</span><span class="im-st p-late">Tarde</span></div>
+              <div class="im-sub">@carlosvega · +507 6345-6789</div>
+            </div>
+          </div>
+          <button class="add-influ" onclick="openAddInflu('Relojín')">+ Agregar influencer</button>
+        </div>
+      </div>
+      <div class="cc-ft"><input class="cf-note" placeholder="Notas internas de Planning..."/><button class="cf-save">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- ═ LA HIPOTECARIA ═ -->
+  <div class="cc ian" data-planner="ian" data-status="prog" data-media-p="true" id="cc-h">
+    <div class="cc-hd" onclick="tog(event,'cc-h')">
+      <div class="sem am"></div>
+      <div class="cc-main">
+        <div class="cc-name">La Hipotecaria</div>
+        <div class="cc-meta">
+          <div class="planner-wrap" onclick="event.stopPropagation()">
+            <span class="ptag ian">Ian<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+            <div class="pdd" id="pd-h">
+              <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','ian','Ian')"><span style="width:7px;height:7px;border-radius:50%;background:var(--cy);display:inline-block"></span>Ian</div>
+              <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','shelsea','Shelsea')"><span style="width:7px;height:7px;border-radius:50%;background:var(--pink);display:inline-block"></span>Shelsea</div>
+              <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','megan','Megan')"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>Megan</div>
+            </div>
+          </div>
+          <span style="font-size:9px;color:var(--mut)">Tipo A · PTY · COL · SLV</span>
+          <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-h')"><div class="d-av" style="background:var(--am)">?</div>Por contratar ✎</div>
+        </div>
+      </div>
+      <div class="cc-pills"><span class="pill p-prog">En progreso</span><span class="pill p-wait">📡 Pend. Media</span></div>
+      <span class="cc-arrow">▾</span>
+    </div>
+    <div class="cc-body">
+      <div class="cc-grid">
+        <div class="bsec">
+          <div class="bsec-title">Batch 1 — Día 15 mayo <span style="color:var(--am)">5/10</span></div>
+          <div class="ssel"><button class="ss" onclick="setSt(this)">🔴 Atrasado</button><button class="ss prog" onclick="setSt(this)">En progreso</button><button class="ss" onclick="setSt(this)">✓ Listo</button></div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎠 Carruseles</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20" title="Editar puntos"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/5</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:60%;background:var(--am)"></div></div>
+            <div class="pr" style="margin-top:3px">
+              <span class="pr-name">🎬 Reels</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20" title="Editar puntos"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">2</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/5</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:40%;background:var(--am)"></div></div>
+          </div>
+          <button class="add-piece-btn" onclick="openPiece('La Hip. B1')">+ Agregar pieza</button>
+        </div>
+        <div class="bsec">
+          <div class="bsec-title">Batch 2 — Día 25 mayo <span style="color:var(--mut)">0/10</span></div>
+          <div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button><button class="ss" onclick="setSt(this)">En progreso</button></div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎠 Carruseles</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/5</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:0%;background:var(--cy)"></div></div>
+          </div>
+          <button class="add-piece-btn" onclick="openPiece('La Hip. B2')">+ Agregar pieza</button>
+        </div>
+        <div class="rsec">
+          <div class="rs-title">Media Bridge</div>
+          <div class="mbadge">📡 Christian · META · Google · LinkedIn</div>
+          <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre..."/><div class="lf-url">🔗</div></div></div>
+          <input class="mi-sm" type="date"/>
+          <button class="nb nb-go" onclick="openNotify('La Hipotecaria','Christian')">📡 Notificar a Media</button>
+          <button class="add-influ" onclick="openAddInflu('La Hipotecaria')">+ Agregar influencer</button>
+        </div>
+      </div>
+      <div class="cc-ft"><input class="cf-note" placeholder="Notas internas..."/><button class="cf-save">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- ═ ATTENZA ═ -->
+  <div class="cc shelsea" data-planner="shelsea" data-status="ok" id="cc-a">
+    <div class="cc-hd" onclick="tog(event,'cc-a')">
+      <div class="sem cy"></div>
+      <div class="cc-main">
+        <div class="cc-name">Attenza</div>
+        <div class="cc-meta">
+          <div class="planner-wrap" onclick="event.stopPropagation()">
+            <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+            <div class="pdd" id="pd-a">
+              <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','ian','Ian')"><span style="width:7px;height:7px;border-radius:50%;background:var(--cy);display:inline-block"></span>Ian</div>
+              <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','shelsea','Shelsea')"><span style="width:7px;height:7px;border-radius:50%;background:var(--pink);display:inline-block"></span>Shelsea</div>
+              <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','megan','Megan')"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>Megan</div>
+            </div>
+          </div>
+          <span style="font-size:9px;color:var(--mut)">Tipo A · Todos los países</span>
+          <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-a')"><div class="d-av" style="background:var(--cy)">W</div>Willcy ✎</div>
+        </div>
+      </div>
+      <div class="cc-pills"><span class="pill p-ok">✓ Aprobado</span><span class="pill p-media">📡 Media notificado</span></div>
+      <span class="cc-arrow">▾</span>
+    </div>
+    <div class="cc-body">
+      <div class="cc-grid">
+        <div class="bsec">
+          <div class="bsec-title">Batch 1 — Día 5 mayo <span style="color:var(--gn)">✓ 3/3</span></div>
+          <div class="ssel"><button class="ss ok" onclick="setSt(this)">✓ Aprobado</button></div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎬 Reels</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total" style="color:var(--gn)">✓/3</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:100%;background:var(--gn)"></div></div>
+          </div>
+        </div>
+        <div class="bsec">
+          <div class="bsec-title">Batch 2 — Día 25 mayo <span style="color:var(--mut)">0/3</span></div>
+          <div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button></div>
+          <div class="pieces-list">
+            <div class="pr">
+              <span class="pr-name">🎬 Reels</span>
+              <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+              <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+              <span class="pr-total">/3</span>
+            </div>
+            <div class="pb-bg"><div class="pb" style="width:0%;background:var(--cy)"></div></div>
+          </div>
+        </div>
+        <div class="rsec">
+          <div class="rs-title">Media Bridge</div>
+          <div class="mbadge">📡 Belkys · META · Todos los países</div>
+          <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" value="Attenza Mayo — Batch 1"/><div class="lf-url">🔗</div></div></div>
+          <button class="nb nb-sent">✓ Media notificado · 5 mayo</button>
+          <button class="add-influ" onclick="openAddInflu('Attenza')">+ Agregar influencer</button>
+        </div>
+      </div>
+      <div class="cc-ft"><input class="cf-note" value="Aprobado por cliente 4 mayo."/><button class="cf-save">Guardar</button></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:12px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);cursor:pointer" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--mut)'">+ VER TODOS LOS 27 CLIENTES</div>
+
+  <!-- ══ EXTRA PROJECTS ══ -->
+  <div class="extras-sec">
+    <div class="extras-hd">
+      <div class="extras-title">⚡ Proyectos extra mayo <span class="extras-ct">4 registrados</span></div>
+      <button class="add-extra-btn" onclick="openExtra()">+ Agregar proyecto extra</button>
+    </div>
+    <div class="extras-grid" id="extras-grid">
+
+      <div class="extra-card design">
+        <div class="ec-top">
+          <div><div class="ec-client">Welch's</div><div class="ec-sub">Ian · Gian</div></div>
+          <span class="ec-pts" style="background:var(--ors);color:var(--or)">14 pts</span>
+          <span class="ec-type-badge type-design">Con diseño</span>
+          <button class="ec-del" onclick="delExtra(this)">✕</button>
+        </div>
+        <div class="ec-pieces">
+          <div class="ecp"><span class="ecp-name">🎥 Video con producción</span><span class="ecp-qty">×2</span><span class="ecp-pts">5pts c/u</span></div>
+          <div class="ecp"><span class="ecp-name">🎠 Carrusel adicional</span><span class="ecp-qty">×2</span><span class="ecp-pts">2pts c/u</span></div>
+        </div>
+        <div class="ec-bottom"><div class="ec-who">🎨 Gian</div><div class="ec-dl">⏰ 20 mayo</div></div>
+      </div>
+
+      <div class="extra-card planning">
+        <div class="ec-top">
+          <div><div class="ec-client">La Hipotecaria</div><div class="ec-sub">Ian — solo planning</div></div>
+          <span class="ec-pts" style="background:var(--cys);color:var(--cy)">10 pts</span>
+          <span class="ec-type-badge type-plan">Solo Planning</span>
+          <button class="ec-del" onclick="delExtra(this)">✕</button>
+        </div>
+        <div class="ec-pieces">
+          <div class="ecp"><span class="ecp-name">📊 Propuesta comercial</span><span class="ecp-qty">×1</span><span class="ecp-pts">10pts</span></div>
+        </div>
+        <div class="ec-bottom"><div class="ec-who">📋 Ian</div><div class="ec-dl">⏰ 15 mayo</div></div>
+      </div>
+
+      <div class="extra-card planning">
+        <div class="ec-top">
+          <div><div class="ec-client">Miller Lite HN</div><div class="ec-sub">Ian + Megan — coordinación mundial</div></div>
+          <span class="ec-pts" style="background:var(--cys);color:var(--cy)">Plan</span>
+          <span class="ec-type-badge type-plan">Solo Planning</span>
+          <button class="ec-del" onclick="delExtra(this)">✕</button>
+        </div>
+        <div class="ec-pieces">
+          <div class="ecp"><span class="ecp-name">📋 Coordinación producción mundial</span><span class="ecp-qty">×1</span><span class="ecp-pts">var.</span></div>
+        </div>
+        <div class="ec-bottom"><div class="ec-who">📋 Ian + Megan</div><div class="ec-dl">⏰ 30 mayo</div></div>
+      </div>
+
+      <div class="extra-card design">
+        <div class="ec-top">
+          <div><div class="ec-client">ASSA</div><div class="ec-sub">Creative · Monica</div></div>
+          <span class="ec-pts" style="background:var(--ors);color:var(--or)">4 pts</span>
+          <span class="ec-type-badge type-design">Con diseño</span>
+          <button class="ec-del" onclick="delExtra(this)">✕</button>
+        </div>
+        <div class="ec-pieces">
+          <div class="ecp"><span class="ecp-name">🖼 Artes estáticos especiales</span><span class="ecp-qty">×4</span><span class="ecp-pts">1pt c/u</span></div>
+        </div>
+        <div class="ec-bottom"><div class="ec-who">🎨 Monica</div><div class="ec-dl">⏰ 25 mayo</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arc">A real click. · Digital Growth Partner · Fenomena © 2026</div>
+</div>
+
+<!-- ══ MODAL: CONTRACTS ══ -->
+<div class="overlay" id="modal-contracts">
+  <div class="modal">
+    <div class="m-title">✍️ Contratos pendientes de firma</div>
+    <div class="m-sub">Necesitan tu firma — Ian · Director</div>
+    <div class="contract-list">
+      <div class="cl-row">
+        <div><div class="cl-client">La Hipotecaria — Contrato 2026</div><div class="cl-type">Contrato anual · PTY · COL · SLV</div></div>
+        <div class="cl-due">Vence 10 mayo</div>
+        <button class="cl-sign" onclick="event.stopPropagation()">✍️ Firmar</button>
+      </div>
+      <div class="cl-row">
+        <div><div class="cl-client">Bella Holandesa Perú — Adenda</div><div class="cl-type">Adenda de servicios digitales</div></div>
+        <div class="cl-due">Vence 18 mayo</div>
+        <button class="cl-sign" onclick="event.stopPropagation()">✍️ Firmar</button>
+      </div>
+    </div>
+    <div class="mf" style="margin-top:14px">
+      <label class="ml">Agregar contrato pendiente</label>
+      <div style="display:flex;gap:6px">
+        <input class="mi" type="text" placeholder="Cliente — Tipo de contrato" style="flex:2;font-size:11px;padding:7px 10px"/>
+        <input class="mi" type="date" style="flex:1;font-size:11px;padding:7px 10px"/>
+        <button class="btn b-am" style="white-space:nowrap">+ Agregar</button>
+      </div>
+    </div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-contracts')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: DIRECTOR PANEL ══ -->
+<div class="overlay" id="modal-dir">
+  <div class="modal">
+    <div class="m-title" id="dir-title">Panel de directora</div>
+    <div class="m-sub" id="dir-sub">Carga y equipo</div>
+
+    <!-- LOAD BREAKDOWN -->
+    <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:9px;padding:14px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:3px">30% Gestión base</div><div style="font-size:18px;font-weight:800;color:var(--or)" id="dir-30h">12h</div></div>
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:3px">Carga proyectos</div><div style="font-size:18px;font-weight:800;color:var(--cy)" id="dir-proh">26h</div></div>
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:3px">Total / capacidad</div><div style="font-size:18px;font-weight:800" id="dir-total">38h/40h</div></div>
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
+        <div id="dir-bar" style="height:100%;border-radius:3px;background:var(--am);width:95%;transition:width 0.8s ease"></div>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="mf">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <label class="ml" style="margin:0">Equipo asignado</label>
+        <button class="btn b-lime" style="font-size:8px;padding:4px 9px" onclick="openAddMember()">+ Agregar</button>
+      </div>
+      <div class="dir-team" id="dir-team">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-dir')">Cerrar</button><button class="btn b-lime" onclick="closeModal('modal-dir')">Guardar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD TEAM MEMBER ══ -->
+<div class="overlay" id="modal-member">
+  <div class="modal">
+    <div class="m-title">+ Agregar miembro</div>
+    <div class="m-sub" id="member-sub">Agregar al equipo de la directora</div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre del nuevo miembro"/></div>
+      <div class="mf"><label class="ml">Rol</label><select class="mi"><option>Creative</option><option>Media</option><option>Planning</option></select></div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Email</label><input class="mi" type="email" placeholder="nombre@fenomenadigital.com"/></div>
+      <div class="mf"><label class="ml">Capacidad mensual (h)</label><input class="mi" type="number" value="80"/></div>
+    </div>
+    <div style="background:var(--cys);border:1px solid rgba(0,175,236,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--cy)">
+      ✓ Se creará el acceso a la plataforma y se notificará por email.
+    </div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-member')">Cancelar</button><button class="btn b-lime" onclick="closeModal('modal-member')">Crear miembro</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: NOTIFY ══ -->
+<div class="overlay" id="modal-notify">
+  <div class="modal">
+    <div class="m-title">📡 Notificar a Media</div>
+    <div class="m-sub" id="notify-sub">Enviando notificación</div>
+    <div class="np">
+      <div class="np-row"><span class="np-lbl">Cliente:</span><span id="np-client">—</span></div>
+      <div class="np-row"><span class="np-lbl">Media:</span><span id="np-media">—</span></div>
+      <div class="np-row"><span class="np-lbl">Paper:</span><span style="color:var(--cy)">Ver link adjunto</span></div>
+    </div>
+    <div class="mf"><label class="ml">Mensaje adicional</label><textarea class="mi" style="resize:vertical;min-height:60px" placeholder="Instrucciones especiales..."></textarea></div>
+    <div style="background:var(--gns);border:1px solid rgba(178,245,106,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--gn)">✓ Media verá el Paper automáticamente en su vista.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-notify')">Cancelar</button><button class="btn b-cyan" onclick="closeModal('modal-notify')">Confirmar y enviar ✓</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD PIECE ══ -->
+<div class="overlay" id="modal-piece">
+  <div class="modal">
+    <div class="m-title">+ Agregar pieza</div>
+    <div class="m-sub" id="piece-sub">Agregar al batch</div>
+    <div class="mf">
+      <label class="ml">Biblioteca de piezas</label>
+      <div class="lib-tags" id="lib-tags">
+        <button class="lib-tag" onclick="selLib(this,'🖼 Arte estático','1')">🖼 Estático — 1pt</button>
+        <button class="lib-tag" onclick="selLib(this,'🎠 Carrusel','2')">🎠 Carrusel — 2pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎬 Video sencillo','2')">🎬 Video — 2pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎥 Video grabado','5')">🎥 V. grabado — 5pts</button>
+        <button class="lib-tag" onclick="selLib(this,'📊 Propuesta','10')">📊 Propuesta — 10pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎯 Reel nativo','2')">🎯 Reel nativo — 2pts</button>
+      </div>
+    </div>
+    <div class="mrow3">
+      <div class="mf"><label class="ml">Pieza</label><input class="mi" type="text" id="p-name" placeholder="Nombre"/></div>
+      <div class="mf"><label class="ml">Puntos complejidad</label><input class="mi" type="number" id="p-pts" value="2" min="1" max="20"/></div>
+      <div class="mf"><label class="ml">Cantidad</label><input class="mi" type="number" id="p-qty" value="1" min="1"/></div>
+    </div>
+    <div style="background:var(--gns);border:1px solid rgba(178,245,106,0.2);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--gn)">✓ Se guarda en biblioteca para reutilizar automáticamente.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-piece')">Cancelar</button><button class="btn b-lime" onclick="savePiece()">Agregar pieza</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: DESIGNER ══ -->
+<div class="overlay" id="modal-designer">
+  <div class="modal">
+    <div class="m-title">🎨 Equipo creativo</div>
+    <div class="m-sub" id="designer-sub">Asignar diseñador(es)</div>
+    <div class="mf"><label class="ml">Principal</label>
+      <div class="ds-grid">
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--pink)">D</div>Didi</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--cy)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--gn)">G</div>Gian</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--or)">A</div>Andreina</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--pink)">AG</div>Ana G.</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--pu)">S</div>Salomon</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--pink)">Ve</div>Verónica</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--pink)">Mo</div>Monica</div>
+        <div class="ds-opt" onclick="selDs(this,'main')" style="opacity:0.5"><div class="ds-av" style="background:var(--am)">?</div>Por contratar</div>
+      </div>
+    </div>
+    <div class="mf"><label class="ml">Apoyo (opcional — carga se divide)</label>
+      <div class="ds-grid">
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--pink)">D</div>Didi</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--cy)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--gn)">G</div>Gian</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--or)">A</div>Andreina</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--pink)">AG</div>Ana G.</div>
+        <div class="ds-opt ds-opt-none" onclick="clearSup()" style="color:var(--mut)">— Sin apoyo</div>
+      </div>
+    </div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-designer')">Cancelar</button><button class="btn b-lime" onclick="closeModal('modal-designer')">Guardar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD INFLU ══ -->
+<div class="overlay" id="modal-influ">
+  <div class="modal">
+    <div class="m-title">👥 Agregar influencer</div>
+    <div class="m-sub" id="influ-sub">Nuevo influencer</div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre completo"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" placeholder="@usuario"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" placeholder="+507 6000-0000"/></div><div class="mf"><label class="ml">Red social</label><select class="mi"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select></div></div>
+    <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección de entrega si aplica"/></div>
+    <div class="mrow"><div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" placeholder="0.00"/></div><div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date"/></div></div>
+    <div class="m-divider"></div>
+    <div class="mf"><label class="ml">Brief (Dropbox)</label><div style="display:flex;gap:5px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:11px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:11px;padding:7px 10px"/></div></div>
+    <div class="mf"><label class="ml">Contrato / Media Kit (Dropbox)</label><div style="display:flex;gap:5px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:11px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:11px;padding:7px 10px"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option><option>Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi"><option>Pendiente</option><option>Parcial</option><option>Pagado</option></select></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ')">Cancelar</button><button class="btn b-pink" onclick="closeModal('modal-influ')">Agregar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: INFLU EDIT ══ -->
+<div class="overlay" id="modal-influ-edit">
+  <div class="modal">
+    <div class="m-title" id="ie-title">Editar influencer</div>
+    <div class="m-sub">Actualizar datos</div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="ie-name"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="ie-handle"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="ie-phone"/></div><div class="mf"><label class="ml">Monto ($)</label><input class="mi" type="number" id="ie-amt"/></div></div>
+    <div class="mf"><label class="ml">Dirección</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección"/></div>
+    <div class="m-divider"></div>
+    <div class="mf"><label class="ml">Brief</label><div style="display:flex;gap:5px"><input class="mi" type="text" placeholder="Nombre visible" value="Brief Mayo Relojín" style="flex:2;font-size:11px;padding:7px 10px"/><input class="mi" type="url" style="flex:3;font-size:11px;padding:7px 10px"/></div></div>
+    <div class="mf"><label class="ml">Contrato / Media Kit</label><div style="display:flex;gap:5px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:11px;padding:7px 10px"/><input class="mi" type="url" style="flex:3;font-size:11px;padding:7px 10px"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi" id="ie-status"><option>Pendiente</option><option>Recibido</option><option selected>Aprobado</option><option>Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi" id="ie-pay"><option selected>Pagado</option><option>Pendiente</option></select></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ-edit')">Cancelar</button><button class="btn b-lime" onclick="closeModal('modal-influ-edit')">Guardar cambios</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EXTRA PROJECT ══ -->
+<div class="overlay" id="modal-extra">
+  <div class="modal">
+    <div class="m-title">⚡ Proyecto extra</div>
+    <div class="m-sub">Trabajo fuera del plan mensual</div>
+
+    <!-- PLANNING OR DESIGN TOGGLE -->
+    <div class="mf">
+      <label class="ml">Tipo de proyecto</label>
+      <div class="plan-toggle">
+        <div class="pt-opt sel-design" id="pt-design" onclick="setPlanType('design')">🎨 Con diseño<br><span style="font-size:9px;font-weight:500">Carga al diseñador</span></div>
+        <div class="pt-opt" id="pt-plan" onclick="setPlanType('plan')">📋 Solo Planning<br><span style="font-size:9px;font-weight:500">Carga al planner</span></div>
+      </div>
+    </div>
+
+    <div class="mrow">
+      <div class="mf"><label class="ml">Cliente</label>
+        <select class="mi" id="ex-client">
+          <option>Seleccionar...</option>
+          <option>La Hipotecaria</option><option>Relojín</option><option>ASSA</option>
+          <option>Attenza</option><option>Welch's</option><option>Bella Holandesa PTY</option>
+          <option>Bella Holandesa Perú</option><option>WhiteClaw</option><option>Wesson</option>
+          <option>iShop CR</option><option>iShop PTY</option><option>iShop SLV</option>
+          <option>Coors Light HN</option><option>Miller Lite HN</option><option>Coors Light PTY</option>
+          <option>Casa Simona</option><option>Barilla</option><option>ATH</option>
+          <option>Lolita Lempicka</option><option>Madero</option><option>Tagua</option>
+          <option>Celeste</option><option>WOC</option><option>Guayacán</option>
+          <option>Vervana</option><option>Fenomena Digital</option>
+        </select>
+      </div>
+      <div class="mf"><label class="ml">Planner responsable</label>
+        <select class="mi" id="ex-planner"><option>Ian</option><option>Shelsea</option><option>Megan</option></select>
+      </div>
+    </div>
+
+    <div class="mf">
+      <label class="ml">Pieza — Biblioteca</label>
+      <div class="lib-tags" style="margin-bottom:7px">
+        <button class="lib-tag" onclick="selExLib(this,'🖼 Arte estático','1')">🖼 Estático</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎠 Carrusel','2')">🎠 Carrusel</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎬 Video sencillo','2')">🎬 Video</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎥 Video grabado','5')">🎥 V. grabado</button>
+        <button class="lib-tag" onclick="selExLib(this,'📊 Propuesta','10')">📊 Propuesta</button>
+        <button class="lib-tag" onclick="selExLib(this,'📋 Coordinación','0')">📋 Coordinación</button>
+      </div>
+      <div class="mrow3">
+        <div class="mf"><label class="ml">Descripción</label><input class="mi" type="text" id="ex-piece" placeholder="Tipo de pieza"/></div>
+        <div class="mf"><label class="ml">Pts</label><select class="mi" id="ex-pts"><option value="0">0 — Solo coord.</option><option value="1">1pt</option><option value="2">2pts</option><option value="3">3pts</option><option value="5">5pts</option><option value="10">10pts — Propuesta</option></select></div>
+        <div class="mf"><label class="ml">Cantidad</label><input class="mi" type="number" id="ex-qty" value="1" min="1"/></div>
+      </div>
+    </div>
+
+    <div class="mrow" id="ex-designer-row">
+      <div class="mf"><label class="ml">Diseñador asignado</label>
+        <select class="mi" id="ex-designer">
+          <option>Didi</option><option>Willcy</option><option>Gian</option>
+          <option>Andreina</option><option>Ana G.</option><option>Salomon</option>
+          <option>Verónica</option><option>Monica</option><option>Por contratar</option>
+        </select>
+      </div>
+      <div class="mf"><label class="ml">Deadline</label><input class="mi" type="date" id="ex-deadline"/></div>
+    </div>
+    <div class="mrow" id="ex-plan-row" style="display:none">
+      <div class="mf"><label class="ml">Co-responsable (opcional)</label>
+        <select class="mi"><option>Solo Ian</option><option>Ian + Shelsea</option><option>Ian + Megan</option><option>Shelsea + Megan</option></select>
+      </div>
+      <div class="mf"><label class="ml">Deadline</label><input class="mi" type="date" id="ex-deadline2"/></div>
+    </div>
+
+    <div class="mf"><label class="ml">Notas</label><textarea class="mi" style="resize:vertical;min-height:55px" placeholder="Razón del proyecto extra, instrucciones..."></textarea></div>
+    <div style="background:var(--ors);border:1px solid rgba(255,159,67,0.2);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--or)">⚡ Los puntos se sumarán automáticamente a la carga del responsable.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-extra')">Cancelar</button><button class="btn b-or" onclick="confirmExtra()">Agregar proyecto extra</button></div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+const directors = {
+  ian:    { name:'Ian',    role:'Director Planning', team:['Shelsea','Megan'], color:'linear-gradient(135deg,#00AFEC,#B2F56A)', h30:12, hPro:26, hMax:40 },
+  andre:  { name:'André',  role:'Directora Creativa', team:['Didi','Gian','Willcy','Salomón','Verónica'], color:'linear-gradient(135deg,#EEB1D7,#c084fc)', h30:12, hPro:32, hMax:40 },
+  valeria:{ name:'Valeria',role:'Directora Creativa', team:['Monica','Ana Gabriela','Por contratar'], color:'linear-gradient(135deg,#B2F56A,#00AFEC)', h30:12, hPro:10, hMax:40 },
+  belkys: { name:'Belkys', role:'Directora Media',    team:['Christian'], color:'linear-gradient(135deg,#f4d03f,#ff9f43)', h30:12, hPro:6, hMax:40 }
+};
+
+let currentDir = 'ian';
+let planType = 'design';
+
+// ═══ DIRECTOR PANEL ═══
+function openDirPanel(key) {
+  currentDir = key;
+  const d = directors[key];
+  document.getElementById('dir-title').textContent = d.name + ' — Panel de carga';
+  document.getElementById('dir-sub').textContent = d.role + ' · ' + d.team.length + ' personas a cargo';
+  document.getElementById('dir-30h').textContent = d.h30 + 'h';
+  document.getElementById('dir-proh').textContent = d.hPro + 'h';
+  const total = d.h30 + d.hPro;
+  const pct = Math.min(100, Math.round(total / d.hMax * 100));
+  document.getElementById('dir-total').textContent = total + 'h/' + d.hMax + 'h';
+  document.getElementById('dir-total').style.color = pct > 95 ? 'var(--rd)' : pct > 75 ? 'var(--am)' : 'var(--gn)';
+  document.getElementById('dir-bar').style.width = pct + '%';
+  document.getElementById('dir-bar').style.background = pct > 95 ? 'var(--rd)' : pct > 75 ? 'var(--am)' : 'var(--gn)';
+
+  const team = document.getElementById('dir-team');
+  team.innerHTML = d.team.map(name => `
+    <div class="dt-row">
+      <div class="dt-av" style="background:linear-gradient(135deg,#EEB1D7,#00AFEC)">${name[0]}</div>
+      <span class="dt-name">${name}</span>
+      <span class="dt-30">30% base</span>
+      <span class="dt-pts" style="color:var(--am)">~${Math.floor(Math.random()*20+10)}h</span>
+      <div class="dt-sem" style="background:var(--am);box-shadow:0 0 5px var(--am)"></div>
+      <button class="dt-remove" onclick="removeMember(this,'${key}','${name}')">✕</button>
+    </div>`).join('');
+  document.getElementById('modal-dir').classList.add('open');
+}
+
+function removeMember(btn, dirKey, name) {
+  if (!confirm('¿Quitar a ' + name + ' del equipo de ' + directors[dirKey].name + '?')) return;
+  directors[dirKey].team = directors[dirKey].team.filter(n => n !== name);
+  btn.closest('.dt-row').remove();
+}
+
+function openAddMember() {
+  document.getElementById('member-sub').textContent = 'Agregar al equipo de ' + directors[currentDir].name;
+  document.getElementById('modal-member').classList.add('open');
+}
+
+// ═══ CONTRACTS ═══
+function openContracts() { document.getElementById('modal-contracts').classList.add('open'); }
+
+// ═══ TOGGLE CARD ═══
+function tog(e, id) {
+  if (e.target.closest('.planner-wrap') || e.target.closest('.dchip')) return;
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ═══ STATUS ═══
+function setSt(btn) {
+  btn.closest('.ssel').querySelectorAll('.ss').forEach(b => b.className = 'ss');
+  const map = {'Listo':'ok','progreso':'prog','Pendiente':'wait','Atrasado':'late'};
+  const key = Object.keys(map).find(k => btn.textContent.includes(k));
+  if (key) btn.classList.add(map[key]);
+}
+
+// ═══ PIECE COUNT ═══
+function chg(btn, d) {
+  const w = btn.closest('.pc'), n = w.querySelector('.pc-num');
+  let v = parseInt(n.textContent) + d;
+  if (v < 0) v = 0;
+  n.textContent = v;
+}
+
+// ═══ PLANNER DD ═══
+function openPDD(btn) {
+  const dd = btn.closest('.planner-wrap').querySelector('.pdd');
+  document.querySelectorAll('.pdd.open').forEach(d => { if(d!==dd) d.classList.remove('open'); });
+  dd.classList.toggle('open');
+}
+function chPlanner(cid, ddid, planner, name) {
+  const card = document.getElementById(cid);
+  const tag = card.querySelector('.ptag');
+  tag.className = 'ptag ' + planner;
+  tag.childNodes[0].textContent = name;
+  card.className = card.className.replace(/\b(ian|shelsea|megan)\b/g, planner);
+  card.dataset.planner = planner;
+  document.getElementById(ddid).classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.planner-wrap')) document.querySelectorAll('.pdd.open').forEach(d => d.classList.remove('open'));
+});
+
+// ═══ DESIGNER ═══
+function openDesigner(cid) {
+  document.getElementById('designer-sub').textContent = 'Asignar diseñador para ' + document.getElementById(cid).querySelector('.cc-name').textContent;
+  document.getElementById('modal-designer').classList.add('open');
+}
+function selDs(el, type) {
+  const grid = el.closest('.ds-grid');
+  if (type === 'main') { grid.querySelectorAll('.ds-opt').forEach(o => o.classList.remove('sel')); el.classList.add('sel'); }
+  else { grid.querySelectorAll('.ds-opt').forEach(o => o.classList.remove('sel-sup')); el.classList.add('sel-sup'); }
+}
+function clearSup() { document.querySelectorAll('.ds-opt.sel-sup').forEach(o => o.classList.remove('sel-sup')); }
+
+// ═══ NOTIFY ═══
+function openNotify(client, media) {
+  document.getElementById('np-client').textContent = client;
+  document.getElementById('np-media').textContent = media;
+  document.getElementById('modal-notify').classList.add('open');
+}
+
+// ═══ PIECE LIBRARY ═══
+function openPiece(ctx) {
+  document.getElementById('piece-sub').textContent = 'Agregar pieza a ' + ctx;
+  loadLibTags();
+  document.getElementById('modal-piece').classList.add('open');
+}
+function selLib(btn, name, pts) {
+  document.getElementById('p-name').value = name;
+  document.getElementById('p-pts').value = pts;
+  document.querySelectorAll('#lib-tags .lib-tag').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function savePiece() {
+  const name = document.getElementById('p-name').value;
+  const pts = document.getElementById('p-pts').value;
+  if (!name) return;
+  const lib = JSON.parse(localStorage.getItem('fn_lib') || '[]');
+  if (!lib.find(p => p.name === name)) { lib.push({name,pts}); localStorage.setItem('fn_lib', JSON.stringify(lib)); }
+  closeModal('modal-piece');
+}
+function loadLibTags() {
+  const lib = JSON.parse(localStorage.getItem('fn_lib') || '[]');
+  const cont = document.getElementById('lib-tags');
+  lib.forEach(p => {
+    if (!cont.querySelector(`[data-n="${p.name}"]`)) {
+      const b = document.createElement('button');
+      b.className = 'lib-tag'; b.dataset.n = p.name;
+      b.textContent = p.name + ' — ' + p.pts + 'pts';
+      b.onclick = () => selLib(b, p.name, p.pts);
+      cont.appendChild(b);
+    }
+  });
+}
+
+// ═══ INFLUS ═══
+function openAddInflu(c) { document.getElementById('influ-sub').textContent = 'Nuevo influencer para ' + c; document.getElementById('modal-influ').classList.add('open'); }
+function openInfluEdit(name, handle, phone, amt, status, pay) {
+  document.getElementById('ie-title').textContent = name;
+  document.getElementById('ie-name').value = name;
+  document.getElementById('ie-handle').value = handle;
+  document.getElementById('ie-phone').value = phone;
+  document.getElementById('ie-amt').value = amt;
+  document.getElementById('modal-influ-edit').classList.add('open');
+}
+
+// ═══ EXTRA PROJECT ═══
+function setPlanType(type) {
+  planType = type;
+  document.getElementById('pt-design').className = 'pt-opt' + (type==='design' ? ' sel-design' : '');
+  document.getElementById('pt-plan').className = 'pt-opt' + (type==='plan' ? ' sel-plan' : '');
+  document.getElementById('ex-designer-row').style.display = type==='design' ? '' : 'none';
+  document.getElementById('ex-plan-row').style.display = type==='plan' ? '' : 'none';
+}
+function selExLib(btn, name, pts) {
+  document.getElementById('ex-piece').value = name;
+  document.getElementById('ex-pts').value = pts;
+  document.querySelectorAll('.modal .lib-tags .lib-tag').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function openExtra() { document.getElementById('modal-extra').classList.add('open'); }
+function confirmExtra() {
+  const client = document.getElementById('ex-client').value;
+  const piece = document.getElementById('ex-piece').value;
+  const pts = parseInt(document.getElementById('ex-pts').value) || 0;
+  const qty = parseInt(document.getElementById('ex-qty').value) || 1;
+  const designer = planType === 'design' ? document.getElementById('ex-designer').value : document.getElementById('ex-planner').value;
+  const dl = document.getElementById(planType==='design' ? 'ex-deadline' : 'ex-deadline2').value;
+  if (client === 'Seleccionar...' || !piece) { alert('Completa cliente y tipo de pieza'); return; }
+  const total = pts * qty;
+  const typeLabel = planType === 'design' ? 'Con diseño' : 'Solo Planning';
+  const typeClass = planType === 'design' ? 'design' : 'planning';
+  const typeBadgeClass = planType === 'design' ? 'type-design' : 'type-plan';
+  const ptsStyle = planType === 'design' ? 'background:var(--ors);color:var(--or)' : 'background:var(--cys);color:var(--cy)';
+  const whoIcon = planType === 'design' ? '🎨' : '📋';
+
+  const card = document.createElement('div');
+  card.className = 'extra-card ' + typeClass;
+  card.innerHTML = `
+    <div class="ec-top">
+      <div><div class="ec-client">${client}</div><div class="ec-sub">${designer}</div></div>
+      ${total > 0 ? `<span class="ec-pts" style="${ptsStyle}">${total} pts</span>` : `<span class="ec-pts" style="${ptsStyle}">Plan</span>`}
+      <span class="ec-type-badge ${typeBadgeClass}">${typeLabel}</span>
+      <button class="ec-del" onclick="delExtra(this)">✕</button>
+    </div>
+    <div class="ec-pieces"><div class="ecp"><span class="ecp-name">${piece}</span><span class="ecp-qty">×${qty}</span>${pts>0?`<span class="ecp-pts">${pts}pts c/u</span>`:''}</div></div>
+    <div class="ec-bottom"><div class="ec-who">${whoIcon} ${designer}</div><div class="ec-dl">⏰ ${dl||'Sin fecha'}</div></div>`;
+  document.getElementById('extras-grid').appendChild(card);
+
+  // save to lib
+  if (piece && pts > 0) {
+    const lib = JSON.parse(localStorage.getItem('fn_lib') || '[]');
+    if (!lib.find(p => p.name === piece)) { lib.push({name:piece,pts:String(pts)}); localStorage.setItem('fn_lib', JSON.stringify(lib)); }
+  }
+  closeModal('modal-extra');
+}
+function delExtra(btn) { if(confirm('¿Eliminar este proyecto extra?')) btn.closest('.extra-card').remove(); }
+
+// ═══ FILTER / SEARCH ═══
+function filt(btn, type) {
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.cc').forEach(c => {
+    if (type==='all') { c.style.display=''; return; }
+    if (type==='late') { c.style.display=c.dataset.status==='late'?'':'none'; return; }
+    if (type==='influs') { c.style.display=c.dataset.influs?'':'none'; return; }
+    if (type==='media-p') { c.style.display=c.dataset.mediaP?'':'none'; return; }
+    c.style.display = c.dataset.planner===type?'':'none';
+  });
+}
+function search(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.cc').forEach(c => {
+    const n = c.querySelector('.cc-name').textContent.toLowerCase();
+    c.style.display = !q||n.includes(q)?'':'none';
+  });
+}
+
+// ═══ MODALS ═══
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// ═══ INIT ═══
+window.addEventListener('load', () => {
+  loadLibTags();
+  setTimeout(() => {
+    document.querySelectorAll('.pb').forEach(b => {
+      const w = b.style.width; b.style.width='0';
+      setTimeout(() => { b.style.width=w; }, 80);
+    });
+    document.querySelectorAll('.dc-bar').forEach(b => {
+      const w = b.style.width; b.style.width='0';
+      setTimeout(() => { b.style.width=w; }, 150);
+    });
+  }, 300);
+  document.querySelectorAll('.cc').forEach((c,i) => { c.style.animationDelay=(i*0.05)+'s'; });
+});
+</script>
+</body>
+</html>

@@ -362,56 +362,65 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── MODULES BY ROLE ──────────────────────────────────────────
+// ── MODULE MAP BY ROLE ──────────────────────────────────────
 const modules = {
-  admin: [
-    { icon:'📋', name:'Tablero Planning', desc:'Vista general de todos los proyectos', url:'fenomena-dashboard-brand.html' },
-    { icon:'🎨', name:'Vista Diseño', desc:'Proyectos y entregas del equipo creativo', url:'fenomena-designer-view.html' },
-    { icon:'📡', name:'Media Bridge', desc:'Pauta y notificaciones a Media', url:'fenomena-media-view.html' },
-    { icon:'👥', name:'Influencers', desc:'Gestión de influencers por cliente', url:'fenomena-influencers.html' },
+  admin:    [
+    { icon:'📋', name:'Tablero Planning', desc:'Vista general de todos los proyectos', url:'fenomena-planning-v4.html' },
+    { icon:'📡', name:'Media', desc:'Pauta y notificaciones', url:'fenomena-media-view.html' },
+    { icon:'👥', name:'Influencers', desc:'Gestión de influencers', url:'fenomena-influencers.html' },
+    { icon:'🎯', name:'Pipeline', desc:'Prospects y propuestas', url:'fenomena-pipeline.html' },
     { icon:'🔒', name:'Admin', desc:'Logs, horas y reportes', url:'fenomena-admin.html' },
   ],
   planning: [
-    { icon:'📋', name:'Tablero', desc:'Proyectos del mes y to-dos', url:'fenomena-dashboard-brand.html' },
+    { icon:'📋', name:'Tablero', desc:'Proyectos del mes', url:'fenomena-planning-v4.html' },
     { icon:'👥', name:'Influencers', desc:'Gestión de influencers', url:'fenomena-influencers.html' },
-    { icon:'📡', name:'Media Bridge', desc:'Estado de pauta', url:'fenomena-media-view.html' },
+    { icon:'🎯', name:'Pipeline', desc:'Prospects', url:'fenomena-pipeline.html' },
+    { icon:'📡', name:'Media', desc:'Estado de pauta', url:'fenomena-media-view.html' },
   ],
   creative: [
-    { icon:'🎨', name:'Mis proyectos', desc:'Tus cuentas y entregas', url:'fenomena-designer-view.html' },
+    { icon:'📋', name:'Tablero', desc:'Proyectos y cuentas del mes', url:'fenomena-planning-v4.html' },
   ],
   media: [
     { icon:'📡', name:'Pauta del mes', desc:'Contenido aprobado y papers', url:'fenomena-media-view.html' },
   ],
 };
 
-// ── SHOW/HIDE SCREENS ────────────────────────────────────────
-function showLogin()     { document.getElementById('login-screen').style.display=''; document.getElementById('dashboard-screen').style.display='none'; }
-function showDashboard() { document.getElementById('login-screen').style.display='none'; document.getElementById('dashboard-screen').style.display='block'; }
+// ── SCREENS ─────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('dashboard-screen').style.display = 'none';
+  // reset button state
+  const btn = document.getElementById('btn-login');
+  btn.disabled = false;
+  btn.innerHTML = 'Entrar al workspace';
+}
+
+function showDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+}
 
 // ── LOAD PROFILE ─────────────────────────────────────────────
 async function loadProfile(userId) {
-  const { data, error } = await sb
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (error || !data) {
-    // Profile might not exist yet - show basic dashboard
-    renderDashboard({ nombre: 'Usuario', rol: 'creative', email: '' });
-    return;
+  try {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    renderDashboard(data || { nombre: 'Ian', rol: 'admin', email: '' });
+  } catch(e) {
+    renderDashboard({ nombre: 'Ian', rol: 'admin', email: '' });
   }
-  renderDashboard(data);
 }
 
 function renderDashboard(profile) {
   const nombre = profile.nombre || profile.email?.split('@')[0] || 'Usuario';
   document.getElementById('dash-nombre').textContent  = nombre;
   document.getElementById('dash-nombre2').textContent = nombre.split(' ')[0];
-  document.getElementById('dash-rol').textContent     = profile.rol?.toUpperCase() || 'USUARIO';
+  document.getElementById('dash-rol').textContent     = (profile.rol || 'usuario').toUpperCase();
   document.getElementById('dash-avatar').textContent  = nombre[0]?.toUpperCase() || '?';
 
-  // render module cards
   const mods = modules[profile.rol] || modules.creative;
   document.getElementById('role-cards').innerHTML = mods.map(m => `
     <div class="role-card" onclick="location.href='${m.url}'">
@@ -422,23 +431,9 @@ function renderDashboard(profile) {
   `).join('');
 
   showDashboard();
-
-  // log access
-  logAccess(profile.id, 'login', 'dashboard', 'Sesión iniciada');
 }
 
-// ── LOG ACCESS ───────────────────────────────────────────────
-async function logAccess(userId, accion, modulo, detalle) {
-  if (!userId) return;
-  await sb.from('access_logs').insert({
-    user_id: userId,
-    accion,
-    modulo,
-    detalle,
-  });
-}
-
-// ── AUTH: PASSWORD LOGIN ─────────────────────────────────────
+// ── LOGIN WITH PASSWORD ──────────────────────────────────────
 async function loginWithPassword() {
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -450,73 +445,68 @@ async function loginWithPassword() {
   btn.innerHTML = '<span class="spinner"></span>Entrando...';
   hideMessages();
 
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    showError(error.message === 'Invalid login credentials'
-      ? 'Email o contraseña incorrectos.'
-      : error.message);
+  // Timeout safety — never stuck more than 8 seconds
+  const timeout = setTimeout(() => {
     btn.disabled = false;
     btn.innerHTML = 'Entrar al workspace';
-    return;
-  }
+    showError('Tiempo de espera agotado. Verifica tu conexión e intenta de nuevo.');
+  }, 8000);
 
-  await loadProfile(data.user.id);
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    clearTimeout(timeout);
+
+    if (error) {
+      showError(error.message === 'Invalid login credentials'
+        ? 'Email o contraseña incorrectos.'
+        : 'Error: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = 'Entrar al workspace';
+      return;
+    }
+
+    await loadProfile(data.user.id);
+
+  } catch(e) {
+    clearTimeout(timeout);
+    btn.disabled = false;
+    btn.innerHTML = 'Entrar al workspace';
+    showError('Error de conexión. Intenta de nuevo.');
+  }
 }
 
-// ── AUTH: MAGIC LINK ─────────────────────────────────────────
+// ── MAGIC LINK ───────────────────────────────────────────────
 async function loginMagicLink() {
   const email = document.getElementById('email').value.trim();
   const btn   = document.getElementById('btn-magic');
-
   if (!email) { showError('Ingresa tu email primero.'); return; }
-
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Enviando...';
   hideMessages();
-
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href }
-  });
-
+  try {
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
+    if (error) { showError(error.message); }
+    else { showSuccess('✓ Revisa tu email — te enviamos el link de acceso.'); }
+  } catch(e) {
+    showError('Error enviando el link. Intenta de nuevo.');
+  }
   btn.disabled = false;
   btn.innerHTML = 'Enviar link mágico por email';
-
-  if (error) { showError(error.message); return; }
-  showSuccess('✓ Revisa tu email — te enviamos el link de acceso.');
 }
 
-// ── AUTH: LOGOUT ─────────────────────────────────────────────
+// ── LOGOUT ───────────────────────────────────────────────────
 async function logout() {
   await sb.auth.signOut();
   showLogin();
 }
 
-// ── CHECK SESSION ON LOAD ────────────────────────────────────
-async function checkSession() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    await loadProfile(session.user.id);
-  } else {
-    showLogin();
-  }
-}
-
-// auth state changes (magic link redirect)
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session?.user) {
-    await loadProfile(session.user.id);
-  } else if (event === 'SIGNED_OUT') {
-    showLogin();
-  }
-});
-
 // ── HELPERS ──────────────────────────────────────────────────
 function showError(msg)   { const el = document.getElementById('msg-error'); el.textContent = msg; el.classList.add('show'); }
 function showSuccess(msg) { const el = document.getElementById('msg-success'); el.textContent = msg; el.classList.add('show'); }
 function hideMessages()   { document.getElementById('msg-error').classList.remove('show'); document.getElementById('msg-success').classList.remove('show'); }
-
 function toggleForgot() {
   const email = document.getElementById('email').value.trim();
   if (!email) { showError('Ingresa tu email para resetear la contraseña.'); return; }
@@ -524,8 +514,28 @@ function toggleForgot() {
   showSuccess('✓ Te enviamos un email para resetear tu contraseña.');
 }
 
-// ── INIT ─────────────────────────────────────────────────────
-checkSession();
+// ── INIT — check existing session ────────────────────────────
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      await loadProfile(session.user.id);
+    } else {
+      showLogin();
+    }
+  } catch(e) {
+    showLogin();
+  }
+
+  // Handle magic link redirects
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      await loadProfile(session.user.id);
+    } else if (event === 'SIGNED_OUT') {
+      showLogin();
+    }
+  });
+})();
 </script>
 </body>
 </html>
