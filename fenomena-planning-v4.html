@@ -375,6 +375,7 @@ body{background:var(--p3);color:var(--txt);font-family:'Hanken Grotesk',sans-ser
   <button class="nav-btn hi" onclick="location.href='fenomena-media-v2.html'">📡 Media</button>
   <button class="nav-btn" onclick="location.href='fenomena-admin.html'">🔒 Admin</button>
   <button class="nav-btn" onclick="location.href='fenomena-pipeline.html'">🎯 Pipeline</button>
+  <button class="nav-btn" onclick="openDirModal()">👥 Directoras</button>
 
   <!-- CONTRACT ALERT -->
   <div class="contract-badge" onclick="openContracts()">
@@ -392,83 +393,6 @@ body{background:var(--p3);color:var(--txt);font-family:'Hanken Grotesk',sans-ser
     <button class="logout" onclick="location.href='index.html'">Salir</button>
   </div>
 </header>
-
-<!-- ══ DIRECTOR LOAD BAR ══ -->
-<div class="director-bar">
-
-  <!-- IAN -->
-  <div class="dir-card" onclick="openDirPanel('ian')">
-    <div class="dc-30">30% gestión</div>
-    <div class="dc-top">
-      <div class="dc-av" style="background:linear-gradient(135deg,var(--cyan),var(--lime))">I</div>
-      <div style="flex:1">
-        <div class="dc-name">Ian</div>
-        <div class="dc-role">Director Planning</div>
-      </div>
-      <div class="dc-sem dc-am"></div>
-    </div>
-    <div class="dc-bar-bg"><div class="dc-bar" style="width:78%;background:var(--am)"></div></div>
-    <div class="dc-pts">
-      <span class="dc-pts-val" style="color:var(--am)">38h / 40h</span>
-      <span class="dc-pts-lbl">🟡 Al límite</span>
-    </div>
-  </div>
-
-  <!-- ANDRÉ -->
-  <div class="dir-card" onclick="openDirPanel('andre')">
-    <div class="dc-30">30% gestión</div>
-    <div class="dc-top">
-      <div class="dc-av" style="background:linear-gradient(135deg,var(--pink),var(--pu))">A</div>
-      <div style="flex:1">
-        <div class="dc-name">André</div>
-        <div class="dc-role">Dir. Creativa · 5 diseñadores</div>
-      </div>
-      <div class="dc-sem dc-rd"></div>
-    </div>
-    <div class="dc-bar-bg"><div class="dc-bar" style="width:92%;background:var(--rd)"></div></div>
-    <div class="dc-pts">
-      <span class="dc-pts-val" style="color:var(--rd)">44h / 40h</span>
-      <span class="dc-pts-lbl">🔴 Sobrecargada</span>
-    </div>
-  </div>
-
-  <!-- VALERIA -->
-  <div class="dir-card" onclick="openDirPanel('valeria')">
-    <div class="dc-30">30% gestión</div>
-    <div class="dc-top">
-      <div class="dc-av" style="background:linear-gradient(135deg,var(--lime),var(--cyan))">V</div>
-      <div style="flex:1">
-        <div class="dc-name">Valeria</div>
-        <div class="dc-role">Dir. Creativa · 3 diseñadores</div>
-      </div>
-      <div class="dc-sem dc-gn"></div>
-    </div>
-    <div class="dc-bar-bg"><div class="dc-bar" style="width:55%;background:var(--gn)"></div></div>
-    <div class="dc-pts">
-      <span class="dc-pts-val" style="color:var(--gn)">22h / 40h</span>
-      <span class="dc-pts-lbl">🟢 Disponible</span>
-    </div>
-  </div>
-
-  <!-- BELKYS -->
-  <div class="dir-card" onclick="openDirPanel('belkys')">
-    <div class="dc-30">30% gestión</div>
-    <div class="dc-top">
-      <div class="dc-av" style="background:linear-gradient(135deg,var(--am),var(--or))">B</div>
-      <div style="flex:1">
-        <div class="dc-name">Belkys</div>
-        <div class="dc-role">Dir. Media · Christian</div>
-      </div>
-      <div class="dc-sem dc-gn"></div>
-    </div>
-    <div class="dc-bar-bg"><div class="dc-bar" style="width:45%;background:var(--gn)"></div></div>
-    <div class="dc-pts">
-      <span class="dc-pts-val" style="color:var(--gn)">18h / 40h</span>
-      <span class="dc-pts-lbl">🟢 Disponible</span>
-    </div>
-  </div>
-
-</div>
 
 <!-- ══ STATS BAR ══ -->
 <div class="sbar">
@@ -832,6 +756,12 @@ body{background:var(--p3);color:var(--txt);font-family:'Hanken Grotesk',sans-ser
 <!-- ══ MODAL: DIRECTOR PANEL ══ -->
 <div class="overlay" id="modal-dir">
   <div class="modal">
+    <div style="display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="ss" id="dtab-ian" onclick="openDirPanel('ian')" style="font-size:10px;padding:5px 10px">Ian</button>
+      <button class="ss" id="dtab-andreina" onclick="openDirPanel('andreina')" style="font-size:10px;padding:5px 10px">Andreina</button>
+      <button class="ss" id="dtab-valeria" onclick="openDirPanel('valeria')" style="font-size:10px;padding:5px 10px">Valeria</button>
+      <button class="ss" id="dtab-belkys" onclick="openDirPanel('belkys')" style="font-size:10px;padding:5px 10px">Belkys</button>
+    </div>
     <div class="m-title" id="dir-title">Panel de directora</div>
     <div class="m-sub" id="dir-sub">Carga y equipo</div>
 
@@ -1068,7 +998,7 @@ body{background:var(--p3);color:var(--txt);font-family:'Hanken Grotesk',sans-ser
 // ═══ DATA ═══
 const directors = {
   ian:    { name:'Ian',    role:'Director Planning', team:['Shelsea','Megan'], color:'linear-gradient(135deg,#00AFEC,#B2F56A)', h30:12, hPro:26, hMax:40 },
-  andre:  { name:'André',  role:'Directora Creativa', team:['Didi','Gian','Willcy','Salomón','Verónica'], color:'linear-gradient(135deg,#EEB1D7,#c084fc)', h30:12, hPro:32, hMax:40 },
+  andreina:  { name:'Andreina',  role:'Directora Creativa', team:['Didi','Gian','Willcy','Salomón','Verónica'], color:'linear-gradient(135deg,#EEB1D7,#c084fc)', h30:12, hPro:32, hMax:40 },
   valeria:{ name:'Valeria',role:'Directora Creativa', team:['Monica','Ana Gabriela','Por contratar'], color:'linear-gradient(135deg,#B2F56A,#00AFEC)', h30:12, hPro:10, hMax:40 },
   belkys: { name:'Belkys', role:'Directora Media',    team:['Christian'], color:'linear-gradient(135deg,#f4d03f,#ff9f43)', h30:12, hPro:6, hMax:40 }
 };
@@ -1077,6 +1007,11 @@ let currentDir = 'ian';
 let planType = 'design';
 
 // ═══ DIRECTOR PANEL ═══
+function openDirModal() {
+  // Show Ian's panel by default, user can switch inside
+  openDirPanel('ian');
+}
+
 function openDirPanel(key) {
   currentDir = key;
   const d = directors[key];
@@ -1101,6 +1036,11 @@ function openDirPanel(key) {
       <div class="dt-sem" style="background:var(--am);box-shadow:0 0 5px var(--am)"></div>
       <button class="dt-remove" onclick="removeMember(this,'${key}','${name}')">✕</button>
     </div>`).join('');
+  // highlight active tab
+  ['ian','andreina','valeria','belkys'].forEach(k => {
+    const tab = document.getElementById('dtab-' + k);
+    if (tab) tab.className = 'ss' + (k === key ? ' ok' : '');
+  });
   document.getElementById('modal-dir').classList.add('open');
 }
 
