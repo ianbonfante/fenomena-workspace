@@ -763,7 +763,7 @@ body {
   </div>
 
   <div class="sb-bottom">
-    <button class="sb-logout" onclick="location.href='index.html'">Cerrar sesión</button>
+    <button class="sb-logout" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </aside>
 
@@ -1762,6 +1762,13 @@ window.addEventListener('load', () => {
   // Stagger cards
   document.querySelectorAll('.cc').forEach((c,i) => { c.style.animationDelay=(i*0.05)+'s'; });
 });
+
+async function doLogout() {
+  try {
+    await sb.auth.signOut();
+  } catch(e) {}
+  window.location.href = 'index.html';
+}
 </script>
 </body>
 </html>

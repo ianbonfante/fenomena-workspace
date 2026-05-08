@@ -296,7 +296,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <a class="ni" href="fenomena-admin-v2.html"><span class="ni-icon">🔒</span>Admin</a>
   </nav>
   <div class="sb-bottom">
-    <button class="sb-logout" onclick="location.href='index.html'">Cerrar sesión</button>
+    <button class="sb-logout" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </aside>
 
@@ -894,6 +894,13 @@ function showToast(msg) {
 window.addEventListener('load', () => {
   document.querySelectorAll('.client-row').forEach((r,i) => { r.style.animationDelay = (i*0.05)+'s'; });
 });
+
+async function doLogout() {
+  try {
+    await sb.auth.signOut();
+  } catch(e) {}
+  window.location.href = 'index.html';
+}
 </script>
 </body>
 </html>

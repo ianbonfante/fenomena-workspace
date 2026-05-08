@@ -215,7 +215,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <a class="ni active"><span class="ni-icon">🔒</span>Admin</a>
   </nav>
   <div class="sb-bottom">
-    <button class="sb-logout" onclick="location.href='index.html'">Cerrar sesión</button>
+    <button class="sb-logout" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </aside>
 
@@ -750,6 +750,13 @@ function showToast(msg) {
   const t = document.getElementById('save-toast');
   t.textContent = msg; t.style.opacity = '1';
   clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
+
+async function doLogout() {
+  try {
+    await sb.auth.signOut();
+  } catch(e) {}
+  window.location.href = 'index.html';
 }
 </script>
 </body>
