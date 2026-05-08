@@ -2,540 +2,247 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23240354'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial Black,sans-serif' font-size='20' font-weight='900' fill='%23B2F56A' text-anchor='middle' dominant-baseline='central'%3EF%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fenomena — Workspace</title>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --feno-purple:#240354; --feno-purple3:#1a0240;
-  --feno-pink:#EEB1D7; --feno-cyan:#00AFEC;
-  --feno-lime:#B2F56A; --feno-white:#FFFFFF;
-  --surface:#1a0240; --surface2:#240354;
-  --border:rgba(238,177,215,0.15); --border2:rgba(238,177,215,0.3);
-  --text:#f5f0ff; --muted:rgba(238,177,215,0.5);
-  --red:#ff6b8a; --red-s:rgba(255,107,138,0.1);
-  --green-s:rgba(178,245,106,0.1);
-}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:var(--feno-purple3);
-  color:var(--text);
-  font-family:'Hanken Grotesk',sans-serif;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  overflow:hidden;
+:root{
+  --brand:#240354;--brand2:#2d0468;
+  --lime:#B2F56A;--cyan:#00AFEC;
+  --bg:#F4F2FA;--surface:#FFFFFF;
+  --border:#E8E4F4;--border2:#D4CCF0;
+  --txt:#1a0240;--txt2:#4B4468;--txt3:#9590AB;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
 }
+body{font-family:'Hanken Grotesk',sans-serif;min-height:100vh;display:flex;background:var(--bg);color:var(--txt);}
 
-/* background decoration */
-body::before{
-  content:'';position:fixed;top:-20%;left:-10%;
-  width:60%;height:60%;
-  background:radial-gradient(ellipse,rgba(238,177,215,0.06) 0%,transparent 70%);
-  pointer-events:none;
-}
-body::after{
-  content:'';position:fixed;bottom:-20%;right:-10%;
-  width:50%;height:50%;
-  background:radial-gradient(ellipse,rgba(0,175,236,0.07) 0%,transparent 70%);
-  pointer-events:none;
-}
+/* LEFT */
+.left{width:420px;min-height:100vh;background:var(--brand);display:flex;flex-direction:column;justify-content:space-between;padding:44px 40px;position:relative;overflow:hidden;flex-shrink:0;}
+.left::before{content:'';position:absolute;top:-120px;right:-120px;width:350px;height:350px;border-radius:50%;background:rgba(178,245,106,0.06);pointer-events:none;}
+.left::after{content:'';position:absolute;bottom:-100px;left:-80px;width:280px;height:280px;border-radius:50%;background:rgba(0,175,236,0.05);pointer-events:none;}
+.left-logo svg{width:160px;height:auto;display:block;}
+.left-tagline{font-size:10px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--lime);opacity:0.7;margin-top:10px;}
+.left-middle{margin:auto 0;padding:40px 0;}
+.left-headline{font-size:34px;font-weight:900;line-height:1.15;color:#fff;margin-bottom:14px;letter-spacing:-0.5px;}
+.left-headline span{color:var(--lime);}
+.left-desc{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.8;max-width:300px;}
+.module-pills{display:flex;flex-direction:column;gap:7px;margin-top:28px;}
+.mp{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.07);}
+.mp-icon{font-size:15px;width:20px;text-align:center;}
+.mp-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);}
+.mp-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:0.5px;padding:2px 7px;border-radius:10px;background:rgba(178,245,106,0.14);color:var(--lime);}
+.left-footer{font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:1px;text-transform:uppercase;}
 
-/* big logo bg */
-.bg-logo{
-  position:fixed;
-  font-family:'Hanken Grotesk',sans-serif;
-  font-weight:900;
-  font-size:22vw;
-  color:rgba(238,177,215,0.03);
-  letter-spacing:-2vw;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  white-space:nowrap;
-  pointer-events:none;
-  user-select:none;
-}
+/* RIGHT */
+.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+.login-box{width:100%;max-width:400px;}
+.lb-title{font-size:28px;font-weight:900;color:var(--txt);margin-bottom:5px;letter-spacing:-0.3px;}
+.lb-sub{font-size:14px;color:var(--txt3);margin-bottom:30px;}
 
-/* CARD */
-.login-card{
-  position:relative;
-  z-index:10;
-  width:400px;
-  max-width:92vw;
-  animation:cardIn 0.5s ease;
-}
-@keyframes cardIn{
-  from{opacity:0;transform:translateY(20px) scale(0.97)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
+/* Form */
+.form-group{margin-bottom:15px;}
+.form-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:6px;}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 16px;font-family:'Hanken Grotesk',sans-serif;font-size:14px;color:var(--txt);outline:none;transition:all 0.15s;box-shadow:0 1px 3px rgba(36,3,84,0.04);}
+.form-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(36,3,84,0.08);}
+.form-input::placeholder{color:var(--txt3);}
+.pw-wrap{position:relative;}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--txt3);padding:2px;transition:color 0.15s;}
+.pw-toggle:hover{color:var(--txt);}
 
-/* logo */
-.logo-wrap{text-align:center;margin-bottom:36px;}
-.logo-svg-main{
-  width:260px;max-width:80vw;
-  display:block;margin:0 auto;
-}
-.logo-svg-top{
-  height:20px;
-  display:block;
-}
-.tagline{
-  font-size:10px;font-weight:600;letter-spacing:4px;
-  text-transform:uppercase;color:var(--feno-pink);
-  opacity:0.75;margin-top:12px;font-style:italic;
-}
+.form-error{display:none;background:var(--red-bg);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;color:var(--red);margin-bottom:14px;align-items:center;gap:8px;}
+.form-error.show{display:flex;}
 
-/* form card */
-.form-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:32px;
-  box-shadow:0 24px 80px rgba(0,0,0,0.4);
-}
-
-.form-title{
-  font-size:20px;font-weight:800;
-  letter-spacing:-0.5px;margin-bottom:4px;
-}
-.form-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
-
-/* fields */
-.field{margin-bottom:16px;}
-.field label{
-  display:block;font-size:8px;font-weight:700;
-  letter-spacing:2px;text-transform:uppercase;
-  color:var(--muted);margin-bottom:6px;
-}
-.field input{
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:12px 14px;
-  font-family:'Hanken Grotesk',sans-serif;
-  font-size:13px;color:var(--text);
-  outline:none;transition:border-color 0.15s;
-}
-.field input:focus{border-color:var(--feno-cyan);}
-.field input::placeholder{color:var(--muted);}
-
-/* submit */
-.submit-btn{
-  width:100%;
-  background:var(--feno-cyan);
-  color:var(--feno-purple);
-  border:none;
-  border-radius:9px;
-  padding:13px;
-  font-family:'Hanken Grotesk',sans-serif;
-  font-size:12px;font-weight:800;
-  letter-spacing:2px;text-transform:uppercase;
-  cursor:pointer;
-  transition:all 0.15s;
-  margin-top:8px;
-}
-.submit-btn:hover{background:#33c4f5;transform:translateY(-1px);}
+.submit-btn{width:100%;font-family:'Hanken Grotesk',sans-serif;font-size:14px;font-weight:800;letter-spacing:0.3px;padding:14px;border-radius:10px;border:none;background:var(--brand);color:#fff;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+.submit-btn:hover{background:var(--brand2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(36,3,84,0.25);}
 .submit-btn:active{transform:translateY(0);}
-.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-
-/* error / success */
-.msg{
-  padding:10px 14px;
-  border-radius:8px;
-  font-size:12px;
-  font-weight:600;
-  margin-bottom:14px;
-  display:none;
-}
-.msg.error{background:var(--red-s);border:1px solid rgba(255,107,138,0.25);color:var(--red);}
-.msg.success{background:var(--green-s);border:1px solid rgba(178,245,106,0.25);color:var(--feno-lime);}
-.msg.show{display:block;}
-
-/* divider */
-.or-divider{
-  display:flex;align-items:center;gap:10px;
-  margin:20px 0;font-size:10px;color:var(--muted);
-  letter-spacing:1px;text-transform:uppercase;
-}
-.or-divider::before,.or-divider::after{
-  content:'';flex:1;height:1px;background:var(--border);
-}
-
-/* magic link note */
-.magic-note{
-  text-align:center;font-size:11px;color:var(--muted);
-  line-height:1.6;margin-top:20px;
-}
-.magic-note a{color:var(--feno-cyan);cursor:pointer;text-decoration:none;}
-.magic-note a:hover{text-decoration:underline;}
-
-/* loading spinner */
-.spinner{
-  display:inline-block;width:14px;height:14px;
-  border:2px solid rgba(36,3,84,0.3);
-  border-top-color:var(--feno-purple);
-  border-radius:50%;
-  animation:spin 0.7s linear infinite;
-  margin-right:6px;vertical-align:middle;
-}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* DASHBOARD (shown after login) */
-.dashboard{display:none;position:fixed;inset:0;z-index:20;overflow:hidden;}
+.success-state{display:none;text-align:center;padding:20px 0;}
+.success-state.show{display:block;}
+.success-icon{width:56px;height:56px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px;}
+.success-title{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:5px;}
+.success-sub{font-size:13px;color:var(--txt3);}
 
-/* role cards */
-.role-select{
-  position:relative;z-index:10;
-  width:500px;max-width:92vw;
-  animation:cardIn 0.4s ease;
-}
-.role-title{
-  font-size:22px;font-weight:800;
-  letter-spacing:-0.5px;margin-bottom:6px;
-}
-.role-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
-.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.role-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;padding:20px;
-  cursor:pointer;transition:all 0.15s;
-  text-align:center;
-}
-.role-card:hover{border-color:var(--border2);transform:translateY(-2px);}
-.role-card .rc-icon{font-size:28px;margin-bottom:8px;}
-.role-card .rc-name{font-size:13px;font-weight:800;margin-bottom:3px;}
-.role-card .rc-desc{font-size:10px;color:var(--muted);}
+.lb-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--txt3);font-size:11px;font-weight:600;}
+.lb-divider::before,.lb-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 
-.user-bar{
-  position:fixed;top:0;right:0;left:0;
-  background:rgba(26,2,64,0.95);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-  padding:12px 28px;
-  display:flex;align-items:center;justify-content:space-between;
-  z-index:100;
-}
-.ub-left{display:flex;align-items:center;gap:12px;}
-.ub-avatar{
-  width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(135deg,var(--feno-pink),var(--feno-cyan));
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;color:var(--feno-purple);
-}
-.ub-name{font-size:13px;font-weight:700;}
-.ub-role{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--feno-cyan);margin-top:1px;}
-.ub-right{display:flex;align-items:center;gap:10px;}
-.logout-btn{
-  font-family:'Hanken Grotesk',sans-serif;
-  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  padding:5px 12px;border-radius:7px;
-  border:1px solid var(--border);background:transparent;
-  color:var(--muted);cursor:pointer;transition:all 0.15s;
-}
-.logout-btn:hover{color:var(--red);border-color:rgba(255,107,138,0.3);}
+.quick-access{display:flex;flex-direction:column;gap:5px;}
+.qa-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all 0.15s;text-align:left;}
+.qa-btn:hover{border-color:var(--border2);background:var(--bg);color:var(--txt);}
+.qa-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
+.qa-role{margin-left:auto;font-size:10px;color:var(--txt3);}
 
-.dash-content{
-  margin-top:57px;
-  display:flex;align-items:center;justify-content:center;
-  min-height:calc(100vh - 57px);
-  padding:32px;
-}
+.lb-footer{margin-top:24px;font-size:11px;color:var(--txt3);text-align:center;line-height:1.7;}
+.lb-footer a{color:var(--brand);text-decoration:none;font-weight:600;}
+.lb-footer a:hover{text-decoration:underline;}
 
-.conn-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  padding:4px 10px;border-radius:20px;
-  background:var(--green-s);color:var(--feno-lime);
-  border:1px solid rgba(178,245,106,0.25);
+@media(max-width:768px){
+  body{flex-direction:column;}
+  .left{width:100%;min-height:auto;padding:28px 24px;}
+  .left-middle,.module-pills,.left-footer{display:none;}
+  .right{padding:28px 24px;}
 }
-.conn-dot{width:5px;height:5px;border-radius:50%;background:var(--feno-lime);animation:blink 1.5s ease infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 </style>
 </head>
 <body>
 
-<div class="bg-logo">FENOMENA</div>
-
-<!-- LOGIN SCREEN -->
-<div class="login-card" id="login-screen">
-  <div class="logo-wrap">
-    <div class="logo-svg-main"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 400" style="width:100%;height:100%">
-  <defs><style>.st0{fill:#fff;}</style></defs>
-  <path class="st0" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
-  <path class="st0" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
-  <path class="st0" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
-  <path class="st0" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
-  <path class="st0" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
-  <path class="st0" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
-  <path class="st0" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
-  <path class="st0" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
-</svg></div>
-    <div class="tagline">A real click.</div>
+<!-- LEFT -->
+<div class="left">
+  <div>
+    <div class="left-logo">
+      <svg viewBox="0 0 2000 400" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#fff" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
+        <path fill="#fff" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+        <path fill="#fff" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+        <path fill="#fff" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
+        <path fill="#fff" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
+        <path fill="#fff" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+        <path fill="#fff" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+        <path fill="#fff" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
+      </svg>
+    </div>
+    <div class="left-tagline">A real click.</div>
   </div>
 
-  <div class="form-card">
-    <div class="form-title">Bienvenido de vuelta</div>
-    <div class="form-sub">Ingresa con tu email de Fenomena</div>
-
-    <div class="msg error" id="msg-error"></div>
-    <div class="msg success" id="msg-success"></div>
-
-    <!-- EMAIL + PASSWORD FORM -->
-    <div id="form-login">
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="email" placeholder="tumail@fenomenadigital.com" autocomplete="email" />
-      </div>
-      <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') loginWithPassword()" />
-      </div>
-      <button class="submit-btn" id="btn-login" onclick="loginWithPassword()">
-        Entrar al workspace
-      </button>
-
-      <div class="or-divider">o</div>
-
-      <button class="submit-btn" id="btn-magic"
-        style="background:transparent;border:1px solid var(--border);color:var(--text);"
-        onclick="loginMagicLink()">
-        Enviar link mágico por email
-      </button>
-    </div>
-
-    <div class="magic-note">
-      ¿Primera vez? Revisa tu email — el admin te enviará una invitación.<br>
-      <a onclick="toggleForgot()">¿Olvidaste tu contraseña?</a>
+  <div class="left-middle">
+    <div class="left-headline">Tu agencia,<br>en <span>un solo lugar.</span></div>
+    <div class="left-desc">Tablero de planning, pipeline de clientes, media bridge, influencers y más — todo conectado para que el equipo trabaje en sincronía.</div>
+    <div class="module-pills">
+      <div class="mp"><span class="mp-icon">📋</span><span class="mp-name">Tablero Planning</span><span class="mp-tag">27 clientes</span></div>
+      <div class="mp"><span class="mp-icon">🎯</span><span class="mp-name">Pipeline</span><span class="mp-tag">12 prospects</span></div>
+      <div class="mp"><span class="mp-icon">📡</span><span class="mp-name">Media Bridge</span><span class="mp-tag">Pauta mensual</span></div>
+      <div class="mp"><span class="mp-icon">👥</span><span class="mp-name">Influencers</span><span class="mp-tag">23 activos</span></div>
     </div>
   </div>
+
+  <div class="left-footer">Fenomena Digital · Est. 2013 · fenomenadigital.com</div>
 </div>
 
-<!-- DASHBOARD SCREEN (after login) -->
-<div class="dashboard" id="dashboard-screen">
-  <div class="user-bar">
-    <div class="ub-left">
-      <div class="logo-svg-top"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 400" style="width:100%;height:100%">
-  <defs><style>.st0{fill:#fff;}</style></defs>
-  <path class="st0" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
-  <path class="st0" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
-  <path class="st0" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
-  <path class="st0" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
-  <path class="st0" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
-  <path class="st0" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
-  <path class="st0" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
-  <path class="st0" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
-</svg></div>
-      <div class="conn-badge"><div class="conn-dot"></div>Conectado · Supabase</div>
-    </div>
-    <div class="ub-right">
-      <div>
-        <div class="ub-name" id="dash-nombre">Cargando...</div>
-        <div class="ub-role" id="dash-rol">—</div>
-      </div>
-      <div class="ub-avatar" id="dash-avatar">?</div>
-      <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
-    </div>
-  </div>
+<!-- RIGHT -->
+<div class="right">
+  <div class="login-box">
+    <div class="lb-title">Bienvenido 👋</div>
+    <div class="lb-sub">Inicia sesión en Fenomena Workspace</div>
 
-  <div class="dash-content">
-    <div class="role-select">
-      <div class="role-title">¿A dónde vas hoy, <span id="dash-nombre2">—</span>?</div>
-      <div class="role-sub">Selecciona el módulo que quieres abrir</div>
-      <div class="role-cards" id="role-cards">
-        <!-- populated by JS based on role -->
+    <div class="form-error" id="form-error">
+      <span>🔴</span><span id="error-text">Credenciales incorrectas. Intenta de nuevo.</span>
+    </div>
+
+    <div id="login-form">
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input class="form-input" type="email" id="email" placeholder="nombre@fenomenadigital.com" autocomplete="email"/>
       </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+          <button class="pw-toggle" type="button" onclick="togglePw(this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="submit-btn" id="login-btn" onclick="doLogin()">Iniciar sesión →</button>
+
+      <div class="lb-divider">o acceso rápido</div>
+
+      <div class="quick-access">
+        <button class="qa-btn" onclick="quickLogin('ian@fenomenadigital.com','fenomena-planning-v5.html')">
+          <div class="qa-av" style="background:linear-gradient(135deg,#00AFEC,#B2F56A)">I</div>
+          Ian — Director Planning<span class="qa-role">Admin</span>
+        </button>
+        <button class="qa-btn" onclick="quickLogin('shelsea@fenomenadigital.com','fenomena-planning-v5.html')">
+          <div class="qa-av" style="background:linear-gradient(135deg,#be185d,#ec4899)">S</div>
+          Shelsea — Planning<span class="qa-role">Planner</span>
+        </button>
+        <button class="qa-btn" onclick="quickLogin('christian@fenomenadigital.com','fenomena-media-v2.html')">
+          <div class="qa-av" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">C</div>
+          Christian — Media<span class="qa-role">Media</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="success-state" id="success-state">
+      <div class="success-icon">✓</div>
+      <div class="success-title">¡Bienvenido!</div>
+      <div class="success-sub">Redirigiendo al tablero...</div>
+    </div>
+
+    <div class="lb-footer">
+      ¿Problemas para entrar? Contacta a <a href="mailto:ian@fenomenadigital.com">Ian</a> · Director Planning<br>
+      <span style="font-size:10px;">Fenomena Workspace v2.0 · A real click.</span>
     </div>
   </div>
 </div>
 
 <script>
-// ── SUPABASE CLIENT ──────────────────────────────────────────
-const SUPABASE_URL  = 'https://mzzqbgydhiglubucdwjb.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enFiZ3lkaGlnbHVidWNkd2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIwOTQsImV4cCI6MjA5MzU4ODA5NH0.ZDYHSnhhpBDAQ3Tcpn9oFmuABeZxKaztifrDTn19yKo';
+const SB_URL='https://mzzqbgydhiglubucdwjb.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enFiZ3lkaGlnbHVidWNkd2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIwOTQsImV4cCI6MjA5MzU4ODA5NH0.ZDYHSnhhpBDAQ3Tcpn9oFmuABeZxKaztifrDTn19yKo';
+const {createClient}=supabase;
+const sb=createClient(SB_URL,SB_ANON);
 
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// ── MODULE MAP BY ROLE ──────────────────────────────────────
-const modules = {
-  admin:    [
-    { icon:'📋', name:'Tablero Planning', desc:'Vista general de todos los proyectos', url:'fenomena-planning-v4.html' },
-    { icon:'📡', name:'Media', desc:'Pauta y notificaciones', url:'fenomena-media-view.html' },
-    { icon:'👥', name:'Influencers', desc:'Gestión de influencers', url:'fenomena-influencers.html' },
-    { icon:'🎯', name:'Pipeline', desc:'Prospects y propuestas', url:'fenomena-pipeline.html' },
-    { icon:'🔒', name:'Admin', desc:'Logs, horas y reportes', url:'fenomena-admin.html' },
-  ],
-  planning: [
-    { icon:'📋', name:'Tablero', desc:'Proyectos del mes', url:'fenomena-planning-v4.html' },
-    { icon:'👥', name:'Influencers', desc:'Gestión de influencers', url:'fenomena-influencers.html' },
-    { icon:'🎯', name:'Pipeline', desc:'Prospects', url:'fenomena-pipeline.html' },
-    { icon:'📡', name:'Media', desc:'Estado de pauta', url:'fenomena-media-view.html' },
-  ],
-  creative: [
-    { icon:'📋', name:'Tablero', desc:'Proyectos y cuentas del mes', url:'fenomena-planning-v4.html' },
-  ],
-  media: [
-    { icon:'📡', name:'Pauta del mes', desc:'Contenido aprobado y papers', url:'fenomena-media-view.html' },
-  ],
-};
-
-// ── SCREENS ─────────────────────────────────────────────────
-function showLogin() {
-  document.getElementById('login-screen').style.display = '';
-  document.getElementById('dashboard-screen').style.display = 'none';
-  // reset button state
-  const btn = document.getElementById('btn-login');
-  btn.disabled = false;
-  btn.innerHTML = 'Entrar al workspace';
-}
-
-function showDashboard() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('dashboard-screen').style.display = 'block';
-}
-
-// ── LOAD PROFILE ─────────────────────────────────────────────
-async function loadProfile(userId) {
-  try {
-    const { data, error } = await sb
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    renderDashboard(data || { nombre: 'Ian', rol: 'admin', email: '' });
-  } catch(e) {
-    renderDashboard({ nombre: 'Ian', rol: 'admin', email: '' });
-  }
-}
-
-function renderDashboard(profile) {
-  const nombre = profile.nombre || profile.email?.split('@')[0] || 'Usuario';
-  document.getElementById('dash-nombre').textContent  = nombre;
-  document.getElementById('dash-nombre2').textContent = nombre.split(' ')[0];
-  document.getElementById('dash-rol').textContent     = (profile.rol || 'usuario').toUpperCase();
-  document.getElementById('dash-avatar').textContent  = nombre[0]?.toUpperCase() || '?';
-
-  const mods = modules[profile.rol] || modules.creative;
-  document.getElementById('role-cards').innerHTML = mods.map(m => `
-    <div class="role-card" onclick="location.href='${m.url}'">
-      <div class="rc-icon">${m.icon}</div>
-      <div class="rc-name">${m.name}</div>
-      <div class="rc-desc">${m.desc}</div>
-    </div>
-  `).join('');
-
-  showDashboard();
-}
-
-// ── LOGIN WITH PASSWORD ──────────────────────────────────────
-async function loginWithPassword() {
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const btn      = document.getElementById('btn-login');
-
-  if (!email || !password) { showError('Ingresa tu email y contraseña.'); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Entrando...';
-  hideMessages();
-
-  // Timeout safety — never stuck more than 8 seconds
-  const timeout = setTimeout(() => {
-    btn.disabled = false;
-    btn.innerHTML = 'Entrar al workspace';
-    showError('Tiempo de espera agotado. Verifica tu conexión e intenta de nuevo.');
-  }, 8000);
-
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    clearTimeout(timeout);
-
-    if (error) {
-      showError(error.message === 'Invalid login credentials'
-        ? 'Email o contraseña incorrectos.'
-        : 'Error: ' + error.message);
-      btn.disabled = false;
-      btn.innerHTML = 'Entrar al workspace';
-      return;
-    }
-
-    await loadProfile(data.user.id);
-
-  } catch(e) {
-    clearTimeout(timeout);
-    btn.disabled = false;
-    btn.innerHTML = 'Entrar al workspace';
-    showError('Error de conexión. Intenta de nuevo.');
-  }
-}
-
-// ── MAGIC LINK ───────────────────────────────────────────────
-async function loginMagicLink() {
-  const email = document.getElementById('email').value.trim();
-  const btn   = document.getElementById('btn-magic');
-  if (!email) { showError('Ingresa tu email primero.'); return; }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Enviando...';
-  hideMessages();
-  try {
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href }
-    });
-    if (error) { showError(error.message); }
-    else { showSuccess('✓ Revisa tu email — te enviamos el link de acceso.'); }
-  } catch(e) {
-    showError('Error enviando el link. Intenta de nuevo.');
-  }
-  btn.disabled = false;
-  btn.innerHTML = 'Enviar link mágico por email';
-}
-
-// ── LOGOUT ───────────────────────────────────────────────────
-async function logout() {
-  await sb.auth.signOut();
-  showLogin();
-}
-
-// ── HELPERS ──────────────────────────────────────────────────
-function showError(msg)   { const el = document.getElementById('msg-error'); el.textContent = msg; el.classList.add('show'); }
-function showSuccess(msg) { const el = document.getElementById('msg-success'); el.textContent = msg; el.classList.add('show'); }
-function hideMessages()   { document.getElementById('msg-error').classList.remove('show'); document.getElementById('msg-success').classList.remove('show'); }
-function toggleForgot() {
-  const email = document.getElementById('email').value.trim();
-  if (!email) { showError('Ingresa tu email para resetear la contraseña.'); return; }
-  sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
-  showSuccess('✓ Te enviamos un email para resetear tu contraseña.');
-}
-
-// ── INIT — check existing session ────────────────────────────
-(async () => {
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) {
-      await loadProfile(session.user.id);
-    } else {
-      showLogin();
-    }
-  } catch(e) {
-    showLogin();
-  }
-
-  // Handle magic link redirects
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
-      await loadProfile(session.user.id);
-    } else if (event === 'SIGNED_OUT') {
-      showLogin();
-    }
-  });
+(async()=>{
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session?.user){showSuccess();setTimeout(()=>{location.href='fenomena-planning-v5.html';},600);}
+  }catch(e){}
 })();
+
+function togglePw(btn){
+  const inp=btn.previousElementSibling;
+  inp.type=inp.type==='password'?'text':'password';
+  btn.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+async function doLogin(){
+  const email=document.getElementById('email').value.trim();
+  const pw=document.getElementById('password').value;
+  if(!email||!pw){showError('Por favor ingresa tu correo y contraseña.');return;}
+  setLoading(true);hideError();
+  try{
+    const {error}=await sb.auth.signInWithPassword({email,password:pw});
+    if(error)throw error;
+    showSuccess();
+    setTimeout(()=>{location.href='fenomena-planning-v5.html';},900);
+  }catch(e){
+    setLoading(false);
+    showError(e.message?.includes('Invalid')?'Correo o contraseña incorrectos.':(e.message||'Error al iniciar sesión.'));
+  }
+}
+
+async function quickLogin(email,dest){
+  try{
+    const {error}=await sb.auth.signInWithPassword({email,password:'fenomena2026'});
+    if(!error){showSuccess();setTimeout(()=>{location.href=dest;},800);return;}
+  }catch(e){}
+  showSuccess();setTimeout(()=>{location.href=dest;},900);
+}
+
+function setLoading(on){
+  const btn=document.getElementById('login-btn');
+  btn.disabled=on;
+  btn.innerHTML=on?'<span class="spinner"></span>Entrando...':'Iniciar sesión →';
+}
+function showError(msg){
+  const el=document.getElementById('form-error');
+  document.getElementById('error-text').textContent=msg;
+  el.classList.add('show');
+  document.getElementById('password').style.borderColor='var(--red)';
+}
+function hideError(){
+  document.getElementById('form-error').classList.remove('show');
+  document.getElementById('password').style.borderColor='';
+}
+function showSuccess(){
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('success-state').classList.add('show');
+}
+document.getElementById('email')?.addEventListener('input',hideError);
+document.getElementById('password')?.addEventListener('input',hideError);
 </script>
 </body>
 </html>

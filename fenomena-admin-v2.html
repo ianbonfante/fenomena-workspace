@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23240354'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial Black,sans-serif' font-size='20' font-weight='900' fill='%23B2F56A' text-anchor='middle' dominant-baseline='central'%3EF%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fenomena — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --brand:#240354;--brand2:#2d0468;
+  --lime:#B2F56A;--cyan:#00AFEC;
+  --bg:#F4F2FA;--surface:#FFFFFF;--surface2:#F8F7FC;
+  --border:#E8E4F4;--border2:#D4CCF0;
+  --txt:#1a0240;--txt2:#4B4468;--txt3:#9590AB;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --sb-bg:#240354;--sb-border:rgba(255,255,255,0.08);
+  --sb-txt:rgba(255,255,255,0.7);--sb-accent:#B2F56A;
+  --sb-hover:rgba(255,255,255,0.08);--sb-active:rgba(178,245,106,0.12);
+}
+body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--txt);display:flex;min-height:100vh;font-size:14px;}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-height:100vh;background:var(--sb-bg);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid var(--sb-border);}
+.sb-logo svg{width:120px;height:auto;display:block;}
+.sb-tagline{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--sb-accent);opacity:0.7;margin-top:6px;}
+.sb-user{padding:16px 20px;border-bottom:1px solid var(--sb-border);display:flex;align-items:center;gap:10px;}
+.sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--lime));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--brand);flex-shrink:0;}
+.sb-uname{font-size:13px;font-weight:700;color:#fff;}
+.sb-urole{font-size:10px;color:var(--sb-accent);letter-spacing:1px;text-transform:uppercase;opacity:0.8;}
+.sb-section{padding:8px 12px 4px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sb-txt);opacity:0.4;}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;font-weight:500;color:var(--sb-txt);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;text-decoration:none;}
+.ni:hover{background:var(--sb-hover);color:#fff;}
+.ni.active{background:var(--sb-active);color:#fff;border-left-color:var(--sb-accent);}
+.ni-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.ni-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--red);color:#fff;padding:1px 6px;border-radius:10px;}
+.sb-bottom{padding:16px 20px;border-top:1px solid var(--sb-border);}
+.sb-logout{width:100%;font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:8px;border-radius:7px;background:rgba(255,255,255,0.06);border:1px solid var(--sb-border);color:var(--sb-txt);cursor:pointer;transition:all 0.15s;}
+.sb-logout:hover{background:rgba(255,255,255,0.1);color:#fff;}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:0 1px 3px rgba(36,3,84,0.06);}
+.tb-left{display:flex;align-items:center;gap:8px;}
+.tb-page{font-size:18px;font-weight:800;color:var(--txt);}
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 4px;}
+.tb-sub{font-size:13px;color:var(--txt3);}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.export-btn{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--txt2);cursor:pointer;transition:all 0.15s;}
+.export-btn:hover{border-color:var(--border2);color:var(--txt);}
+.access-badge{font-size:11px;font-weight:700;padding:5px 11px;border-radius:7px;background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
+
+/* STATS */
+.stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all 0.15s;}
+.stat-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(36,3,84,0.06);}
+.stat-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:3px;}
+.stat-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);}
+
+/* TABS */
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:0;}
+.tab{font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:700;padding:14px 18px;border:none;background:transparent;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.tab:hover{color:var(--txt);}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand);}
+.tab-badge{font-size:10px;font-weight:700;background:var(--red);color:#fff;padding:1px 6px;border-radius:10px;}
+
+/* CONTENT */
+.tab-content{display:none;padding:24px 28px;}
+.tab-content.active{display:block;}
+
+/* LOG TABLE */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:16px;font-weight:800;color:var(--txt);display:flex;align-items:center;gap:8px;}
+.section-sub{font-size:12px;color:var(--txt3);margin-top:2px;}
+
+.log-filters{display:flex;gap:6px;align-items:center;}
+.lf-select{font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--txt2);cursor:pointer;outline:none;}
+
+.data-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(36,3,84,0.04);}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table thead th{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);padding:11px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+.data-table tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+.data-table tbody tr:hover{background:var(--surface2);}
+.data-table tbody tr:last-child{border-bottom:none;}
+.data-table tbody td{padding:12px 16px;font-size:13px;vertical-align:middle;}
+
+.action-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.ab-login{background:var(--green-bg);color:var(--green);}
+.ab-atraso{background:var(--red-bg);color:var(--red);}
+.ab-subio{background:var(--blue-bg);color:var(--blue);}
+.ab-aprobo{background:var(--green-bg);color:var(--green);}
+.ab-cambio{background:var(--amber-bg);color:var(--amber);}
+.ab-notifico{background:var(--purple-bg);color:var(--purple);}
+
+.user-chip{display:flex;align-items:center;gap:7px;}
+.u-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
+.u-name{font-weight:700;color:var(--txt);font-size:13px;}
+.u-role{font-size:10px;color:var(--txt3);}
+
+/* CHART */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);}
+.chart-title{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.chart-period{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--txt3);cursor:pointer;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar{border-radius:5px 5px 0 0;width:100%;transition:opacity 0.15s;cursor:pointer;}
+.bar:hover{opacity:0.7;}
+.bar-lbl{font-size:9px;font-weight:600;color:var(--txt3);letter-spacing:0.5px;}
+.bar-val{font-size:9px;font-weight:700;color:var(--txt2);}
+
+/* ATRASOS */
+.atraso-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(36,3,84,0.04);transition:all 0.15s;}
+.atraso-card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(36,3,84,0.08);}
+.atraso-card.sin-resolver{border-left:3px solid var(--red);}
+.atraso-card.en-proceso{border-left:3px solid var(--amber);}
+.atraso-card.resuelto{border-left:3px solid var(--green);}
+.ac-top{display:flex;align-items:flex-start;gap:12px;}
+.ac-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ac-dot.red{background:var(--red);}
+.ac-dot.amber{background:var(--amber);}
+.ac-dot.green{background:var(--green);}
+.ac-info{flex:1;}
+.ac-title{font-size:14px;font-weight:700;color:var(--txt);}
+.ac-detail{font-size:12px;color:var(--txt2);margin-top:3px;line-height:1.6;}
+.ac-meta{font-size:11px;color:var(--txt3);margin-top:4px;}
+.ac-status{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.ac-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.ac-date{font-size:11px;color:var(--txt3);}
+.pattern-note{background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--purple);margin-top:4px;line-height:1.6;}
+
+/* REPORTS */
+.reports-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);cursor:pointer;transition:all 0.15s;}
+.report-card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(36,3,84,0.08);}
+.rc-icon{font-size:24px;margin-bottom:10px;}
+.rc-title{font-size:13px;font-weight:800;color:var(--txt);margin-bottom:3px;}
+.rc-sub{font-size:11px;color:var(--txt3);}
+.rc-badge{margin-top:10px;display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+
+/* USERS */
+.user-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(36,3,84,0.04);transition:all 0.15s;cursor:pointer;}
+.user-card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(36,3,84,0.08);}
+.uc-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.uc-name{font-size:14px;font-weight:800;color:var(--txt);}
+.uc-role{font-size:11px;color:var(--txt3);margin-top:1px;}
+.uc-status{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px var(--green-bg);}
+.last-seen{font-size:10px;color:var(--txt3);}
+.uc-pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.uc-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(36,3,84,0.5);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:480px;max-width:92vw;animation:mIn 0.2s ease;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(36,3,84,0.15);}
+@keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.m-title{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:4px;}
+.m-sub{font-size:13px;color:var(--txt3);margin-bottom:20px;}
+.mf{margin-bottom:13px;}
+.ml{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:5px;}
+.mi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:var(--txt);outline:none;transition:border-color 0.12s;}
+.mi:focus{border-color:var(--brand);}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;}
+.m-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.btn{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:8px 16px;border-radius:8px;border:1px solid;cursor:pointer;transition:all 0.15s;}
+.b-ghost{background:transparent;color:var(--txt2);border-color:var(--border);}
+.b-ghost:hover{background:var(--surface2);}
+.b-brand{background:var(--brand);color:#fff;border-color:var(--brand);}
+.b-brand:hover{background:var(--brand2);}
+.b-red{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <svg viewBox="0 0 2000 400" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#fff" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
+      <path fill="#fff" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+      <path fill="#fff" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+      <path fill="#fff" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
+      <path fill="#fff" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
+      <path fill="#fff" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+      <path fill="#fff" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+      <path fill="#fff" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
+    </svg>
+    <div class="sb-tagline">A real click.</div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-av">I</div>
+    <div><div class="sb-uname">Ian</div><div class="sb-urole">Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Planning</div>
+    <a class="ni" href="fenomena-planning-v5.html"><span class="ni-icon">📋</span>Tablero</a>
+    <a class="ni" href="fenomena-influencers-v2.html"><span class="ni-icon">👥</span>Influencers</a>
+    <a class="ni" href="fenomena-pipeline-v2.html"><span class="ni-icon">🎯</span>Pipeline</a>
+    <div class="sb-section" style="margin-top:8px">Agencia</div>
+    <a class="ni" href="fenomena-media-v2.html"><span class="ni-icon">📡</span>Media</a>
+    <a class="ni active"><span class="ni-icon">🔒</span>Admin</a>
+  </nav>
+  <div class="sb-bottom">
+    <button class="sb-logout" onclick="location.href='index.html'">Cerrar sesión</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-page">Panel Admin</span>
+      <div class="tb-sep"></div>
+      <span class="tb-sub">Acceso restringido · Ian</span>
+    </div>
+    <div class="tb-right">
+      <span class="access-badge">🔒 Solo Admin</span>
+      <button class="export-btn" onclick="showToast('📊 Exportando CSV...')">↓ Exportar CSV</button>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card" onclick="switchTab('log')">
+      <div class="stat-val" style="color:var(--brand)">18</div>
+      <div class="stat-lbl">Sesiones hoy</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('log')">
+      <div class="stat-val" style="color:var(--blue)">47</div>
+      <div class="stat-lbl">Acciones esta semana</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('atrasos')">
+      <div class="stat-val" style="color:var(--amber)">3</div>
+      <div class="stat-lbl">Usuarios activos ahora</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('atrasos')">
+      <div class="stat-val" style="color:var(--red)">1</div>
+      <div class="stat-lbl">Atraso sin reportar</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('log')">📋 Log de accesos</button>
+    <button class="tab" onclick="switchTab('horas')">⏱ Horas</button>
+    <button class="tab" onclick="switchTab('atrasos')">🔴 Atrasos <span class="tab-badge">3</span></button>
+    <button class="tab" onclick="switchTab('reportes')">📊 Reportes</button>
+    <button class="tab" onclick="switchTab('usuarios')">👤 Usuarios</button>
+  </div>
+
+  <!-- LOG DE ACCESOS -->
+  <div class="tab-content active" id="tab-log">
+    <div class="section-header">
+      <div>
+        <div class="section-title">📋 Registro de actividad</div>
+        <div class="section-sub">Todas las acciones del equipo en tiempo real</div>
+      </div>
+      <div class="log-filters">
+        <select class="lf-select">
+          <option>Todos los usuarios</option>
+          <option>Ian</option><option>Shelsea</option><option>Megan</option>
+          <option>Didi</option><option>Willcy</option><option>Gian</option>
+          <option>Christian</option><option>Belkys</option>
+        </select>
+        <select class="lf-select">
+          <option>Hoy</option>
+          <option>Ayer</option>
+          <option>Esta semana</option>
+          <option>Este mes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mini chart -->
+    <div class="chart-wrap">
+      <div class="chart-title">
+        Actividad de la semana
+        <span class="chart-period">Últ. 7 días</span>
+      </div>
+      <div class="bar-chart" id="activity-chart">
+        <div class="bar-col"><div class="bar-val">8</div><div class="bar" style="height:40px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">L</div></div>
+        <div class="bar-col"><div class="bar-val">12</div><div class="bar" style="height:60px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">M</div></div>
+        <div class="bar-col"><div class="bar-val">9</div><div class="bar" style="height:45px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">M</div></div>
+        <div class="bar-col"><div class="bar-val">15</div><div class="bar" style="height:75px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">J</div></div>
+        <div class="bar-col"><div class="bar-val">11</div><div class="bar" style="height:55px;background:var(--brand);opacity:0.3"></div><div class="bar-lbl">V</div></div>
+        <div class="bar-col"><div class="bar-val">4</div><div class="bar" style="height:20px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">S</div></div>
+        <div class="bar-col"><div class="bar-val">1</div><div class="bar" style="height:5px;background:var(--purple-bg);border:1px solid var(--purple-border)"></div><div class="bar-lbl">D</div></div>
+      </div>
+    </div>
+
+    <div class="data-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>Duración</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Hoy 11:42am</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--cyan),var(--lime))">I</div><div><div class="u-name">Ian</div><div class="u-role">Planning</div></div></div></td>
+            <td><span class="action-badge ab-login">🟢 Sesión iniciada</span></td>
+            <td style="color:var(--txt2);font-size:12px">Tablero principal → proyectos mayo</td>
+            <td style="font-weight:700;color:var(--green)">Activo</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Hoy 10:58am</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#c084fc,#7c3aed)">D</div><div><div class="u-name">Didi</div><div class="u-role">Creative</div></div></div></td>
+            <td><span class="action-badge ab-atraso">🔴 Motivo atraso</span></td>
+            <td style="color:var(--txt2);font-size:12px">Relojín · Batch 1 · "Volumen de trabajo"</td>
+            <td style="color:var(--txt3)">—</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Hoy 10:31am</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--cyan),#0ea5e9)">W</div><div><div class="u-name">Willcy</div><div class="u-role">Creative</div></div></div></td>
+            <td><span class="action-badge ab-subio">📤 Subió artes</span></td>
+            <td style="color:var(--txt2);font-size:12px">Attenza · Batch 1 · 3 artes (2 reels + 1 carrusel)</td>
+            <td style="color:var(--txt3)">12 min</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Hoy 09:55am</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#be185d,#ec4899)">S</div><div><div class="u-name">Shelsea</div><div class="u-role">Planning</div></div></div></td>
+            <td><span class="action-badge ab-aprobo">✓ Aprobó</span></td>
+            <td style="color:var(--txt2);font-size:12px">Attenza · Batch 1 → aprobado · Link Paper enviado a Christian</td>
+            <td style="color:var(--txt3)">—</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Hoy 09:20am</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">C</div><div><div class="u-name">Christian</div><div class="u-role">Media</div></div></div></td>
+            <td><span class="action-badge ab-login">🟢 Sesión iniciada</span></td>
+            <td style="color:var(--txt2);font-size:12px">Módulo Media · revisión publicaciones del día</td>
+            <td style="color:var(--txt3)">45 min</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Ayer 5:12pm</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--lime),var(--cyan))">M</div><div><div class="u-name">Megan</div><div class="u-role">Planning</div></div></div></td>
+            <td><span class="action-badge ab-cambio">✏️ Editó planner</span></td>
+            <td style="color:var(--txt2);font-size:12px">iShop CR · cambio diseñador a Ana Gabriela</td>
+            <td style="color:var(--txt3)">—</td>
+          </tr>
+          <tr>
+            <td style="color:var(--txt2);font-weight:600">Ayer 3:45pm</td>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#d97706,#fbbf24)">B</div><div><div class="u-name">Belkys</div><div class="u-role">Media</div></div></div></td>
+            <td><span class="action-badge ab-notifico">📡 Notificó</span></td>
+            <td style="color:var(--txt2);font-size:12px">Guayacán · Pauta registrada META $1,200</td>
+            <td style="color:var(--txt3)">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HORAS -->
+  <div class="tab-content" id="tab-horas">
+    <div class="section-header">
+      <div>
+        <div class="section-title">⏱ Historial de horas</div>
+        <div class="section-sub">Tiempo registrado por usuario · Mayo 2026</div>
+      </div>
+      <select class="lf-select"><option>Este mes</option><option>Mes anterior</option><option>Últimos 3 meses</option></select>
+    </div>
+    <div class="data-card">
+      <table class="data-table">
+        <thead>
+          <tr><th>Usuario</th><th>Rol</th><th>Horas este mes</th><th>Promedio/día</th><th>Última sesión</th><th>Sesiones</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--cyan),var(--lime))">I</div><div><div class="u-name">Ian</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Director Planning</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--brand)">38h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">1.9h/día</td>
+            <td style="font-size:12px;color:var(--green);font-weight:700">Activo ahora</td>
+            <td style="font-size:12px;color:var(--txt3)">18 sesiones</td>
+          </tr>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#be185d,#ec4899)">S</div><div><div class="u-name">Shelsea</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Planning</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--brand)">31h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">1.6h/día</td>
+            <td style="font-size:12px;color:var(--txt3)">Hoy 9:30am</td>
+            <td style="font-size:12px;color:var(--txt3)">15 sesiones</td>
+          </tr>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--lime),var(--cyan))">M</div><div><div class="u-name">Megan</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Planning</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--brand)">28h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">1.4h/día</td>
+            <td style="font-size:12px;color:var(--txt3)">Ayer 5:12pm</td>
+            <td style="font-size:12px;color:var(--txt3)">12 sesiones</td>
+          </tr>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#c084fc,#7c3aed)">D</div><div><div class="u-name">Didi</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Creative · Andreina</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--amber)">12h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">0.6h/día</td>
+            <td style="font-size:12px;color:var(--txt3)">Hoy 10:58am</td>
+            <td style="font-size:12px;color:var(--txt3)">8 sesiones</td>
+          </tr>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,var(--cyan),#0ea5e9)">W</div><div><div class="u-name">Willcy</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Creative · Andreina</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--brand)">18h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">0.9h/día</td>
+            <td style="font-size:12px;color:var(--txt3)">Hoy 10:31am</td>
+            <td style="font-size:12px;color:var(--txt3)">11 sesiones</td>
+          </tr>
+          <tr>
+            <td><div class="user-chip"><div class="u-av" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">C</div><div><div class="u-name">Christian</div></div></div></td>
+            <td style="font-size:12px;color:var(--txt2)">Media · Belkys</td>
+            <td><span style="font-size:15px;font-weight:800;color:var(--brand)">22h</span></td>
+            <td style="font-size:12px;color:var(--txt2)">1.1h/día</td>
+            <td style="font-size:12px;color:var(--txt3)">Hoy 9:20am</td>
+            <td style="font-size:12px;color:var(--txt3)">14 sesiones</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ATRASOS -->
+  <div class="tab-content" id="tab-atrasos">
+    <div class="section-header">
+      <div>
+        <div class="section-title">🔴 Historial de atrasos</div>
+        <div class="section-sub">Mayo 2026 · 1 sin resolver</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:4px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-top:2px"></div>
+          <span style="font-size:11px;color:var(--txt3)">Sin resolver</span>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);margin-top:2px"></div>
+          <span style="font-size:11px;color:var(--txt3)">En proceso</span>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:2px"></div>
+          <span style="font-size:11px;color:var(--txt3)">Resuelto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats fila -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+        <div style="font-size:22px;font-weight:800;color:var(--red)">3</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3)">Atrasos este mes</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+        <div style="font-size:22px;font-weight:800;color:var(--amber)">1</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3)">Sin motivo reportado</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+        <div style="font-size:22px;font-weight:800;color:var(--green)">2</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3)">Resueltos</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+        <div style="font-size:22px;font-weight:800;color:var(--blue)">4.2h</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3)">Promedio demora</div>
+      </div>
+    </div>
+
+    <div class="atraso-card sin-resolver">
+      <div class="ac-top">
+        <div class="ac-dot red"></div>
+        <div class="ac-info">
+          <div class="ac-title">Didi — Relojín · Batch 1</div>
+          <div class="ac-detail">14 artes pendientes de subir. Deadline: 15 mayo. Motivo reportado: "Volumen de trabajo — tengo 74pts activos este mes, no pude completar a tiempo."</div>
+          <div class="ac-meta">Hoy 10:58am · Demora: sin entregar</div>
+        </div>
+        <div class="ac-status">
+          <span class="ac-badge" style="background:var(--red-bg);color:var(--red);">SIN RESOLVER</span>
+          <span class="ac-date">Nueva fecha: 16 mayo</span>
+          <button class="btn b-brand" style="font-size:10px;padding:5px 10px;margin-top:4px" onclick="showToast('✓ Atraso marcado como resuelto')">Marcar resuelto</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="atraso-card resuelto">
+      <div class="ac-top">
+        <div class="ac-dot green"></div>
+        <div class="ac-info">
+          <div class="ac-title">Gian — Bella Holandesa PTY · Batch 1</div>
+          <div class="ac-detail">3 artes entregados con 6 horas de retraso. Motivo: "Revisión adicional pedida por cliente antes de subir."</div>
+          <div class="ac-meta">3 mayo 04:30pm · Demora: 6h</div>
+        </div>
+        <div class="ac-status">
+          <span class="ac-badge" style="background:var(--green-bg);color:var(--green);">✓ RESUELTO</span>
+          <span class="ac-date">Entregado 3 mayo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="atraso-card en-proceso">
+      <div class="ac-top">
+        <div class="ac-dot amber"></div>
+        <div class="ac-info">
+          <div class="ac-title">Andreina — Miller Lite HN · Batch 1</div>
+          <div class="ac-detail">2 de 6 artes entregados. Producción del mundial sin fecha confirmada. Pendiente coordinación con Ian.</div>
+          <div class="ac-meta">4 mayo · Demora: en proceso</div>
+        </div>
+        <div class="ac-status">
+          <span class="ac-badge" style="background:var(--amber-bg);color:var(--amber);">EN PROCESO</span>
+          <span class="ac-date">Coordinando</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern-note">
+      <strong>🔍 Patrón detectado:</strong> Didi acumula el mayor volumen de pts activos (74/mes). Considerar redistribuir Vervana o WOC para los próximos meses para balancear la carga del equipo creativo.
+    </div>
+  </div>
+
+  <!-- REPORTES -->
+  <div class="tab-content" id="tab-reportes">
+    <div class="section-header">
+      <div>
+        <div class="section-title">📊 Reportes</div>
+        <div class="section-sub">Resúmenes exportables · Mayo 2026</div>
+      </div>
+    </div>
+    <div class="reports-grid">
+      <div class="report-card" onclick="showToast('📊 Generando reporte de actividad...')">
+        <div class="rc-icon">📋</div>
+        <div class="rc-title">Actividad del equipo</div>
+        <div class="rc-sub">Sesiones, acciones y tiempo por usuario este mes</div>
+        <div class="rc-badge" style="background:var(--blue-bg);color:var(--blue);">CSV · PDF</div>
+      </div>
+      <div class="report-card" onclick="showToast('📊 Generando reporte de atrasos...')">
+        <div class="rc-icon">🔴</div>
+        <div class="rc-title">Historial de atrasos</div>
+        <div class="rc-sub">Atrasos, motivos y tiempo de resolución por diseñador</div>
+        <div class="rc-badge" style="background:var(--red-bg);color:var(--red);">3 este mes</div>
+      </div>
+      <div class="report-card" onclick="showToast('📊 Generando reporte de clientes...')">
+        <div class="rc-icon">🏢</div>
+        <div class="rc-title">Estado de clientes</div>
+        <div class="rc-sub">Progreso por cliente, batches y status de artes</div>
+        <div class="rc-badge" style="background:var(--green-bg);color:var(--green);">27 clientes</div>
+      </div>
+      <div class="report-card" onclick="showToast('📊 Generando reporte de carga...')">
+        <div class="rc-icon">⚡</div>
+        <div class="rc-title">Carga de trabajo</div>
+        <div class="rc-sub">Puntos por diseñador y semáforo de capacidad</div>
+        <div class="rc-badge" style="background:var(--amber-bg);color:var(--amber);">1 en rojo</div>
+      </div>
+      <div class="report-card" onclick="showToast('📊 Generando reporte de influencers...')">
+        <div class="rc-icon">👥</div>
+        <div class="rc-title">Influencers del mes</div>
+        <div class="rc-sub">Contratos, pagos y status de contenido</div>
+        <div class="rc-badge" style="background:var(--purple-bg);color:var(--purple);">23 activos</div>
+      </div>
+      <div class="report-card" onclick="showToast('📊 Generando reporte de pipeline...')">
+        <div class="rc-icon">🎯</div>
+        <div class="rc-title">Pipeline de ventas</div>
+        <div class="rc-sub">Prospects por etapa y proyección de ingresos</div>
+        <div class="rc-badge" style="background:var(--green-bg);color:var(--green);">$14,350/mes potencial</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USUARIOS -->
+  <div class="tab-content" id="tab-usuarios">
+    <div class="section-header">
+      <div>
+        <div class="section-title">👤 Usuarios del sistema</div>
+        <div class="section-sub">Equipo con acceso a Fenomena Workspace</div>
+      </div>
+      <button class="btn b-brand" onclick="openAddUser()">+ Agregar usuario</button>
+    </div>
+    <div class="user-grid">
+      <div class="user-card" onclick="openEditUser('Ian','Director Planning','Admin')">
+        <div class="uc-av" style="background:linear-gradient(135deg,var(--cyan),var(--lime))">I</div>
+        <div style="flex:1">
+          <div class="uc-name">Ian</div>
+          <div class="uc-role">Director Planning</div>
+          <div class="uc-pills">
+            <span class="uc-pill" style="background:var(--amber-bg);color:var(--amber)">Admin</span>
+            <span class="uc-pill" style="background:var(--blue-bg);color:var(--blue)">Planning</span>
+          </div>
+        </div>
+        <div class="uc-status">
+          <div class="online-dot"></div>
+          <div class="last-seen" style="color:var(--green)">En línea</div>
+        </div>
+      </div>
+      <div class="user-card" onclick="openEditUser('Shelsea','Planning','Planner')">
+        <div class="uc-av" style="background:linear-gradient(135deg,#be185d,#ec4899)">S</div>
+        <div style="flex:1">
+          <div class="uc-name">Shelsea</div>
+          <div class="uc-role">Planning</div>
+          <div class="uc-pills">
+            <span class="uc-pill" style="background:var(--blue-bg);color:var(--blue)">Planner</span>
+          </div>
+        </div>
+        <div class="uc-status">
+          <div class="online-dot"></div>
+          <div class="last-seen" style="color:var(--green)">En línea</div>
+        </div>
+      </div>
+      <div class="user-card" onclick="openEditUser('Megan','Planning','Planner')">
+        <div class="uc-av" style="background:linear-gradient(135deg,var(--lime),var(--cyan))">M</div>
+        <div style="flex:1">
+          <div class="uc-name">Megan</div>
+          <div class="uc-role">Planning</div>
+          <div class="uc-pills"><span class="uc-pill" style="background:var(--blue-bg);color:var(--blue)">Planner</span></div>
+        </div>
+        <div class="uc-status">
+          <div class="last-seen">Ayer 5:12pm</div>
+        </div>
+      </div>
+      <div class="user-card" onclick="openEditUser('Christian','Media','Media')">
+        <div class="uc-av" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">C</div>
+        <div style="flex:1">
+          <div class="uc-name">Christian</div>
+          <div class="uc-role">Media</div>
+          <div class="uc-pills"><span class="uc-pill" style="background:var(--purple-bg);color:var(--purple)">Media</span></div>
+        </div>
+        <div class="uc-status">
+          <div class="online-dot"></div>
+          <div class="last-seen" style="color:var(--green)">En línea</div>
+        </div>
+      </div>
+      <div class="user-card" onclick="openEditUser('Belkys','Directora Media','Admin Media')">
+        <div class="uc-av" style="background:linear-gradient(135deg,#d97706,#fbbf24)">B</div>
+        <div style="flex:1">
+          <div class="uc-name">Belkys</div>
+          <div class="uc-role">Directora Media</div>
+          <div class="uc-pills">
+            <span class="uc-pill" style="background:var(--amber-bg);color:var(--amber)">Admin Media</span>
+            <span class="uc-pill" style="background:var(--purple-bg);color:var(--purple)">Media</span>
+          </div>
+        </div>
+        <div class="uc-status"><div class="last-seen">Ayer 3:45pm</div></div>
+      </div>
+      <div class="user-card" onclick="openEditUser('Didi','Creative — Andreina','Designer')">
+        <div class="uc-av" style="background:linear-gradient(135deg,#c084fc,#7c3aed)">D</div>
+        <div style="flex:1">
+          <div class="uc-name">Didi</div>
+          <div class="uc-role">Creative · Andreina</div>
+          <div class="uc-pills"><span class="uc-pill" style="background:var(--purple-bg);color:var(--purple)">Designer</span></div>
+        </div>
+        <div class="uc-status">
+          <div class="online-dot"></div>
+          <div class="last-seen" style="color:var(--green)">En línea</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- MODAL: ADD USER -->
+<div class="overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="m-title">+ Agregar usuario</div>
+    <div class="m-sub">Crear acceso al Fenomena Workspace</div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre completo"/></div>
+      <div class="mf"><label class="ml">Rol</label>
+        <select class="mi">
+          <option>Planner</option><option>Designer</option><option>Media</option>
+          <option>Admin Media</option><option>Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf"><label class="ml">Email</label><input class="mi" type="email" placeholder="nombre@fenomenadigital.com"/></div>
+    <div class="mf"><label class="ml">Directora / Supervisor</label>
+      <select class="mi">
+        <option>Ian — Director Planning</option>
+        <option>Andreina — Directora Creativa</option>
+        <option>Valeria — Directora Creativa</option>
+        <option>Belkys — Directora Media</option>
+      </select>
+    </div>
+    <div class="mf"><label class="ml">Capacidad (h/mes)</label><input class="mi" type="number" value="80" placeholder="Horas disponibles al mes"/></div>
+    <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--blue)">ℹ️ Se enviará invitación por email con link de acceso. El usuario deberá crear su contraseña.</div>
+    <div class="m-acts">
+      <button class="btn b-ghost" onclick="closeModal('modal-add-user')">Cancelar</button>
+      <button class="btn b-brand" onclick="closeModal('modal-add-user');showToast('✓ Invitación enviada')">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDIT USER -->
+<div class="overlay" id="modal-edit-user">
+  <div class="modal">
+    <div class="m-title" id="edit-user-name">Editar usuario</div>
+    <div class="m-sub" id="edit-user-role">Configurar accesos y permisos</div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="eu-name"/></div>
+      <div class="mf"><label class="ml">Rol</label><select class="mi" id="eu-rol"><option>Planner</option><option>Designer</option><option>Media</option><option>Admin Media</option><option>Admin</option></select></div>
+    </div>
+    <div class="mf"><label class="ml">Email</label><input class="mi" type="email" placeholder="nombre@fenomenadigital.com"/></div>
+    <div class="mf"><label class="ml">Estado</label>
+      <select class="mi">
+        <option>Activo</option><option>Suspendido</option><option>Vacaciones</option>
+      </select>
+    </div>
+    <div class="mf"><label class="ml">Capacidad (h/mes)</label><input class="mi" type="number" value="80"/></div>
+    <div class="m-acts">
+      <button class="btn b-red" onclick="closeModal('modal-edit-user')">Suspender acceso</button>
+      <button class="btn b-ghost" onclick="closeModal('modal-edit-user')">Cancelar</button>
+      <button class="btn b-brand" onclick="closeModal('modal-edit-user');showToast('✓ Usuario actualizado')">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="save-toast" style="position:fixed;bottom:24px;right:24px;background:var(--brand);color:#fff;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:600;z-index:999;transition:opacity 0.3s;box-shadow:0 4px 20px rgba(36,3,84,0.3);opacity:0;"></div>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const tabs = {'log':0,'horas':1,'atrasos':2,'reportes':3,'usuarios':4};
+  document.querySelectorAll('.tab')[tabs[id]]?.classList.add('active');
+}
+
+function openAddUser() { document.getElementById('modal-add-user').classList.add('open'); }
+
+function openEditUser(name, role, rol) {
+  document.getElementById('edit-user-name').textContent = name;
+  document.getElementById('edit-user-role').textContent = role;
+  document.getElementById('eu-name').value = name;
+  const sel = document.getElementById('eu-rol');
+  [...sel.options].forEach(o => { if(o.value===rol||o.text===rol) o.selected=true; });
+  document.getElementById('modal-edit-user').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+function showToast(msg) {
+  const t = document.getElementById('save-toast');
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
+</script>
+</body>
+</html>
