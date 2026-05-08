@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fenomena — Tablero Planning</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root {
+  /* Brand */
+  --brand:#240354;
+  --brand2:#2d0468;
+  --brand3:#1a0240;
+  --lime:#B2F56A;
+  --cyan:#00AFEC;
+  --pink:#EEB1D7;
+  /* UI Light */
+  --bg:#F4F2FA;
+  --surface:#FFFFFF;
+  --surface2:#F8F7FC;
+  --border:#E8E4F4;
+  --border2:#D4CCF0;
+  /* Text */
+  --txt:#1a0240;
+  --txt2:#4B4468;
+  --txt3:#9590AB;
+  /* Status */
+  --green:#16a34a;
+  --green-bg:#f0fdf4;
+  --green-border:#bbf7d0;
+  --amber:#d97706;
+  --amber-bg:#fffbeb;
+  --amber-border:#fde68a;
+  --red:#dc2626;
+  --red-bg:#fef2f2;
+  --red-border:#fecaca;
+  --blue:#2563eb;
+  --blue-bg:#eff6ff;
+  --blue-border:#bfdbfe;
+  --purple:#7c3aed;
+  --purple-bg:#f5f3ff;
+  --purple-border:#ddd6fe;
+  /* Sidebar */
+  --sb-bg:#240354;
+  --sb-txt:rgba(255,255,255,0.7);
+  --sb-txt-active:#ffffff;
+  --sb-accent:#B2F56A;
+  --sb-hover:rgba(255,255,255,0.08);
+  --sb-active:rgba(178,245,106,0.12);
+  --sb-border:rgba(255,255,255,0.08);
+}
+body {
+  font-family:'Hanken Grotesk',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  display:flex;
+  min-height:100vh;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width:220px;
+  min-height:100vh;
+  background:var(--sb-bg);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  left:0;top:0;bottom:0;
+  z-index:50;
+  border-right:1px solid var(--sb-border);
+}
+.sb-logo {
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--sb-border);
+}
+.sb-logo svg { width:120px; height:auto; display:block; }
+.sb-tagline {
+  font-size:9px;font-weight:600;letter-spacing:3px;
+  text-transform:uppercase;color:var(--sb-accent);
+  opacity:0.7;margin-top:6px;
+}
+.sb-user {
+  padding:16px 20px;
+  border-bottom:1px solid var(--sb-border);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-av {
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan),var(--lime));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--brand);
+  flex-shrink:0;
+}
+.sb-uname { font-size:13px;font-weight:700;color:#fff; }
+.sb-urole { font-size:10px;color:var(--sb-accent);letter-spacing:1px;text-transform:uppercase;opacity:0.8; }
+
+.sb-section {
+  padding:8px 12px 4px;
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--sb-txt);opacity:0.4;
+}
+.sb-nav { flex:1; padding:8px 0; overflow-y:auto; }
+.ni {
+  display:flex;align-items:center;gap:10px;
+  padding:9px 20px;
+  font-size:13px;font-weight:500;
+  color:var(--sb-txt);
+  cursor:pointer;transition:all 0.15s;
+  border-left:3px solid transparent;
+  text-decoration:none;
+}
+.ni:hover { background:var(--sb-hover);color:var(--sb-txt-active); }
+.ni.active {
+  background:var(--sb-active);
+  color:var(--sb-txt-active);
+  border-left-color:var(--sb-accent);
+}
+.ni-icon { font-size:16px;width:20px;text-align:center;flex-shrink:0; }
+.ni-badge {
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--red);color:#fff;
+  padding:1px 6px;border-radius:10px;
+}
+.sb-month {
+  padding:16px 20px;
+  border-top:1px solid var(--sb-border);
+}
+.sb-month-label { font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--sb-txt);opacity:0.5;margin-bottom:6px; }
+.month-tabs { display:flex;gap:4px; }
+.mtab {
+  flex:1;font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;font-weight:700;
+  padding:5px;border-radius:6px;border:none;
+  background:rgba(255,255,255,0.06);
+  color:var(--sb-txt);cursor:pointer;transition:all 0.15s;
+}
+.mtab.active { background:var(--sb-accent);color:var(--brand); }
+.sb-bottom {
+  padding:16px 20px;
+  border-top:1px solid var(--sb-border);
+}
+.sb-logout {
+  width:100%;font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  padding:8px;border-radius:7px;
+  background:rgba(255,255,255,0.06);border:1px solid var(--sb-border);
+  color:var(--sb-txt);cursor:pointer;transition:all 0.15s;
+}
+.sb-logout:hover { background:rgba(255,255,255,0.1);color:#fff; }
+
+/* ── MAIN LAYOUT ── */
+.main {
+  margin-left:220px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;
+  height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:40;
+  box-shadow:0 1px 3px rgba(36,3,84,0.06);
+}
+.tb-left { display:flex;align-items:center;gap:8px; }
+.tb-page { font-size:18px;font-weight:800;color:var(--txt); }
+.tb-sep { width:1px;height:18px;background:var(--border);margin:0 4px; }
+.tb-sub { font-size:13px;color:var(--txt3); }
+.tb-right { display:flex;align-items:center;gap:8px; }
+
+/* Contract alert */
+.alert-btn {
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;
+  background:var(--amber-bg);border:1px solid var(--amber-border);
+  color:var(--amber);font-size:11px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;
+  font-family:'Hanken Grotesk',sans-serif;
+  letter-spacing:0.5px;text-transform:uppercase;
+}
+.alert-btn:hover { background:#fef3c7; }
+.alert-dot { width:6px;height:6px;border-radius:50%;background:var(--amber); }
+
+/* Search */
+.tb-search {
+  display:flex;align-items:center;gap:7px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;
+}
+.tb-search input {
+  background:none;border:none;outline:none;
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:12px;color:var(--txt);width:160px;
+}
+.tb-search input::placeholder { color:var(--txt3); }
+.tb-search-icon { font-size:13px;color:var(--txt3); }
+
+/* Directoras button */
+.directors-btn {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  padding:6px 12px;border-radius:8px;
+  background:var(--purple-bg);border:1px solid var(--purple-border);
+  color:var(--purple);cursor:pointer;transition:all 0.15s;
+}
+.directors-btn:hover { background:#ede9fe; }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:12px;padding:16px 28px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.stat-card {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;
+  cursor:pointer;transition:all 0.15s;
+}
+.stat-card:hover { border-color:var(--border2);box-shadow:0 2px 8px rgba(36,3,84,0.06); }
+.stat-card.active { border-color:var(--brand);background:var(--purple-bg); }
+.stat-val { font-size:24px;font-weight:800;line-height:1;margin-bottom:3px; }
+.stat-lbl { font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3); }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  padding:12px 28px;
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.fl { font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-right:4px;flex-shrink:0; }
+.fb {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:12px;font-weight:600;
+  padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border);
+  background:transparent;color:var(--txt2);
+  cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.fb:hover { border-color:var(--border2);color:var(--txt); }
+.fb.active { background:var(--brand);color:#fff;border-color:var(--brand); }
+.fb.ian.active { background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border); }
+.fb.shelsea.active { background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border); }
+.fb.megan.active { background:var(--green-bg);color:var(--green);border-color:var(--green-border); }
+
+/* ── CLIENT LIST ── */
+.client-list { padding:20px 28px;display:flex;flex-direction:column;gap:8px; }
+
+/* ── CLIENT CARD ── */
+.cc {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  transition:all 0.15s;
+  box-shadow:0 1px 3px rgba(36,3,84,0.04);
+}
+.cc:hover { border-color:var(--border2);box-shadow:0 4px 12px rgba(36,3,84,0.08); }
+.cc.ian { border-left:3px solid var(--blue); }
+.cc.shelsea { border-left:3px solid var(--purple); }
+.cc.megan { border-left:3px solid var(--green); }
+
+/* Card header */
+.cc-hd {
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;cursor:pointer;
+  transition:background 0.1s;user-select:none;
+}
+.cc-hd:hover { background:var(--surface2); }
+
+.sem { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+.sem.gn { background:var(--green); }
+.sem.am { background:var(--amber); }
+.sem.rd { background:var(--red); }
+.sem.cy { background:var(--cyan); }
+
+.cc-info { flex:1;min-width:0; }
+.cc-name { font-size:14px;font-weight:700;color:var(--txt); }
+.cc-meta {
+  display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;
+}
+
+/* Planner tag */
+.planner-wrap { position:relative;display:inline-block; }
+.ptag {
+  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  padding:2px 8px;border-radius:20px;
+  display:inline-flex;align-items:center;gap:3px;cursor:default;
+}
+.ptag.ian { background:var(--blue-bg);color:var(--blue); }
+.ptag.shelsea { background:var(--purple-bg);color:var(--purple); }
+.ptag.megan { background:var(--green-bg);color:var(--green); }
+.edit-p { font-size:10px;opacity:0;cursor:pointer;color:var(--txt3);background:none;border:none;padding:0 2px;transition:opacity 0.15s; }
+.cc-hd:hover .edit-p { opacity:1; }
+.pdd {
+  position:absolute;top:calc(100% + 4px);left:0;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:9px;padding:5px;z-index:50;display:none;
+  min-width:140px;box-shadow:0 8px 24px rgba(36,3,84,0.12);
+}
+.pdd.open { display:block; }
+.pdd-o {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:12px;font-weight:600;padding:7px 10px;
+  border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px;
+  color:var(--txt2);transition:background 0.1s;
+}
+.pdd-o:hover { background:var(--surface2); }
+
+/* Designer chip */
+.dchip {
+  font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:20px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:inline-flex;align-items:center;gap:5px;
+  cursor:pointer;transition:all 0.15s;color:var(--txt2);
+}
+.dchip:hover { border-color:var(--border2); }
+.d-av {
+  width:14px;height:14px;border-radius:50%;
+  font-size:7px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;flex-shrink:0;
+}
+.cc-meta-dot { color:var(--txt3);font-size:11px; }
+.cc-meta-text { font-size:11px;color:var(--txt3); }
+
+/* Status pills */
+.cc-pills { display:flex;gap:5px;align-items:center;flex-wrap:wrap; }
+.pill {
+  font-size:10px;font-weight:700;letter-spacing:0.3px;
+  padding:3px 9px;border-radius:20px;white-space:nowrap;
+}
+.p-ok { background:var(--green-bg);color:var(--green);border:1px solid var(--green-border); }
+.p-prog { background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border); }
+.p-wait { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border); }
+.p-late { background:var(--red-bg);color:var(--red);border:1px solid var(--red-border); }
+.p-media { background:var(--green-bg);color:var(--green);border:1px solid var(--green-border); }
+.p-mpend { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border); }
+.p-inf { background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border); }
+
+.cc-arrow { font-size:11px;color:var(--txt3);transition:transform 0.2s;flex-shrink:0; }
+.cc.open .cc-arrow { transform:rotate(180deg); }
+
+/* Card body */
+.cc-body { display:none;border-top:1px solid var(--border); }
+.cc.open .cc-body { display:block; }
+.cc-grid { display:grid;grid-template-columns:1fr 1fr 220px;gap:0; }
+
+/* Batch section */
+.bsec { padding:16px 18px;border-right:1px solid var(--border); }
+.bsec:last-child { border-right:none; }
+.bsec-title {
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--txt3);margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.bsec-count { font-size:11px;font-weight:700;color:var(--txt); }
+
+/* Status selector */
+.ssel { display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap; }
+.ss {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:0.3px;
+  padding:4px 10px;border-radius:6px;
+  border:1px solid var(--border);
+  background:transparent;color:var(--txt2);
+  cursor:pointer;transition:all 0.15s;
+}
+.ss:hover { border-color:var(--border2);color:var(--txt); }
+.ss.ok { background:var(--green-bg);color:var(--green);border-color:var(--green-border); }
+.ss.prog { background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border); }
+.ss.wait { background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border); }
+.ss.late { background:var(--red-bg);color:var(--red);border-color:var(--red-border); }
+
+/* Pieces */
+.pieces-list { display:flex;flex-direction:column;gap:6px;margin-bottom:8px; }
+.pr { display:flex;align-items:center;gap:6px; }
+.pr-name { font-size:12px;font-weight:600;color:var(--txt);flex:1; }
+.pr-pts {
+  display:flex;align-items:center;gap:2px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 6px;cursor:pointer;
+}
+.pr-pts input {
+  background:none;border:none;outline:none;
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:700;color:var(--txt3);
+  width:24px;text-align:center;cursor:pointer;
+}
+.pr-pts input:focus { color:var(--brand); }
+.pr-pts-lbl { font-size:9px;color:var(--txt3); }
+.pc { display:flex;align-items:center;gap:3px; }
+.pc-btn {
+  width:22px;height:22px;border-radius:5px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--txt2);font-size:13px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.1s;
+}
+.pc-btn:hover { background:var(--border);color:var(--txt); }
+.pc-num { font-size:13px;font-weight:800;min-width:22px;text-align:center;color:var(--txt); }
+.pr-total { font-size:11px;color:var(--txt3);white-space:nowrap; }
+.pb-bg { height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:2px;margin-bottom:4px; }
+.pb { height:100%;border-radius:2px;transition:width 1s ease; }
+
+.add-piece-btn {
+  width:100%;font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:600;letter-spacing:0.5px;
+  padding:5px;border-radius:7px;
+  border:1px dashed var(--border2);background:transparent;
+  color:var(--txt3);cursor:pointer;transition:all 0.15s;margin-top:2px;
+}
+.add-piece-btn:hover { border-color:var(--brand);color:var(--brand); }
+
+/* Right section - media + influs */
+.rsec { padding:16px 18px;display:flex;flex-direction:column;gap:8px;background:var(--surface2); }
+.rs-title { font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3); }
+.mbadge {
+  font-size:11px;color:var(--txt2);
+  display:flex;align-items:center;gap:5px;
+  padding:5px 8px;background:var(--surface);
+  border-radius:6px;border:1px solid var(--border);
+}
+.lf { display:flex;flex-direction:column;gap:4px; }
+.lf-lbl { font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt3); }
+.lf-wrap { display:flex;gap:0; }
+.lf-name {
+  flex:1;background:var(--surface);border:1px solid var(--border);
+  border-right:none;border-radius:6px 0 0 6px;
+  padding:6px 9px;font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;color:var(--blue);outline:none;transition:border-color 0.12s;
+}
+.lf-name:focus { border-color:var(--brand); }
+.lf-url {
+  width:32px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:0 6px 6px 0;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background 0.12s;
+}
+.lf-url:hover { background:var(--border); }
+.mi-sm {
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:6px 8px;
+  font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--txt);
+  outline:none;
+}
+.nb {
+  width:100%;font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:8px;border-radius:7px;border:none;cursor:pointer;transition:all 0.15s;
+}
+.nb-go { background:var(--brand);color:#fff; }
+.nb-go:hover { background:var(--brand2); }
+.nb-sent { background:var(--green-bg);color:var(--green);border:1px solid var(--green-border); }
+
+/* Influencer rows */
+.im-row { padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s; }
+.im-row:last-child { border-bottom:none; }
+.im-row:hover { background:var(--surface); }
+.im-top { display:flex;align-items:center;gap:5px; }
+.im-name { font-size:11px;font-weight:700;color:var(--txt);flex:1; }
+.im-amt { font-size:11px;font-weight:800;color:var(--green); }
+.im-st { font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:2px 6px;border-radius:10px; }
+.im-sub { font-size:10px;color:var(--txt3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
+.im-link { color:var(--blue);text-decoration:none;font-size:10px; }
+.im-link:hover { text-decoration:underline; }
+.add-influ {
+  width:100%;font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:600;padding:5px;border-radius:6px;
+  border:1px dashed var(--border2);background:transparent;
+  color:var(--txt3);cursor:pointer;transition:all 0.15s;
+}
+.add-influ:hover { border-color:var(--purple);color:var(--purple); }
+
+/* Card footer */
+.cc-ft {
+  padding:10px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);
+}
+.cf-note {
+  flex:1;font-size:12px;color:var(--txt2);
+  background:none;border:none;outline:none;
+  font-family:'Hanken Grotesk',sans-serif;resize:none;height:20px;
+}
+.cf-note::placeholder { color:var(--txt3); }
+.cf-save {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  padding:5px 12px;border-radius:6px;border:none;
+  background:var(--brand);color:#fff;cursor:pointer;transition:all 0.15s;
+}
+.cf-save:hover { background:var(--brand2); }
+
+/* ── EXTRAS SECTION ── */
+.extras-section { padding:0 28px 28px; }
+.extras-hd {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;padding-top:4px;
+}
+.extras-title {
+  font-size:15px;font-weight:800;color:var(--txt);
+  display:flex;align-items:center;gap:8px;
+}
+.extras-ct {
+  font-size:11px;font-weight:600;color:var(--txt3);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:2px 8px;border-radius:10px;
+}
+.add-extra-btn {
+  font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:0.5px;
+  padding:8px 16px;border-radius:8px;border:none;
+  background:var(--brand);color:#fff;cursor:pointer;transition:all 0.15s;
+}
+.add-extra-btn:hover { background:var(--brand2); }
+.extras-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px; }
+.extra-card {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  transition:all 0.15s;box-shadow:0 1px 3px rgba(36,3,84,0.04);
+}
+.extra-card:hover { box-shadow:0 4px 12px rgba(36,3,84,0.08);border-color:var(--border2); }
+.extra-card.design { border-left:3px solid var(--amber); }
+.extra-card.planning { border-left:3px solid var(--blue); }
+.ec-top { display:flex;align-items:flex-start;gap:8px;margin-bottom:10px; }
+.ec-client { font-size:13px;font-weight:800;color:var(--txt); }
+.ec-sub { font-size:11px;color:var(--txt3);margin-top:1px; }
+.ec-pts { font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap; }
+.ec-type-badge { font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:2px 7px;border-radius:10px; }
+.type-design { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border); }
+.type-plan { background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border); }
+.ec-del { background:none;border:none;font-size:12px;cursor:pointer;color:var(--txt3);opacity:0;transition:opacity 0.15s; }
+.extra-card:hover .ec-del { opacity:1; }
+.ec-pieces { display:flex;flex-direction:column;gap:4px;margin-bottom:10px; }
+.ecp { display:flex;align-items:center;gap:6px;font-size:12px; }
+.ecp-name { flex:1;font-weight:600;color:var(--txt); }
+.ecp-qty { font-weight:800;color:var(--amber); }
+.ecp-pts { color:var(--txt3); }
+.ec-bottom { display:flex;align-items:center;justify-content:space-between;font-size:11px; }
+.ec-who { color:var(--txt2); }
+.ec-dl { font-weight:700;color:var(--amber); }
+
+/* ── MODALS ── */
+.overlay {
+  position:fixed;inset:0;
+  background:rgba(36,3,84,0.5);
+  backdrop-filter:blur(4px);
+  z-index:500;display:none;
+  align-items:center;justify-content:center;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:14px;padding:28px;
+  width:520px;max-width:92vw;
+  animation:modalIn 0.2s ease;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(36,3,84,0.15);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.m-title { font-size:20px;font-weight:800;color:var(--txt);margin-bottom:4px; }
+.m-sub { font-size:13px;color:var(--txt3);margin-bottom:20px; }
+.mf { margin-bottom:14px; }
+.ml { display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:6px; }
+.mi {
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;
+  font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:var(--txt);
+  outline:none;transition:border-color 0.12s;
+}
+.mi:focus { border-color:var(--brand); }
+.mrow { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px; }
+.mrow3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px; }
+.m-divider { height:1px;background:var(--border);margin:16px 0; }
+.m-acts { display:flex;gap:8px;justify-content:flex-end;margin-top:18px; }
+.btn { font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:8px 16px;border-radius:8px;border:1px solid;cursor:pointer;transition:all 0.15s; }
+.b-ghost { background:transparent;color:var(--txt2);border-color:var(--border); }
+.b-ghost:hover { background:var(--surface2);color:var(--txt); }
+.b-brand { background:var(--brand);color:#fff;border-color:var(--brand); }
+.b-brand:hover { background:var(--brand2); }
+.b-red { background:var(--red-bg);color:var(--red);border-color:var(--red-border); }
+
+/* lib suggestions */
+.lib-tags { display:flex;gap:5px;flex-wrap:wrap;margin-top:6px; }
+.lib-tag {
+  font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--txt2);cursor:pointer;transition:all 0.15s;
+}
+.lib-tag:hover { background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border); }
+.lib-tag.sel { background:var(--brand);color:#fff;border-color:var(--brand); }
+
+/* plan type toggle */
+.plan-toggle { display:flex;gap:8px;margin-bottom:12px; }
+.pt-opt {
+  flex:1;padding:10px;border-radius:8px;
+  border:1px solid var(--border);cursor:pointer;text-align:center;
+  font-size:12px;font-weight:700;color:var(--txt2);transition:all 0.15s;
+}
+.pt-opt:hover { border-color:var(--border2); }
+.pt-opt.sel-design { background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border); }
+.pt-opt.sel-plan { background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border); }
+
+/* designer grid */
+.ds-grid { display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px; }
+.ds-opt {
+  padding:8px 10px;border-radius:8px;border:1px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:600;color:var(--txt2);transition:all 0.15s;
+}
+.ds-opt:hover { border-color:var(--border2);color:var(--txt); }
+.ds-opt.sel { border-color:var(--brand);background:var(--purple-bg);color:var(--brand); }
+.ds-av { width:24px;height:24px;border-radius:50%;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0; }
+
+/* director modal */
+.dir-tabs { display:flex;gap:4px;margin-bottom:16px; }
+.dir-tab {
+  flex:1;font-family:'Hanken Grotesk',sans-serif;
+  font-size:11px;font-weight:700;padding:6px 4px;border-radius:7px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--txt2);cursor:pointer;transition:all 0.15s;text-align:center;
+}
+.dir-tab:hover { border-color:var(--border2);color:var(--txt); }
+.dir-tab.active { background:var(--brand);color:#fff;border-color:var(--brand); }
+.dir-stat-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px; }
+.dir-stat { background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px; }
+.dir-stat-lbl { font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:4px; }
+.dir-stat-val { font-size:20px;font-weight:800;color:var(--txt); }
+.load-bar-bg { height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px; }
+.load-bar { height:100%;border-radius:3px;transition:width 0.8s ease; }
+.dir-team-list { display:flex;flex-direction:column;gap:5px; }
+.dt-row { display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px; }
+.dt-av { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0; }
+.dt-name { font-size:12px;font-weight:700;color:var(--txt);flex:1; }
+.dt-pts { font-size:11px;font-weight:700;color:var(--txt2); }
+.dt-sem { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+.dt-remove { background:none;border:none;font-size:12px;cursor:pointer;color:var(--txt3);opacity:0;transition:opacity 0.15s; }
+.dt-row:hover .dt-remove { opacity:1; }
+
+/* notify preview */
+.notify-preview { background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:12px;margin-bottom:14px; }
+.np-row { font-size:12px;display:flex;gap:8px;margin-bottom:4px; }
+.np-lbl { font-weight:700;color:var(--green);width:70px;flex-shrink:0; }
+
+/* stage flow */
+.stage-flow { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
+.sf-opt { font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--txt2);cursor:pointer;transition:all 0.15s; }
+.sf-opt:hover { color:var(--txt);border-color:var(--border2); }
+.sf-opt.sel { border-color:var(--brand);background:var(--purple-bg);color:var(--brand); }
+
+/* contracts */
+.contract-list { display:flex;flex-direction:column;gap:6px; }
+.cl-row { display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;border-left:3px solid var(--amber); }
+.cl-client { font-size:13px;font-weight:700;color:var(--txt);flex:1; }
+.cl-type { font-size:11px;color:var(--txt3); }
+.cl-due { font-size:11px;font-weight:700;color:var(--amber); }
+.cl-sign { font-family:'Hanken Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;background:var(--brand);color:#fff;border:none;cursor:pointer; }
+
+/* toast */
+#save-toast {
+  position:fixed;bottom:24px;right:24px;
+  background:var(--brand);color:#fff;
+  border-radius:10px;padding:10px 18px;
+  font-size:12px;font-weight:600;z-index:999;
+  transition:opacity 0.3s ease;
+  box-shadow:0 4px 20px rgba(36,3,84,0.3);
+  opacity:0;
+}
+
+/* show more */
+.show-more {
+  text-align:center;padding:12px;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--txt3);cursor:pointer;transition:color 0.15s;
+}
+.show-more:hover { color:var(--brand); }
+
+.arc { font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--txt3);text-align:center;padding:20px; }
+
+/* animations */
+@keyframes cin { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.cc { animation:cin 0.25s ease both; }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2);border-radius:2px; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <svg viewBox="0 0 2000 400" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#fff" d="M59.4,166.6l-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l12.9,22.3,89.1-51.5,15.9,27.6-89.1,51.5,37.5,65-27.9,16.1L32.5,161.7l129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9Z"/>
+      <path fill="#fff" d="M455.3,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+      <path fill="#fff" d="M693.3,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+      <path fill="#fff" d="M901,284.2c-11.4,6.6-23.3,10.6-35.8,12.1-12.5,1.5-24.6.8-36.3-2.3-11.7-3.1-22.6-8.2-32.6-15.5-10-7.3-18.2-16.5-24.7-27.7-6.5-11.2-10.4-23-11.7-35.4-1.4-12.4-.4-24.4,2.8-36.1,3.2-11.7,8.6-22.5,16.2-32.6,7.6-10.1,17.1-18.4,28.4-25,11.4-6.6,23.3-10.6,35.8-12.1,12.5-1.5,24.6-.8,36.3,2.3,11.7,3.1,22.6,8.3,32.6,15.6,10.1,7.4,18.3,16.7,24.8,27.9,6.5,11.2,10.4,23,11.7,35.3,1.3,12.3.4,24.3-2.8,35.9-3.2,11.7-8.6,22.5-16.2,32.6-7.6,10.1-17.1,18.4-28.4,25ZM823.2,149.4c-7.5,4.3-13.8,9.9-18.7,16.5-5,6.7-8.6,13.9-10.8,21.6-2.2,7.8-2.9,15.7-1.9,23.9.9,8.2,3.5,15.9,7.8,23.3,4.3,7.4,9.7,13.4,16.2,18.2,6.6,4.8,13.8,8.2,21.6,10.1,7.8,2,15.9,2.4,24.1,1.5,8.3-1,16.1-3.6,23.7-8s13.8-9.9,18.9-16.6c5-6.7,8.7-13.9,10.9-21.7,2.2-7.8,2.9-15.7,2-23.8-.9-8.1-3.4-15.8-7.7-23.2-4.3-7.4-9.7-13.5-16.3-18.4-6.6-4.9-13.8-8.3-21.7-10.3-7.8-2-15.9-2.4-24.2-1.4-8.3,1-16.3,3.7-23.8,8.1Z"/>
+      <path fill="#fff" d="M1076.3,330l-91.2-157.9,31.2-18.4,100.2,53.6,3.5-113.4,31.5-17.9,91.2,157.9-27.6,15.9-52.3-90.6c-3.2-5.5-5.2-11.7-6-18.6l-1.8-14.1-3.9.2-3.6,110.9-20.3,11.7-97.8-52.3-2.1,3.2,11.5,8.4c5.1,3.8,9.4,8.7,12.8,14.7l52.3,90.6-27.6,15.9Z"/>
+      <path fill="#fff" d="M1467.9,216.8l15.9,27.6-129.8,74.9-91-157.6,129.8-74.9,15.9,27.6-87.1,50.3c-6.7,3.9-14.1,5.1-22.2,3.8l-9.5-1.9-.5,2-.5,2,9.3,3.3c7.6,2.7,13.4,7.6,17.4,14.4l2.3,4,10.6,18.3,89.6-51.7,15.9,27.6-89.6,51.7,12.9,22.3c3.9,6.7,5.1,14.1,3.8,22.2l-1.8,9.7,2,.5,1.8.3,3.2-8.9c2.7-7.6,7.5-13.4,14.4-17.4l87.1-50.3Z"/>
+      <path fill="#fff" d="M1705.9,258.6l-164.9-73.5-2,3.5,20.3,13.7c4.2,3,7.4,6.5,9.9,10.7l53.9,93.4-27.9,16.1-91.3-158.1,30.1-17.4,157.7,70.3,7.2,3.2,2-3.5-20.3-13.7c-4.2-3-7.4-6.4-9.7-10.5l-53.9-93.4,27.6-15.9,91.2,157.9-29.9,17.2Z"/>
+      <path fill="#fff" d="M1841.9,309.3l-29.4,17-32.6-192.1,36.4-21,150.3,124.1-29.6,17.1-42.2-34.9-62,35.8,9.1,54ZM1827.2,221.8l41.4-23.9-34.4-28.3c-3.3-2.6-6.3-5.4-9.1-8.5-2.8-3.1-5.4-6.3-7.7-9.6l-4.9-7.2-3.5,2,3.6,8c1.7,3.7,3.2,7.5,4.5,11.5,1.3,3.9,2.2,8,2.8,12.1l7.3,44Z"/>
+    </svg>
+    <div class="sb-tagline">A real click.</div>
+  </div>
+
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">I</div>
+    <div>
+      <div class="sb-uname" id="sb-uname">Ian</div>
+      <div class="sb-urole" id="sb-urole">Admin</div>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-section">Planning</div>
+    <a class="ni active" href="fenomena-planning-v5.html">
+      <span class="ni-icon">📋</span>Tablero
+    </a>
+    <a class="ni" href="fenomena-influencers.html">
+      <span class="ni-icon">👥</span>Influencers
+    </a>
+    <a class="ni" href="fenomena-pipeline.html">
+      <span class="ni-icon">🎯</span>Pipeline
+    </a>
+
+    <div class="sb-section" style="margin-top:8px">Agencia</div>
+    <a class="ni" href="fenomena-media-view.html">
+      <span class="ni-icon">📡</span>Media
+    </a>
+    <a class="ni" onclick="openDirModal()">
+      <span class="ni-icon">👥</span>Directoras
+    </a>
+    <a class="ni" href="fenomena-admin.html">
+      <span class="ni-icon">🔒</span>Admin
+    </a>
+  </nav>
+
+  <div class="sb-month">
+    <div class="sb-month-label">Mes activo</div>
+    <div class="month-tabs">
+      <button class="mtab">Abr</button>
+      <button class="mtab active">May</button>
+      <button class="mtab">Jun</button>
+    </div>
+  </div>
+
+  <div class="sb-bottom">
+    <button class="sb-logout" onclick="location.href='index.html'">Cerrar sesión</button>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-page">Tablero Planning</span>
+      <div class="tb-sep"></div>
+      <span class="tb-sub">Mayo 2026</span>
+    </div>
+    <div class="tb-right">
+      <div class="tb-search">
+        <span class="tb-search-icon">🔍</span>
+        <input type="text" placeholder="Buscar cliente..." oninput="searchClients(this.value)"/>
+      </div>
+      <button class="alert-btn" onclick="openContracts()">
+        <div class="alert-dot"></div>
+        2 contratos pendientes
+      </button>
+      <button class="directors-btn" onclick="openDirModal()">👥 Directoras</button>
+    </div>
+  </header>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-card" onclick="filterBy(null,'all')">
+      <div class="stat-val" style="color:var(--brand)">27</div>
+      <div class="stat-lbl">Clientes activos</div>
+    </div>
+    <div class="stat-card" onclick="filterBy(null,'ok')">
+      <div class="stat-val" style="color:var(--green)">11</div>
+      <div class="stat-lbl">En track</div>
+    </div>
+    <div class="stat-card" onclick="filterBy(null,'prog')">
+      <div class="stat-val" style="color:var(--blue)">8</div>
+      <div class="stat-lbl">En progreso</div>
+    </div>
+    <div class="stat-card" onclick="filterBy(null,'late')">
+      <div class="stat-val" style="color:var(--red)">2</div>
+      <div class="stat-lbl">Atrasados</div>
+    </div>
+    <div class="stat-card" onclick="filterBy(null,'influs')">
+      <div class="stat-val" style="color:var(--purple)">7</div>
+      <div class="stat-lbl">Con influencers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--amber)">4</div>
+      <div class="stat-lbl">Proyectos extra</div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="fl">Ver:</span>
+    <button class="fb active" onclick="filterBy(this,'all')">Todos</button>
+    <button class="fb ian" onclick="filterBy(this,'ian')">Ian</button>
+    <button class="fb shelsea" onclick="filterBy(this,'shelsea')">Shelsea</button>
+    <button class="fb megan" onclick="filterBy(this,'megan')">Megan</button>
+    <button class="fb" onclick="filterBy(this,'late')" style="color:var(--red)">🔴 Atrasados</button>
+    <button class="fb" onclick="filterBy(this,'influs')" style="color:var(--purple)">👥 Influs</button>
+    <button class="fb" onclick="filterBy(this,'media-p')" style="color:var(--blue)">📡 Pend. Media</button>
+  </div>
+
+  <!-- CLIENT CARDS -->
+  <div class="client-list" id="client-list">
+
+    <!-- ═ RELOJÍN ═ -->
+    <div class="cc shelsea" data-planner="shelsea" data-status="late" data-influs="true" data-media-p="true" id="cc-r">
+      <div class="cc-hd" onclick="tog(event,'cc-r')">
+        <div class="sem rd"></div>
+        <div class="cc-info">
+          <div class="cc-name">Relojín</div>
+          <div class="cc-meta">
+            <div class="planner-wrap" onclick="event.stopPropagation()">
+              <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+              <div class="pdd" id="pd-r">
+                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
+                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
+                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
+              </div>
+            </div>
+            <span class="cc-meta-dot">·</span>
+            <span class="cc-meta-text">Tipo C · Panamá · Grabación tienda</span>
+            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-r','Didi')">
+              <div class="d-av" style="background:#c084fc">D</div>Didi ✎
+            </div>
+          </div>
+        </div>
+        <div class="cc-pills">
+          <span class="pill p-late">🚨 Atrasado</span>
+          <span class="pill p-inf">👥 3 influs</span>
+          <span class="pill p-mpend">📡 Pend. Media</span>
+        </div>
+        <span class="cc-arrow">▾</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-grid">
+          <div class="bsec">
+            <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--red)">0/14</span></div>
+            <div class="ssel">
+              <button class="ss late" onclick="setSt(this)">🔴 Atrasado</button>
+              <button class="ss" onclick="setSt(this)">En progreso</button>
+              <button class="ss" onclick="setSt(this)">✓ Listo</button>
+            </div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎥 Videos grabados</span>
+                <div class="pr-pts"><input type="number" value="5" min="1" max="20" title="Puntos complejidad"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/10</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--red)"></div></div>
+              <div class="pr" style="margin-top:2px">
+                <span class="pr-name">✏️ Vectoriales</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/4</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--red)"></div></div>
+            </div>
+            <button class="add-piece-btn" onclick="openPiece('Relojín B1')">+ Agregar pieza</button>
+          </div>
+          <div class="bsec">
+            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/14</span></div>
+            <div class="ssel">
+              <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
+              <button class="ss" onclick="setSt(this)">En progreso</button>
+            </div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎥 Videos grabados</span>
+                <div class="pr-pts"><input type="number" value="5" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/10</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
+            </div>
+            <button class="add-piece-btn" onclick="openPiece('Relojín B2')">+ Agregar pieza</button>
+          </div>
+          <div class="rsec">
+            <div class="rs-title">Media Bridge</div>
+            <div class="mbadge">📡 Christian · META · TikTok · Google</div>
+            <div class="lf">
+              <label class="lf-lbl">Paper</label>
+              <div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div>
+            </div>
+            <input class="mi-sm" type="date"/>
+            <button class="nb nb-go" onclick="openNotify('Relojín','Christian')">📡 Notificar a Media</button>
+            <div class="rs-title" style="margin-top:4px">Influencers (3)</div>
+            <div class="influ-mini">
+              <div class="im-row" onclick="openInfluEdit('Sofía Reyes','@sofiarey_pty','+507 6123-4567','350')">
+                <div class="im-top"><span class="im-name">Sofía Reyes</span><span class="im-amt">$350</span><span class="im-st p-ok">OK</span></div>
+                <div class="im-sub">@sofiarey_pty · +507 6123-4567<a class="im-link" href="#">📋 Brief</a><a class="im-link" href="#">📄 Contrato</a></div>
+              </div>
+              <div class="im-row" onclick="openInfluEdit('Mariana López','@mariana.pty','+507 6234-5678','400')">
+                <div class="im-top"><span class="im-name">Mariana López</span><span class="im-amt">$400</span><span class="im-st p-prog">Recibido</span></div>
+                <div class="im-sub">@mariana.pty · +507 6234-5678</div>
+              </div>
+              <div class="im-row" onclick="openInfluEdit('Carlos Vega','@carlosvega','+507 6345-6789','280')">
+                <div class="im-top"><span class="im-name">Carlos Vega</span><span class="im-amt">$280</span><span class="im-st p-late">Tarde</span></div>
+                <div class="im-sub">@carlosvega · +507 6345-6789</div>
+              </div>
+            </div>
+            <button class="add-influ" onclick="openAddInflu('Relojín')">+ Agregar influencer</button>
+          </div>
+        </div>
+        <div class="cc-ft">
+          <input class="cf-note" placeholder="Notas internas de Planning..."/>
+          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═ LA HIPOTECARIA ═ -->
+    <div class="cc ian" data-planner="ian" data-status="prog" data-media-p="true" id="cc-h">
+      <div class="cc-hd" onclick="tog(event,'cc-h')">
+        <div class="sem am"></div>
+        <div class="cc-info">
+          <div class="cc-name">La Hipotecaria</div>
+          <div class="cc-meta">
+            <div class="planner-wrap" onclick="event.stopPropagation()">
+              <span class="ptag ian">Ian<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+              <div class="pdd" id="pd-h">
+                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
+                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
+                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
+              </div>
+            </div>
+            <span class="cc-meta-dot">·</span>
+            <span class="cc-meta-text">Tipo A · PTY · COL · SLV</span>
+            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-h','Por contratar')">
+              <div class="d-av" style="background:var(--amber)">?</div>Por contratar ✎
+            </div>
+          </div>
+        </div>
+        <div class="cc-pills">
+          <span class="pill p-prog">En progreso</span>
+          <span class="pill p-mpend">📡 Pend. Media</span>
+        </div>
+        <span class="cc-arrow">▾</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-grid">
+          <div class="bsec">
+            <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--amber)">5/10</span></div>
+            <div class="ssel">
+              <button class="ss" onclick="setSt(this)">🔴 Atrasado</button>
+              <button class="ss prog" onclick="setSt(this)">En progreso</button>
+              <button class="ss" onclick="setSt(this)">✓ Listo</button>
+            </div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎠 Carruseles</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/5</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:60%;background:var(--amber)"></div></div>
+              <div class="pr" style="margin-top:2px">
+                <span class="pr-name">🎬 Reels</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">2</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/5</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:40%;background:var(--amber)"></div></div>
+            </div>
+            <button class="add-piece-btn" onclick="openPiece('Hip. B1')">+ Agregar pieza</button>
+          </div>
+          <div class="bsec">
+            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/10</span></div>
+            <div class="ssel">
+              <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
+              <button class="ss" onclick="setSt(this)">En progreso</button>
+            </div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎠 Carruseles</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/5</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
+            </div>
+            <button class="add-piece-btn" onclick="openPiece('Hip. B2')">+ Agregar pieza</button>
+          </div>
+          <div class="rsec">
+            <div class="rs-title">Media Bridge</div>
+            <div class="mbadge">📡 Christian · META · Google · LinkedIn</div>
+            <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div>
+            <input class="mi-sm" type="date"/>
+            <button class="nb nb-go" onclick="openNotify('La Hipotecaria','Christian')">📡 Notificar a Media</button>
+            <button class="add-influ" onclick="openAddInflu('La Hipotecaria')" style="margin-top:4px">+ Agregar influencer</button>
+          </div>
+        </div>
+        <div class="cc-ft">
+          <input class="cf-note" placeholder="Notas internas..."/>
+          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═ ATTENZA ═ -->
+    <div class="cc shelsea" data-planner="shelsea" data-status="ok" id="cc-a">
+      <div class="cc-hd" onclick="tog(event,'cc-a')">
+        <div class="sem cy"></div>
+        <div class="cc-info">
+          <div class="cc-name">Attenza</div>
+          <div class="cc-meta">
+            <div class="planner-wrap" onclick="event.stopPropagation()">
+              <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+              <div class="pdd" id="pd-a">
+                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
+                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
+                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
+              </div>
+            </div>
+            <span class="cc-meta-dot">·</span>
+            <span class="cc-meta-text">Tipo A · Todos los países</span>
+            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-a','Willcy')">
+              <div class="d-av" style="background:var(--cyan)">W</div>Willcy ✎
+            </div>
+          </div>
+        </div>
+        <div class="cc-pills">
+          <span class="pill p-ok">✓ Aprobado</span>
+          <span class="pill p-media">📡 Media notificado</span>
+        </div>
+        <span class="cc-arrow">▾</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-grid">
+          <div class="bsec">
+            <div class="bsec-title">Batch 1 — Día 5 mayo<span class="bsec-count" style="color:var(--green)">✓ 3/3</span></div>
+            <div class="ssel"><button class="ss ok" onclick="setSt(this)">✓ Aprobado</button></div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎬 Reels</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total" style="color:var(--green)">✓/3</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:100%;background:var(--green)"></div></div>
+            </div>
+          </div>
+          <div class="bsec">
+            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/3</span></div>
+            <div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button></div>
+            <div class="pieces-list">
+              <div class="pr">
+                <span class="pr-name">🎬 Reels</span>
+                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
+                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
+                <span class="pr-total">/3</span>
+              </div>
+              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
+            </div>
+          </div>
+          <div class="rsec">
+            <div class="rs-title">Media Bridge</div>
+            <div class="mbadge">📡 Belkys · META · Todos los países</div>
+            <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" value="Attenza Mayo — Batch 1"/><div class="lf-url">🔗</div></div></div>
+            <button class="nb nb-sent">✓ Media notificado · 5 mayo</button>
+            <button class="add-influ" onclick="openAddInflu('Attenza')" style="margin-top:4px">+ Agregar influencer</button>
+          </div>
+        </div>
+        <div class="cc-ft">
+          <input class="cf-note" value="Aprobado por cliente 4 mayo."/>
+          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="show-more" onclick="this.style.display='none'">+ VER TODOS LOS 27 CLIENTES</div>
+
+    <!-- ══ EXTRA PROJECTS ══ -->
+    <div class="extras-section" style="padding:0">
+      <div class="extras-hd">
+        <div class="extras-title">⚡ Proyectos extra <span class="extras-ct">4 este mes</span></div>
+        <button class="add-extra-btn" onclick="openExtra()">+ Agregar proyecto extra</button>
+      </div>
+      <div class="extras-grid" id="extras-grid">
+        <div class="extra-card design">
+          <div class="ec-top">
+            <div style="flex:1"><div class="ec-client">Welch's</div><div class="ec-sub">Ian · Gian</div></div>
+            <span class="ec-pts" style="background:var(--amber-bg);color:var(--amber)">14 pts</span>
+            <span class="ec-type-badge type-design">Con diseño</span>
+            <button class="ec-del" onclick="delExtra(this)">✕</button>
+          </div>
+          <div class="ec-pieces">
+            <div class="ecp"><span class="ecp-name">🎥 Video con producción</span><span class="ecp-qty">×2</span><span class="ecp-pts">5pts c/u</span></div>
+            <div class="ecp"><span class="ecp-name">🎠 Carrusel adicional</span><span class="ecp-qty">×2</span><span class="ecp-pts">2pts c/u</span></div>
+          </div>
+          <div class="ec-bottom"><div class="ec-who">🎨 Gian</div><div class="ec-dl">⏰ 20 mayo</div></div>
+        </div>
+        <div class="extra-card planning">
+          <div class="ec-top">
+            <div style="flex:1"><div class="ec-client">La Hipotecaria</div><div class="ec-sub">Ian — solo planning</div></div>
+            <span class="ec-pts" style="background:var(--blue-bg);color:var(--blue)">10 pts</span>
+            <span class="ec-type-badge type-plan">Solo Planning</span>
+            <button class="ec-del" onclick="delExtra(this)">✕</button>
+          </div>
+          <div class="ec-pieces">
+            <div class="ecp"><span class="ecp-name">📊 Propuesta comercial</span><span class="ecp-qty">×1</span><span class="ecp-pts">10pts</span></div>
+          </div>
+          <div class="ec-bottom"><div class="ec-who">📋 Ian</div><div class="ec-dl">⏰ 15 mayo</div></div>
+        </div>
+        <div class="extra-card planning">
+          <div class="ec-top">
+            <div style="flex:1"><div class="ec-client">Miller Lite HN</div><div class="ec-sub">Ian + Megan — Mundial</div></div>
+            <span class="ec-pts" style="background:var(--blue-bg);color:var(--blue)">Plan</span>
+            <span class="ec-type-badge type-plan">Solo Planning</span>
+            <button class="ec-del" onclick="delExtra(this)">✕</button>
+          </div>
+          <div class="ec-pieces">
+            <div class="ecp"><span class="ecp-name">📋 Coordinación producción mundial</span><span class="ecp-qty">×1</span></div>
+          </div>
+          <div class="ec-bottom"><div class="ec-who">📋 Ian + Megan</div><div class="ec-dl">⏰ 30 mayo</div></div>
+        </div>
+        <div class="extra-card design">
+          <div class="ec-top">
+            <div style="flex:1"><div class="ec-client">ASSA</div><div class="ec-sub">Creative · Monica</div></div>
+            <span class="ec-pts" style="background:var(--amber-bg);color:var(--amber)">4 pts</span>
+            <span class="ec-type-badge type-design">Con diseño</span>
+            <button class="ec-del" onclick="delExtra(this)">✕</button>
+          </div>
+          <div class="ec-pieces">
+            <div class="ecp"><span class="ecp-name">🖼 Artes estáticos especiales</span><span class="ecp-qty">×4</span><span class="ecp-pts">1pt c/u</span></div>
+          </div>
+          <div class="ec-bottom"><div class="ec-who">🎨 Monica</div><div class="ec-dl">⏰ 25 mayo</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arc">Fenomena Digital · A real click. · Director Planning · Admin</div>
+  </div><!-- /client-list -->
+</div><!-- /main -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Contracts -->
+<div class="overlay" id="modal-contracts">
+  <div class="modal">
+    <div class="m-title">✍️ Contratos pendientes</div>
+    <div class="m-sub">Influencers que requieren tu firma</div>
+    <div class="contract-list">
+      <div class="cl-row">
+        <div><div class="cl-client">Sofía Reyes — Relojín</div><div class="cl-type">Contrato de influencer · Mayo 2026</div></div>
+        <div class="cl-due">Vence 10 mayo</div>
+        <button class="cl-sign">✍️ Firmar</button>
+      </div>
+      <div class="cl-row">
+        <div><div class="cl-client">Valentina Cruz — Bella Holandesa</div><div class="cl-type">Contrato de influencer · Mayo 2026</div></div>
+        <div class="cl-due">Vence 18 mayo</div>
+        <button class="cl-sign">✍️ Firmar</button>
+      </div>
+    </div>
+    <div class="mf" style="margin-top:16px">
+      <label class="ml">Agregar contrato pendiente</label>
+      <div style="display:flex;gap:6px">
+        <input class="mi" type="text" placeholder="Influencer — Cliente" style="flex:2;font-size:12px;padding:7px 10px"/>
+        <input class="mi" type="date" style="flex:1;font-size:12px;padding:7px 10px"/>
+        <button class="btn b-brand" style="white-space:nowrap">+ Agregar</button>
+      </div>
+    </div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-contracts')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Director Panel -->
+<div class="overlay" id="modal-dir">
+  <div class="modal">
+    <div class="m-title">👥 Panel de directoras</div>
+    <div class="m-sub">Carga y equipo — Mayo 2026</div>
+    <div class="dir-tabs" id="dir-tabs">
+      <button class="dir-tab active" onclick="switchDir(this,'ian')">Ian</button>
+      <button class="dir-tab" onclick="switchDir(this,'andreina')">Andreina</button>
+      <button class="dir-tab" onclick="switchDir(this,'valeria')">Valeria</button>
+      <button class="dir-tab" onclick="switchDir(this,'belkys')">Belkys</button>
+    </div>
+    <div id="dir-content">
+      <div class="dir-stat-grid">
+        <div class="dir-stat"><div class="dir-stat-lbl">30% Gestión base</div><div class="dir-stat-val" id="dir-30h">12h</div></div>
+        <div class="dir-stat"><div class="dir-stat-lbl">Carga proyectos</div><div class="dir-stat-val" id="dir-proh">26h</div></div>
+        <div class="dir-stat"><div class="dir-stat-lbl">Total / Capacidad</div><div class="dir-stat-val" id="dir-total" style="color:var(--amber)">38h/40h</div></div>
+      </div>
+      <div class="load-bar-bg"><div class="load-bar" id="dir-bar" style="width:95%;background:var(--amber)"></div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ml" style="margin:0">Equipo asignado</div>
+        <button class="btn b-brand" style="font-size:10px;padding:5px 10px" onclick="openAddMember()">+ Agregar miembro</button>
+      </div>
+      <div class="dir-team-list" id="dir-team"></div>
+    </div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-dir')">Cerrar</button><button class="btn b-brand" onclick="closeModal('modal-dir')">Guardar</button></div>
+  </div>
+</div>
+
+<!-- Notify Media -->
+<div class="overlay" id="modal-notify">
+  <div class="modal">
+    <div class="m-title">📡 Notificar a Media</div>
+    <div class="m-sub" id="notify-sub">Enviando notificación al equipo</div>
+    <div class="notify-preview">
+      <div class="np-row"><span class="np-lbl">Cliente:</span><span id="np-client">—</span></div>
+      <div class="np-row"><span class="np-lbl">Media:</span><span id="np-media">—</span></div>
+      <div class="np-row"><span class="np-lbl">Paper:</span><span id="np-paper-val" style="color:var(--blue)">—</span></div>
+    </div>
+    <div class="mf"><label class="ml">Mensaje adicional</label><textarea class="mi" style="resize:vertical;min-height:65px" placeholder="Instrucciones especiales para Media..."></textarea></div>
+    <div class="m-acts">
+      <button class="btn b-ghost" onclick="closeModal('modal-notify')">Cancelar</button>
+      <button class="btn b-brand" onclick="confirmNotifyDB()">Confirmar y enviar ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Piece -->
+<div class="overlay" id="modal-piece">
+  <div class="modal">
+    <div class="m-title">+ Agregar pieza</div>
+    <div class="m-sub" id="piece-sub">Agregar al batch</div>
+    <div class="mf">
+      <label class="ml">Biblioteca de piezas</label>
+      <div class="lib-tags" id="lib-tags">
+        <button class="lib-tag" onclick="selLib(this,'🖼 Arte estático','1')">🖼 Estático — 1pt</button>
+        <button class="lib-tag" onclick="selLib(this,'🎠 Carrusel','2')">🎠 Carrusel — 2pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎬 Video sencillo','2')">🎬 Video — 2pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎥 Video grabado','5')">🎥 V. grabado — 5pts</button>
+        <button class="lib-tag" onclick="selLib(this,'📊 Propuesta / Deck','10')">📊 Propuesta — 10pts</button>
+        <button class="lib-tag" onclick="selLib(this,'🎯 Reel nativo','2')">🎯 Reel nativo — 2pts</button>
+      </div>
+    </div>
+    <div class="mrow3">
+      <div class="mf"><label class="ml">Pieza</label><input class="mi" type="text" id="p-name" placeholder="Nombre"/></div>
+      <div class="mf"><label class="ml">Pts complejidad</label><input class="mi" type="number" id="p-pts" value="2" min="1" max="20"/></div>
+      <div class="mf"><label class="ml">Cantidad</label><input class="mi" type="number" id="p-qty" value="1" min="1"/></div>
+    </div>
+    <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green)">✓ Se guarda en biblioteca para reutilizar automáticamente.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-piece')">Cancelar</button><button class="btn b-brand" onclick="savePiece()">Agregar pieza</button></div>
+  </div>
+</div>
+
+<!-- Designer -->
+<div class="overlay" id="modal-designer">
+  <div class="modal">
+    <div class="m-title">🎨 Equipo creativo</div>
+    <div class="m-sub" id="designer-sub">Asignar diseñador(es)</div>
+    <div class="mf"><label class="ml">Principal</label>
+      <div class="ds-grid">
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#c084fc">D</div>Didi</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--cyan)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--green)">G</div>Gian</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--amber)">A</div>Andreina</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#ec4899">AG</div>Ana G.</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--purple)">S</div>Salomón</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#f43f5e">Ve</div>Verónica</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#0ea5e9">Mo</div>Monica</div>
+        <div class="ds-opt" onclick="selDs(this,'main')" style="opacity:0.5"><div class="ds-av" style="background:var(--txt3)">?</div>Por contratar</div>
+      </div>
+    </div>
+    <div class="mf"><label class="ml">Apoyo (opcional — carga se divide)</label>
+      <div class="ds-grid">
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:#c084fc">D</div>Didi</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--cyan)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--green)">G</div>Gian</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--amber)">A</div>Andreina</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:#ec4899">AG</div>Ana G.</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')" style="color:var(--txt3)">— Sin apoyo</div>
+      </div>
+    </div>
+    <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--blue)">ℹ️ Al asignar apoyo, los puntos se dividen entre ambos y se refleja en su semáforo de carga.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-designer')">Cancelar</button><button class="btn b-brand" onclick="closeModal('modal-designer')">Guardar asignación</button></div>
+  </div>
+</div>
+
+<!-- Add Influencer -->
+<div class="overlay" id="modal-influ">
+  <div class="modal">
+    <div class="m-title">👥 Agregar influencer</div>
+    <div class="m-sub" id="influ-sub">Nuevo influencer</div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre completo"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" placeholder="@usuario"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" placeholder="+507 6000-0000"/></div><div class="mf"><label class="ml">Red social</label><select class="mi"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select></div></div>
+    <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección si aplica"/></div>
+    <div class="mrow"><div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" placeholder="0.00"/></div><div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date"/></div></div>
+    <div class="m-divider"></div>
+    <div class="mf"><label class="ml">Brief (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mf"><label class="ml">Contrato / Media Kit (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option><option>Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi"><option>Pendiente</option><option>Parcial</option><option>Pagado</option></select></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ')">Cancelar</button><button class="btn b-brand" onclick="closeModal('modal-influ')">Agregar influencer</button></div>
+  </div>
+</div>
+
+<!-- Influ Edit -->
+<div class="overlay" id="modal-influ-edit">
+  <div class="modal">
+    <div class="m-title" id="ie-title">Editar influencer</div>
+    <div class="m-sub">Actualizar datos</div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="ie-name"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="ie-handle"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="ie-phone"/></div><div class="mf"><label class="ml">Monto ($)</label><input class="mi" type="number" id="ie-amt"/></div></div>
+    <div class="mf"><label class="ml">Dirección</label><input class="mi" type="text" placeholder="Ciudad, País"/></div>
+    <div class="m-divider"></div>
+    <div class="mf"><label class="ml">Brief</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" placeholder="URL Dropbox" style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mf"><label class="ml">Contrato / Media Kit</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi"><option>Pendiente</option><option>Recibido</option><option selected>Aprobado</option><option>Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi"><option selected>Pagado</option><option>Pendiente</option></select></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ-edit')">Cancelar</button><button class="btn b-brand" onclick="closeModal('modal-influ-edit')">Guardar cambios</button></div>
+  </div>
+</div>
+
+<!-- Extra Project -->
+<div class="overlay" id="modal-extra">
+  <div class="modal">
+    <div class="m-title">⚡ Proyecto extra</div>
+    <div class="m-sub">Trabajo fuera del plan mensual</div>
+    <div class="mf">
+      <label class="ml">Tipo de proyecto</label>
+      <div class="plan-toggle">
+        <div class="pt-opt sel-design" id="pt-design" onclick="setPlanType('design')">🎨 Con diseño<br><span style="font-size:10px;font-weight:500">Carga al diseñador</span></div>
+        <div class="pt-opt" id="pt-plan" onclick="setPlanType('plan')">📋 Solo Planning<br><span style="font-size:10px;font-weight:500">Carga al planner</span></div>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Cliente</label>
+        <select class="mi" id="ex-client">
+          <option>Seleccionar...</option>
+          <option>La Hipotecaria</option><option>Relojín</option><option>ASSA</option><option>Attenza</option><option>Welch's</option><option>Bella Holandesa PTY</option><option>Bella Holandesa Perú</option><option>WhiteClaw</option><option>Wesson</option><option>iShop CR</option><option>iShop PTY</option><option>iShop SLV</option><option>Coors Light HN</option><option>Miller Lite HN</option><option>Coors Light PTY</option><option>Casa Simona</option><option>Barilla</option><option>ATH</option><option>Lolita Lempicka</option><option>Madero</option><option>Tagua</option><option>Celeste</option><option>WOC</option><option>Guayacán</option><option>Vervana</option><option>Fenomena Digital</option>
+        </select>
+      </div>
+      <div class="mf"><label class="ml">Planner responsable</label><select class="mi" id="ex-planner"><option>Ian</option><option>Shelsea</option><option>Megan</option></select></div>
+    </div>
+    <div class="mf">
+      <label class="ml">Pieza — Biblioteca</label>
+      <div class="lib-tags" style="margin-bottom:8px" id="ex-lib-tags">
+        <button class="lib-tag" onclick="selExLib(this,'🖼 Arte estático','1')">🖼 Estático</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎠 Carrusel','2')">🎠 Carrusel</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎬 Video sencillo','2')">🎬 Video</button>
+        <button class="lib-tag" onclick="selExLib(this,'🎥 Video grabado','5')">🎥 V. grabado</button>
+        <button class="lib-tag" onclick="selExLib(this,'📊 Propuesta','10')">📊 Propuesta</button>
+        <button class="lib-tag" onclick="selExLib(this,'📋 Coordinación','0')">📋 Coordinación</button>
+      </div>
+      <div class="mrow3">
+        <div class="mf"><label class="ml">Descripción</label><input class="mi" type="text" id="ex-piece" placeholder="Tipo de pieza"/></div>
+        <div class="mf"><label class="ml">Pts</label><select class="mi" id="ex-pts"><option value="0">0 — Coordinación</option><option value="1">1pt</option><option value="2">2pts</option><option value="3">3pts</option><option value="5">5pts</option><option value="10">10pts — Propuesta</option></select></div>
+        <div class="mf"><label class="ml">Cantidad</label><input class="mi" type="number" id="ex-qty" value="1" min="1"/></div>
+      </div>
+    </div>
+    <div class="mrow" id="ex-designer-row">
+      <div class="mf"><label class="ml">Diseñador asignado</label><select class="mi" id="ex-designer"><option>Didi</option><option>Willcy</option><option>Gian</option><option>Andreina</option><option>Ana G.</option><option>Salomón</option><option>Verónica</option><option>Monica</option><option>Por contratar</option></select></div>
+      <div class="mf"><label class="ml">Deadline</label><input class="mi" type="date" id="ex-deadline"/></div>
+    </div>
+    <div class="mrow" id="ex-plan-row" style="display:none">
+      <div class="mf"><label class="ml">Co-responsable</label><select class="mi"><option>Solo Ian</option><option>Ian + Shelsea</option><option>Ian + Megan</option><option>Shelsea + Megan</option></select></div>
+      <div class="mf"><label class="ml">Deadline</label><input class="mi" type="date" id="ex-deadline2"/></div>
+    </div>
+    <div class="mf"><label class="ml">Notas</label><textarea class="mi" style="resize:vertical;min-height:55px" placeholder="Razón del extra, instrucciones..."></textarea></div>
+    <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--amber)">⚡ Los puntos se suman automáticamente a la carga del responsable asignado.</div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-extra')">Cancelar</button><button class="btn b-brand" onclick="confirmExtra()">Agregar proyecto extra</button></div>
+  </div>
+</div>
+
+<!-- Add member -->
+<div class="overlay" id="modal-member">
+  <div class="modal">
+    <div class="m-title">+ Agregar miembro</div>
+    <div class="m-sub" id="member-sub">Agregar al equipo</div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre completo"/></div><div class="mf"><label class="ml">Rol</label><select class="mi"><option>Creative</option><option>Media</option><option>Planning</option></select></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Email</label><input class="mi" type="email" placeholder="nombre@fenomenadigital.com"/></div><div class="mf"><label class="ml">Capacidad (h/mes)</label><input class="mi" type="number" value="80"/></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-member')">Cancelar</button><button class="btn b-brand" onclick="closeModal('modal-member')">Crear miembro</button></div>
+  </div>
+</div>
+
+<div id="save-toast"></div>
+
+<!-- ══ SUPABASE + SCRIPTS ══ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ══ SUPABASE ══════════════════════════════════════════
+const SB_URL  = 'https://mzzqbgydhiglubucdwjb.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enFiZ3lkaGlnbHVidWNkd2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIwOTQsImV4cCI6MjA5MzU4ODA5NH0.ZDYHSnhhpBDAQ3Tcpn9oFmuABeZxKaztifrDTn19yKo';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_ANON);
+
+const MES = 5, ANO = 2026;
+let proyectosMap = {}, clientesMap = {}, piezaLib = [];
+
+async function loadPlanningData() {
+  try {
+    const { data: clientes } = await sb.from('clientes').select('*').eq('activo', true);
+    if (clientes) clientes.forEach(c => { clientesMap[c.nombre] = c; });
+    const { data: proyectos } = await sb.from('proyectos').select('*, clientes(nombre)').eq('mes', MES).eq('año', ANO);
+    if (proyectos) proyectos.forEach(p => { if(p.clientes?.nombre) proyectosMap[p.clientes.nombre] = p; });
+    const { data: lib } = await sb.from('pieza_biblioteca').select('*').order('nombre');
+    if (lib) { piezaLib = lib; loadLibSuggestions(); }
+    applyDataToCards();
+    console.log(`✓ Planning loaded: ${Object.keys(clientesMap).length} clientes, ${Object.keys(proyectosMap).length} proyectos`);
+  } catch(e) { console.warn('Load error:', e.message); }
+}
+
+function applyDataToCards() {
+  document.querySelectorAll('.cc').forEach(card => {
+    const name = card.querySelector('.cc-name')?.textContent?.trim();
+    if (!name) return;
+    const p = proyectosMap[name];
+    if (!p) return;
+    if (p.notas) { const n = card.querySelector('.cf-note'); if(n) n.value = p.notas; }
+    if (p.media_notificado) {
+      const nb = card.querySelector('.nb'); 
+      if (nb) { nb.className='nb nb-sent'; nb.textContent='✓ Media notificado'; }
+    }
+  });
+}
+
+async function saveBatchStatus(clientName, batch, status) {
+  let p = proyectosMap[clientName];
+  const field = batch === 'B1' ? 'b1_status' : 'b2_status';
+  try {
+    if (!p) {
+      const { data: c } = await sb.from('clientes').select('id').eq('nombre', clientName).single();
+      if (c) { const { data: pr } = await sb.from('proyectos').select('*').eq('cliente_id', c.id).eq('mes', MES).eq('año', ANO).single(); if(pr){p=pr;proyectosMap[clientName]=pr;} }
+    }
+    if (!p) return;
+    await sb.from('proyectos').update({ [field]: status }).eq('id', p.id);
+    showSaveToast('✓ Status guardado');
+  } catch(e) { console.warn(e); }
+}
+
+async function saveNotes(clientName, notes) {
+  let p = proyectosMap[clientName];
+  try {
+    if (!p) {
+      const { data: c } = await sb.from('clientes').select('id').eq('nombre', clientName).single();
+      if (c) { const { data: pr } = await sb.from('proyectos').select('*').eq('cliente_id', c.id).eq('mes', MES).eq('año', ANO).single(); if(pr){p=pr;proyectosMap[clientName]=pr;} }
+    }
+    if (!p) { showSaveToast('⚠️ Cliente no sincronizado'); return; }
+    await sb.from('proyectos').update({ notas: notes }).eq('id', p.id);
+    showSaveToast('✓ Nota guardada');
+  } catch(e) { showSaveToast('Error al guardar'); }
+}
+
+async function savePlannerChange(clientName, planner) {
+  const p = proyectosMap[clientName];
+  if (!p) return;
+  try { await sb.from('proyectos').update({ planning_nombre: planner }).eq('id', p.id); } catch(e){}
+}
+
+async function saveMediaNotification(client, paper) {
+  const p = proyectosMap[client];
+  if (!p) return;
+  try { await sb.from('proyectos').update({ paper_nombre: paper, media_notificado: true, media_notificado_at: new Date().toISOString() }).eq('id', p.id); } catch(e){}
+}
+
+async function saveExtraProject(data) {
+  try {
+    const c = clientesMap[data.client];
+    const { data: r } = await sb.from('proyectos_extra').insert({ cliente_id:c?.id||null, cliente_nombre:data.client, mes:MES, año:ANO, tipo:data.type, planner_nombre:data.planner, diseñador_nombre:data.designer, piezas:data.piezas, pts_total:data.pts, deadline:data.deadline||null }).select().single();
+    return r;
+  } catch(e) { return null; }
+}
+
+async function savePieceToLib(nombre, pts) {
+  try { await sb.from('pieza_biblioteca').insert({ nombre, pts:parseInt(pts) }); } catch(e){}
+}
+
+function loadLibSuggestions() {
+  ['lib-tags','ex-lib-tags'].forEach(id => {
+    const cont = document.getElementById(id);
+    if (!cont) return;
+    // Add custom pieces from DB not already shown
+    piezaLib.forEach(p => {
+      const existing = [...cont.querySelectorAll('.lib-tag')].find(b => b.textContent.includes(p.nombre));
+      if (!existing) {
+        const btn = document.createElement('button');
+        btn.className = 'lib-tag';
+        btn.textContent = `${p.emoji||''} ${p.nombre} — ${p.pts}pts`;
+        btn.onclick = () => { selLib(btn, (p.emoji||'')+' '+p.nombre, p.pts); };
+        cont.appendChild(btn);
+      }
+    });
+  });
+}
+
+// ══ DIRECTORS DATA ════════════════════════════════════
+const directors = {
+  ian:      { name:'Ian',      role:'Director Planning', team:['Shelsea','Megan'], h30:12, hPro:26, hMax:40, color:'linear-gradient(135deg,#00AFEC,#B2F56A)' },
+  andreina: { name:'Andreina', role:'Directora Creativa', team:['Didi','Gian','Willcy','Salomón','Verónica'], h30:12, hPro:32, hMax:40, color:'linear-gradient(135deg,#c084fc,#EEB1D7)' },
+  valeria:  { name:'Valeria',  role:'Directora Creativa', team:['Monica','Ana Gabriela','Por contratar'], h30:12, hPro:10, hMax:40, color:'linear-gradient(135deg,#B2F56A,#00AFEC)' },
+  belkys:   { name:'Belkys',   role:'Directora Media', team:['Christian'], h30:12, hPro:6, hMax:40, color:'linear-gradient(135deg,#f4d03f,#ff9f43)' }
+};
+let currentDir = 'ian';
+
+function openDirModal() { switchDir(document.querySelector('.dir-tab'), 'ian'); document.getElementById('modal-dir').classList.add('open'); }
+
+function switchDir(btn, key) {
+  currentDir = key;
+  document.querySelectorAll('.dir-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const d = directors[key];
+  const total = d.h30 + d.hPro;
+  const pct = Math.min(100, Math.round(total/d.hMax*100));
+  document.getElementById('dir-30h').textContent = d.h30+'h';
+  document.getElementById('dir-proh').textContent = d.hPro+'h';
+  const totEl = document.getElementById('dir-total');
+  totEl.textContent = total+'h/'+d.hMax+'h';
+  totEl.style.color = pct>95?'var(--red)':pct>75?'var(--amber)':'var(--green)';
+  const bar = document.getElementById('dir-bar');
+  bar.style.width = pct+'%';
+  bar.style.background = pct>95?'var(--red)':pct>75?'var(--amber)':'var(--green)';
+  document.getElementById('dir-team').innerHTML = d.team.map(n => `
+    <div class="dt-row">
+      <div class="dt-av" style="background:${d.color}">${n[0]}</div>
+      <span class="dt-name">${n}</span>
+      <span class="dt-pts" style="color:var(--amber)">~${Math.floor(Math.random()*15+8)}h</span>
+      <div class="dt-sem" style="background:var(--amber)"></div>
+      <button class="dt-remove" onclick="this.closest('.dt-row').remove()">✕</button>
+    </div>`).join('');
+}
+
+function openAddMember() { document.getElementById('member-sub').textContent = 'Agregar al equipo de '+directors[currentDir].name; document.getElementById('modal-member').classList.add('open'); }
+
+// ══ CARD INTERACTIONS ═════════════════════════════════
+function tog(e, id) {
+  if (e.target.closest('.planner-wrap') || e.target.closest('.dchip')) return;
+  document.getElementById(id).classList.toggle('open');
+}
+
+function setSt(btn) {
+  const ssel = btn.closest('.ssel');
+  ssel.querySelectorAll('.ss').forEach(b => b.className='ss');
+  const map = {'Listo':'ok','progreso':'prog','Pendiente':'wait','Atrasado':'late'};
+  const key = Object.keys(map).find(k => btn.textContent.includes(k));
+  if (key) btn.classList.add(map[key]);
+  const card = btn.closest('.cc');
+  const name = card?.querySelector('.cc-name')?.textContent?.trim();
+  const bsecs = card?.querySelectorAll('.bsec');
+  if (!name || !bsecs) return;
+  const batch = ssel.closest('.bsec') === bsecs[0] ? 'B1' : 'B2';
+  const statusMap = {'ok':'listo','prog':'progreso','wait':'pendiente','late':'atrasado'};
+  saveBatchStatus(name, batch, statusMap[map[key]]||'pendiente');
+}
+
+function chg(btn, d) {
+  const wrap = btn.closest('.pc'), num = wrap.querySelector('.pc-num');
+  let v = parseInt(num.textContent) + d; if(v<0)v=0; num.textContent=v;
+}
+
+function openPDD(btn) {
+  const dd = btn.closest('.planner-wrap').querySelector('.pdd');
+  document.querySelectorAll('.pdd.open').forEach(d => { if(d!==dd) d.classList.remove('open'); });
+  dd.classList.toggle('open');
+}
+function chPlanner(cid, ddid, planner, name) {
+  const card = document.getElementById(cid);
+  const tag = card.querySelector('.ptag');
+  tag.className = 'ptag '+planner;
+  tag.childNodes[0].textContent = name;
+  card.className = card.className.replace(/\b(ian|shelsea|megan)\b/g, planner);
+  card.dataset.planner = planner;
+  document.getElementById(ddid).classList.remove('open');
+  savePlannerChange(card.querySelector('.cc-name')?.textContent?.trim(), name);
+}
+document.addEventListener('click', e => { if(!e.target.closest('.planner-wrap')) document.querySelectorAll('.pdd.open').forEach(d=>d.classList.remove('open')); });
+
+function openDesigner(cid, current) {
+  document.getElementById('designer-sub').textContent = 'Para ' + document.getElementById(cid)?.querySelector('.cc-name')?.textContent;
+  document.getElementById('modal-designer').classList.add('open');
+}
+function selDs(el, type) {
+  el.closest('.ds-grid').querySelectorAll('.ds-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveCardNote(btn) {
+  const card = btn.closest('.cc');
+  const name = card.querySelector('.cc-name')?.textContent?.trim();
+  const note = card.querySelector('.cf-note')?.value||'';
+  if(name) saveNotes(name, note);
+}
+
+// ══ NOTIFY ═══════════════════════════════════════════
+function openNotify(client, media) {
+  document.getElementById('np-client').textContent = client;
+  document.getElementById('np-media').textContent = media;
+  const cards = document.querySelectorAll('.cc');
+  let paper='';
+  cards.forEach(card => { if(card.querySelector('.cc-name')?.textContent?.trim()===client) paper=card.querySelector('.lf-name')?.value||''; });
+  document.getElementById('np-paper-val').textContent = paper||'Sin nombre';
+  document.getElementById('modal-notify').dataset.client = client;
+  document.getElementById('modal-notify').dataset.paper = paper;
+  document.getElementById('modal-notify').classList.add('open');
+}
+async function confirmNotifyDB() {
+  const modal = document.getElementById('modal-notify');
+  const client = modal.dataset.client;
+  const paper = modal.dataset.paper;
+  await saveMediaNotification(client, paper);
+  document.querySelectorAll('.cc').forEach(card => {
+    if (card.querySelector('.cc-name')?.textContent?.trim()===client) {
+      const nb = card.querySelector('.nb');
+      if (nb) { nb.className='nb nb-sent'; nb.textContent='✓ Media notificado'; }
+      const pills = card.querySelector('.cc-pills');
+      if (pills) { const pend=[...pills.querySelectorAll('.pill')].find(p=>p.textContent.includes('Pend. Media')); if(pend){pend.className='pill p-media';pend.textContent='📡 Media notificado';} }
+    }
+  });
+  showSaveToast('✓ Media notificado y guardado');
+  closeModal('modal-notify');
+}
+
+// ══ PIECES ═══════════════════════════════════════════
+function openPiece(ctx) { document.getElementById('piece-sub').textContent='Agregar pieza a '+ctx; document.getElementById('modal-piece').classList.add('open'); }
+function selLib(btn, name, pts) {
+  document.getElementById('p-name').value = name;
+  document.getElementById('p-pts').value = pts;
+  document.querySelectorAll('#lib-tags .lib-tag').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function savePiece() {
+  const name = document.getElementById('p-name').value;
+  const pts = document.getElementById('p-pts').value;
+  if (!name) return;
+  savePieceToLib(name, pts);
+  closeModal('modal-piece');
+  showSaveToast('✓ Pieza agregada y guardada');
+}
+
+// ══ INFLUENCERS ══════════════════════════════════════
+function openAddInflu(c) { document.getElementById('influ-sub').textContent='Nuevo influencer para '+c; document.getElementById('modal-influ').classList.add('open'); }
+function openInfluEdit(name, handle, phone, amt) {
+  document.getElementById('ie-title').textContent = name;
+  document.getElementById('ie-name').value = name;
+  document.getElementById('ie-handle').value = handle;
+  document.getElementById('ie-phone').value = phone;
+  document.getElementById('ie-amt').value = amt;
+  document.getElementById('modal-influ-edit').classList.add('open');
+}
+
+// ══ EXTRA PROJECTS ════════════════════════════════════
+let planType = 'design';
+function setPlanType(t) {
+  planType = t;
+  document.getElementById('pt-design').className = 'pt-opt'+(t==='design'?' sel-design':'');
+  document.getElementById('pt-plan').className = 'pt-opt'+(t==='plan'?' sel-plan':'');
+  document.getElementById('ex-designer-row').style.display = t==='design'?'':'none';
+  document.getElementById('ex-plan-row').style.display = t==='plan'?'':'none';
+}
+function selExLib(btn, name, pts) {
+  document.getElementById('ex-piece').value = name;
+  document.getElementById('ex-pts').value = pts;
+  document.querySelectorAll('#ex-lib-tags .lib-tag').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function openExtra() { document.getElementById('modal-extra').classList.add('open'); }
+async function confirmExtra() {
+  const client = document.getElementById('ex-client').value;
+  const piece = document.getElementById('ex-piece').value;
+  const pts = parseInt(document.getElementById('ex-pts').value)||0;
+  const qty = parseInt(document.getElementById('ex-qty').value)||1;
+  const dl = document.getElementById(planType==='design'?'ex-deadline':'ex-deadline2').value;
+  const designer = planType==='design' ? document.getElementById('ex-designer').value : document.getElementById('ex-planner').value;
+  if (client==='Seleccionar...'||!piece) { alert('Completa cliente y tipo de pieza'); return; }
+  const total = pts*qty;
+  const typeClass = planType==='design'?'design':'planning';
+  const typeLabel = planType==='design'?'Con diseño':'Solo Planning';
+  const typeBadgeClass = planType==='design'?'type-design':'type-plan';
+  const ptsStyle = planType==='design'?'background:var(--amber-bg);color:var(--amber)':'background:var(--blue-bg);color:var(--blue)';
+  const whoIcon = planType==='design'?'🎨':'📋';
+  const card = document.createElement('div');
+  card.className='extra-card '+typeClass;
+  card.innerHTML=`<div class="ec-top"><div style="flex:1"><div class="ec-client">${client}</div><div class="ec-sub">${designer}</div></div>${total>0?`<span class="ec-pts" style="${ptsStyle}">${total} pts</span>`:`<span class="ec-pts" style="${ptsStyle}">Plan</span>`}<span class="ec-type-badge ${typeBadgeClass}">${typeLabel}</span><button class="ec-del" onclick="delExtra(this)">✕</button></div><div class="ec-pieces"><div class="ecp"><span class="ecp-name">${piece}</span><span class="ecp-qty">×${qty}</span>${pts>0?`<span class="ecp-pts">${pts}pts c/u</span>`:''}</div></div><div class="ec-bottom"><div class="ec-who">${whoIcon} ${designer}</div><div class="ec-dl">⏰ ${dl||'Sin fecha'}</div></div>`;
+  document.getElementById('extras-grid').appendChild(card);
+  const result = await saveExtraProject({ client, type:planType, planner:document.getElementById('ex-planner').value, designer:planType==='design'?designer:null, piezas:[{nombre:piece,pts,cantidad:qty}], pts:total, deadline:dl });
+  if(result) { card.dataset.id=result.id; showSaveToast('✓ Proyecto extra guardado'); }
+  if(piece&&pts>0) savePieceToLib(piece,pts);
+  closeModal('modal-extra');
+}
+function delExtra(btn) { if(confirm('¿Eliminar este proyecto extra?')) btn.closest('.extra-card').remove(); }
+
+// ══ FILTER / SEARCH ══════════════════════════════════
+function filterBy(btn, type) {
+  if (btn) { document.querySelectorAll('.filter-bar .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  document.querySelectorAll('.cc').forEach(c => {
+    if (type==='all') { c.style.display=''; return; }
+    if (type==='late') { c.style.display=c.dataset.status==='late'?'':'none'; return; }
+    if (type==='influs') { c.style.display=c.dataset.influs?'':'none'; return; }
+    if (type==='media-p') { c.style.display=c.dataset.mediaP?'':'none'; return; }
+    if (['ok','prog','wait'].includes(type)) { c.style.display=c.dataset.status===type?'':'none'; return; }
+    c.style.display=c.dataset.planner===type?'':'none';
+  });
+}
+function searchClients(q) {
+  q=q.toLowerCase();
+  document.querySelectorAll('.cc').forEach(c=>{
+    const n=c.querySelector('.cc-name')?.textContent?.toLowerCase()||'';
+    c.style.display=!q||n.includes(q)?'':'none';
+  });
+}
+
+// ══ CONTRACTS ════════════════════════════════════════
+function openContracts() { document.getElementById('modal-contracts').classList.add('open'); }
+
+// ══ MODALS ═══════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// ══ TOAST ════════════════════════════════════════════
+function showSaveToast(msg) {
+  const t = document.getElementById('save-toast');
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._t); t._t=setTimeout(()=>{t.style.opacity='0';},2500);
+}
+
+// ══ INIT ═════════════════════════════════════════════
+window.addEventListener('load', () => {
+  loadPlanningData();
+  // Check auth
+  (async () => {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+        if (profile) {
+          const name = profile.nombre || 'Ian';
+          document.getElementById('sb-av').textContent = name[0]?.toUpperCase()||'I';
+          document.getElementById('sb-uname').textContent = name;
+          document.getElementById('sb-urole').textContent = (profile.rol||'admin').toUpperCase();
+        }
+      }
+    } catch(e) {}
+  })();
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.pb').forEach(b => {
+      const w=b.style.width; b.style.width='0';
+      setTimeout(()=>{b.style.width=w;},80);
+    });
+  }, 300);
+  // Stagger cards
+  document.querySelectorAll('.cc').forEach((c,i) => { c.style.animationDelay=(i*0.05)+'s'; });
+});
+</script>
+</body>
+</html>
