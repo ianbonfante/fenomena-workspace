@@ -722,14 +722,23 @@ function showToast(msg) {
 // ══ AUTH GUARD ══════════════════════════════════════
 (async () => {
   try {
+    // Wait for supabase to restore session from localStorage
     const { data: { session } } = await sb.auth.getSession();
     if (!session?.user) {
-      window.location.href = 'index.html';
-      return;
+      // Double-check with a short wait — sometimes session loads async
+      await new Promise(r => setTimeout(r, 800));
+      const { data: { session: session2 } } = await sb.auth.getSession();
+      if (!session2?.user) {
+        window.location.href = 'index.html';
+        return;
+      }
     }
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    // Load profile
+    const userId = session?.user?.id || (await sb.auth.getSession()).data.session?.user?.id;
+    if (!userId) { window.location.href = 'index.html'; return; }
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', userId).single();
     if (profile) {
-      const name = profile.nombre || session.user.email.split('@')[0];
+      const name = profile.nombre || 'Usuario';
       const av = document.getElementById('sb-av');
       const uname = document.getElementById('sb-uname');
       const urole = document.getElementById('sb-urole');
@@ -738,7 +747,14 @@ function showToast(msg) {
       if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
     }
   } catch(e) {
-    window.location.href = 'index.html';
+    console.warn('Auth guard error:', e.message);
+    // Only redirect if truly no session
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) window.location.href = 'index.html';
+    } catch(e2) {
+      window.location.href = 'index.html';
+    }
   }
 })();
 window.addEventListener('load', () => {
