@@ -1398,7 +1398,82 @@ body {
 <div id="save-toast"></div>
 
 <!-- ══ SUPABASE + SCRIPTS ══ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ══ DYNAMIC CLIENT RENDERING ══════════════════════════════════
+const DESIGNERS_COLOR = {
+  'Didi':'#c084fc','Willcy':'#00AFEC','Gian':'#16a34a',
+  'Andreina':'#d97706','Ana Gabriela':'#ec4899','Salomón':'#7c3aed',
+  'Verónica':'#f43f5e','Monica':'#0ea5e9','Sonia':'#8b5cf6',
+  'Por contratar':'#9590AB'
+};
+const PLANNER_CLASS = {'Ian':'ian','Shelsea':'shelsea','Megan':'megan','Valeria':'ian'};
+
+function getDesigner(notas) {
+  if (!notas) return 'Por contratar';
+  const m = notas.match(/Diseño: ([^.]+)\./);
+  return m ? m[1].trim().split(' +')[0].trim() : 'Por contratar';
+}
+function getPauta(notas) {
+  if (!notas) return null;
+  const m = notas.match(/Pauta: ([^.]+)\./);
+  return m ? m[1].trim() : null;
+}
+function buildPills(cl) {
+  const tipo = cl.tipo_card || 'regular';
+  if (tipo === 'sin_batches') return '<span class="pill" style="background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);">⚡ Especial</span>';
+  if (tipo === 'inicia_junio') return '<span class="pill" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);">📅 Inicia Junio</span>';
+  const pauta = getPauta(cl.notas);
+  if (!pauta) return '<span class="pill p-prog">⏳ En progreso</span><span class="pill" style="background:var(--surface2);color:var(--txt3);border:1px solid var(--border);">📵 Sin pauta</span>';
+  return '<span class="pill p-prog">⏳ En progreso</span>';
+}
+function buildBody(cl) {
+  const tipo = cl.tipo_card || 'regular';
+  const pauta = getPauta(cl.notas);
+  const piezasDesc = cl.notas ? cl.notas.split('. ').slice(2).join('. ').trim() : '';
+  if (tipo === 'sin_batches') {
+    return `<div class="cc-grid" style="grid-template-columns:1fr 220px;"><div class="bsec"><div class="bsec-title" style="color:var(--amber)">⚡ Proyecto especial</div><div style="font-size:13px;color:var(--txt2);line-height:1.7">${cl.notas||''}</div><button class="add-piece-btn" onclick="openPiece('${cl.nombre}')">+ Agregar tarea</button></div><div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div></div>`;
+  }
+  if (tipo === 'inicia_junio') {
+    return `<div class="cc-grid" style="grid-template-columns:1fr 220px;"><div class="bsec"><div style="background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:20px;margin-bottom:6px">📅</div><div style="font-size:13px;font-weight:700;color:var(--purple)">Inicia en Junio 2026</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">${cl.notas||''}</div></div></div><div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div></div>`;
+  }
+  const mediaSec = pauta
+    ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
+    : `<div class="rsec"><div class="rs-title">Sin pauta activa</div><div style="font-size:11px;color:var(--txt3);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;">📵 Sin pauta<br><span style="font-size:10px">Se activa cuando el cliente lo solicite</span></div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:8px">+ Agregar influencer</button></div>`;
+  return `<div class="cc-grid"><div class="bsec"><div class="bsec-title">Batch 1 — Día 15<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div><div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button><button class="ss" onclick="setSt(this)">En progreso</button><button class="ss" onclick="setSt(this)">✓ Listo</button><button class="ss" onclick="setSt(this)">🔴 Atrasado</button></div><div class="pieces-list"><div style="font-size:11px;color:var(--txt3);padding:6px 0">${piezasDesc||'Sin piezas configuradas'}</div></div><button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button></div><div class="bsec"><div class="bsec-title">Batch 2 — Día 25<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div><div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button><button class="ss" onclick="setSt(this)">En progreso</button></div><div class="pieces-list"><div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div></div><button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button></div>${mediaSec}</div>`;
+}
+async function renderClientes() {
+  try {
+    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
+    if (error) throw error;
+    if (!clientes || clientes.length === 0) return;
+    const list = document.getElementById('client-list');
+    list.querySelectorAll('.cc').forEach(el => el.remove());
+    list.querySelectorAll('.show-more').forEach(el => el.remove());
+    clientes.forEach((cl, i) => {
+      const planner = cl.planning_responsable || 'Ian';
+      const plannerClass = PLANNER_CLASS[planner] || 'ian';
+      const designer = getDesigner(cl.notas);
+      const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
+      const id = 'cc-' + cl.id;
+      const noDesign = designer === 'Por contratar' || !cl.notas || cl.notas.includes('Sin diseño');
+      const card = document.createElement('div');
+      card.className = `cc ${plannerClass}`;
+      card.dataset.planner = plannerClass;
+      card.dataset.status = (cl.tipo_card === 'inicia_junio') ? 'wait' : 'prog';
+      card.id = id;
+      card.style.animationDelay = (i * 0.03) + 's';
+      card.innerHTML = `<div class="cc-hd" onclick="tog(event,'${id}')"><div class="sem am"></div><div class="cc-info"><div class="cc-name">${cl.nombre}</div><div class="cc-meta"><div class="planner-wrap" onclick="event.stopPropagation()"><span class="ptag ${plannerClass}">${planner}<button class="edit-p" onclick="openPDD(this)">✎</button></span><div class="pdd" id="pd-${cl.id}"><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div></div></div><span class="cc-meta-dot">·</span><span class="cc-meta-text">${cl.pais||'Panamá'}</span>${!noDesign ? `<div class="dchip" onclick="event.stopPropagation();openDesigner('${id}','${designer}')"><div class="d-av" style="background:${designerColor}">${designer[0]}</div>${designer} ✎</div>` : '<span class="cc-meta-text" style="color:var(--txt3)">Sin diseño</span>'}</div></div><div class="cc-pills">${buildPills(cl)}</div><span class="cc-arrow">▾</span></div><div class="cc-body">${buildBody(cl)}<div class="cc-ft"><input class="cf-note" placeholder="Notas internas..."/><button class="cf-save" onclick="saveCardNote(this)">Guardar</button></div></div>`;
+      const extras = document.getElementById('extras-section');
+      const arc = list.querySelector('.arc');
+      list.insertBefore(card, extras || arc);
+    });
+    const statVals = document.querySelectorAll('.stat-card .stat-val');
+    if (statVals[0]) statVals[0].textContent = clientes.length;
+    console.log('✓ Rendered', clientes.length, 'clientes');
+  } catch(e) { console.warn('renderClientes error:', e.message); }
+}
+
+</script>
 <script>
 // ══ SUPABASE ══════════════════════════════════════════
 const SB_URL  = 'https://mzzqbgydhiglubucdwjb.supabase.co';
@@ -1792,357 +1867,6 @@ async function doLogout() {
 }
 
 
-// ══ DYNAMIC CLIENT RENDERING ══════════════════════════════════
-const DESIGNERS_COLOR = {
-  'Didi': '#c084fc', 'Willcy': '#00AFEC', 'Gian': '#16a34a',
-  'Andreina': '#d97706', 'Ana Gabriela': '#ec4899', 'Salomón': '#7c3aed',
-  'Verónica': '#f43f5e', 'Monica': '#0ea5e9', 'Sonia': '#8b5cf6',
-  'Por contratar': '#9590AB'
-};
-const PLANNER_CLASS = { 'Ian': 'ian', 'Shelsea': 'shelsea', 'Megan': 'megan', 'Valeria': 'ian' };
-const PLANNER_COLOR = { 'Ian': 'var(--blue)', 'Shelsea': 'var(--purple)', 'Megan': 'var(--green)', 'Valeria': 'var(--blue)' };
 
-async function renderClientes() {
-  try {
-    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
-    if (error) throw error;
-    if (!clientes || clientes.length === 0) return;
-
-    const list = document.getElementById('client-list');
-    // Remove static demo cards but keep extras section and arc
-    const extras = document.getElementById('extras-section');
-    const arc = list.querySelector('.arc');
-    const showMore = list.querySelector('.show-more');
-
-    // Remove all .cc cards
-    list.querySelectorAll('.cc').forEach(el => el.remove());
-    if (showMore) showMore.remove();
-
-    // Extract designer from notas field
-    function getDesigner(notas) {
-      if (!notas) return 'Por contratar';
-      const m = notas.match(/Diseño:\s*([^.]+)\./);
-      return m ? m[1].trim().split(' +')[0].trim() : 'Por contratar';
-    }
-    function getPauta(notas) {
-      if (!notas) return null;
-      const m = notas.match(/Pauta:\s*([^.]+)\./);
-      return m ? m[1].trim() : null;
-    }
-    function getPiezas(notas) {
-      if (!notas) return '—';
-      const m = notas.match(/\d+[^.]+artes[^.]+\./);
-      return m ? m[0] : notas.split('.').pop().trim();
-    }
-
-    // Update stats
-    document.getElementById('stat-total') && (document.getElementById('stat-total').textContent = clientes.length);
-
-    clientes.forEach((cl, i) => {
-      const planner = cl.planning_responsable || 'Ian';
-      const plannerClass = PLANNER_CLASS[planner] || 'ian';
-      const designer = getDesigner(cl.notas);
-      const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
-      const pauta = getPauta(cl.notas);
-      const piezasDesc = cl.notas ? cl.notas.split('.').slice(2).join('.').trim() : '';
-      const id = 'cc-' + cl.id;
-
-      const card = document.createElement('div');
-      card.className = `cc ${plannerClass}`;
-      card.dataset.planner = plannerClass;
-      card.dataset.status = 'prog';
-      card.id = id;
-      card.style.animationDelay = (i * 0.04) + 's';
-
-      card.innerHTML = `
-        <div class="cc-hd" onclick="tog(event,'${id}')">
-          <div class="sem am"></div>
-          <div class="cc-info">
-            <div class="cc-name">${cl.nombre}</div>
-            <div class="cc-meta">
-              <div class="planner-wrap" onclick="event.stopPropagation()">
-                <span class="ptag ${plannerClass}">${planner}<button class="edit-p" onclick="openPDD(this)">✎</button></span>
-                <div class="pdd" id="pd-${cl.id}">
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
-                </div>
-              </div>
-              <span class="cc-meta-dot">·</span>
-              <span class="cc-meta-text">${cl.pais || 'Panamá'}</span>
-              <div class="dchip" onclick="event.stopPropagation();openDesigner('${id}','${designer}')">
-                <div class="d-av" style="background:${designerColor}">${designer[0]}</div>${designer} ✎
-              </div>
-              ${pauta ? `<div class="dchip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📡 ${pauta}</div>` : ''}
-            </div>
-          </div>
-          <div class="cc-pills">
-            <span class="pill p-prog">⏳ En progreso</span>
-            ${piezasDesc ? `<span class="pill p-prog" style="background:var(--surface2);color:var(--txt3);border-color:var(--border)">${cl.notas?.split('.')[0]?.replace('Diseño:','').trim() || ''}</span>` : ''}
-          </div>
-          <span class="cc-arrow">▾</span>
-        </div>
-        <div class="cc-body">
-          <div class="cc-grid">
-            <div class="bsec">
-              <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
-              <div class="ssel">
-                <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-                <button class="ss" onclick="setSt(this)">En progreso</button>
-                <button class="ss" onclick="setSt(this)">✓ Listo</button>
-                <button class="ss" onclick="setSt(this)">🔴 Atrasado</button>
-              </div>
-              <div class="pieces-list" id="pieces-b1-${cl.id}">
-                <div style="font-size:11px;color:var(--txt3);padding:8px 0;">${cl.notas ? cl.notas.split('Diseño:')[0].trim().replace(/^[^:]+:\s*/,'') : 'Sin piezas configuradas'}</div>
-              </div>
-              <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
-            </div>
-            <div class="bsec">
-              <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
-              <div class="ssel">
-                <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-                <button class="ss" onclick="setSt(this)">En progreso</button>
-              </div>
-              <div class="pieces-list" id="pieces-b2-${cl.id}">
-                <div style="font-size:11px;color:var(--txt3);padding:8px 0;">Sin piezas configuradas</div>
-              </div>
-              <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
-            </div>
-            <div class="rsec">
-              <div class="rs-title">Media Bridge</div>
-              ${pauta ? `<div class="mbadge">📡 ${pauta} · ${cl.pais || 'Panamá'}</div>` : `<div style="font-size:11px;color:var(--txt3)">Sin pauta asignada</div>`}
-              <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div>
-              <input class="mi-sm" type="date"/>
-              ${pauta ? `<button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>` : ''}
-              <button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button>
-            </div>
-          </div>
-          <div class="cc-ft">
-            <input class="cf-note" placeholder="Notas internas..." value="${cl.notas ? cl.notas.substring(0, 80) + '...' : ''}"/>
-            <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
-          </div>
-        </div>`;
-
-      // Insert before extras section or arc
-      const insertBefore = extras || arc;
-      if (insertBefore) {
-        list.insertBefore(card, insertBefore);
-      } else {
-        list.appendChild(card);
-      }
-    });
-
-    // Update stat counters
-    updateStats(clientes);
-    console.log(`✓ Rendered ${clientes.length} clientes`);
-
-  } catch(e) {
-    console.warn('renderClientes error:', e.message);
-  }
-}
-
-function updateStats(clientes) {
-  const total = clientes.length;
-  // Update stats bar
-  const statCards = document.querySelectorAll('.stat-card .stat-val');
-  if (statCards[0]) statCards[0].textContent = total;
-}
-
-
-// ══ DYNAMIC CLIENT RENDERING ══════════════════════════════════
-const DESIGNERS_COLOR = {
-  'Didi': '#c084fc', 'Willcy': '#00AFEC', 'Gian': '#16a34a',
-  'Andreina': '#d97706', 'Ana Gabriela': '#ec4899', 'Salomón': '#7c3aed',
-  'Verónica': '#f43f5e', 'Monica': '#0ea5e9', 'Sonia': '#8b5cf6',
-  'Por contratar': '#9590AB'
-};
-const PLANNER_CLASS = { 'Ian': 'ian', 'Shelsea': 'shelsea', 'Megan': 'megan', 'Valeria': 'ian' };
-
-function getDesigner(notas) {
-  if (!notas) return 'Por contratar';
-  const m = notas.match(/Diseño: ([^.]+)\./);
-  return m ? m[1].trim().split(' +')[0].trim() : 'Por contratar';
-}
-function getPauta(notas) {
-  if (!notas) return null;
-  const m = notas.match(/Pauta: ([^.]+)\./);
-  return m ? m[1].trim() : null;
-}
-
-function buildBatches(cl) {
-  const tipo = cl.tipo_card || 'regular';
-  const pauta = getPauta(cl.notas);
-  const piezasDesc = cl.notas ? cl.notas.split('. ').slice(2).join('. ').trim() : '';
-
-  // SIN BATCHES — solo notas e influs
-  if (tipo === 'sin_batches') {
-    return `
-      <div class="cc-grid" style="grid-template-columns:1fr 220px;">
-        <div class="bsec">
-          <div class="bsec-title" style="color:var(--amber)">⚡ Proyecto especial / Mantenimiento</div>
-          <div style="font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:10px;">${cl.notas || 'Sin descripción.'}</div>
-          <button class="add-piece-btn" onclick="openPiece('${cl.nombre}')">+ Agregar tarea</button>
-        </div>
-        <div class="rsec">
-          <div class="rs-title">Influencers</div>
-          <button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button>
-        </div>
-      </div>`;
-  }
-
-  // INICIA JUNIO — sin batches mayo, solo aviso
-  if (tipo === 'inicia_junio') {
-    return `
-      <div class="cc-grid" style="grid-template-columns:1fr 220px;">
-        <div class="bsec">
-          <div style="background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:6px">📅</div>
-            <div style="font-size:13px;font-weight:700;color:var(--purple)">Inicia en Junio 2026</div>
-            <div style="font-size:11px;color:var(--txt3);margin-top:4px">${cl.notas || ''}</div>
-          </div>
-        </div>
-        <div class="rsec">
-          <div class="rs-title">Influencers</div>
-          <button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button>
-        </div>
-      </div>`;
-  }
-
-  // REGULAR — batches normales
-  const mediaBridge = pauta ? `
-    <div class="rsec">
-      <div class="rs-title">Media Bridge</div>
-      <div class="mbadge">📡 ${pauta} · ${cl.pais || 'Panamá'}</div>
-      <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div>
-      <input class="mi-sm" type="date"/>
-      <button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>
-      <button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button>
-    </div>` : `
-    <div class="rsec">
-      <div class="rs-title">Sin pauta activa</div>
-      <div style="font-size:11px;color:var(--txt3);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;">📵 Sin pauta<br><span style="font-size:10px">Se activa cuando el cliente lo solicite</span></div>
-      <button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:8px">+ Agregar influencer</button>
-    </div>`;
-
-  return `
-    <div class="cc-grid">
-      <div class="bsec">
-        <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
-        <div class="ssel">
-          <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-          <button class="ss" onclick="setSt(this)">En progreso</button>
-          <button class="ss" onclick="setSt(this)">✓ Listo</button>
-          <button class="ss" onclick="setSt(this)">🔴 Atrasado</button>
-        </div>
-        <div class="pieces-list">
-          <div style="font-size:11px;color:var(--txt3);padding:6px 0">${piezasDesc || 'Sin piezas configuradas'}</div>
-        </div>
-        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
-      </div>
-      <div class="bsec">
-        <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
-        <div class="ssel">
-          <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-          <button class="ss" onclick="setSt(this)">En progreso</button>
-        </div>
-        <div class="pieces-list">
-          <div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div>
-        </div>
-        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
-      </div>
-      ${mediaBridge}
-    </div>`;
-}
-
-function buildPills(cl) {
-  const tipo = cl.tipo_card || 'regular';
-  if (tipo === 'sin_batches') return '<span class="pill p-prog" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border);">⚡ Especial</span>';
-  if (tipo === 'inicia_junio') return '<span class="pill p-prog" style="background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border);">📅 Inicia Junio</span>';
-  if (cl.tipo_card === 'sin_pauta') return '<span class="pill p-prog">⏳ En progreso</span><span class="pill" style="background:var(--surface2);color:var(--txt3);border:1px solid var(--border);">📵 Sin pauta</span>';
-  return '<span class="pill p-prog">⏳ En progreso</span>';
-}
-
-async function renderClientes() {
-  try {
-    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
-    if (error) throw error;
-    if (!clientes || clientes.length === 0) return;
-
-    const list = document.getElementById('client-list');
-    list.querySelectorAll('.cc').forEach(el => el.remove());
-    list.querySelectorAll('.show-more').forEach(el => el.remove());
-
-    clientes.forEach((cl, i) => {
-      const planner = cl.planning_responsable || 'Ian';
-      const plannerClass = PLANNER_CLASS[planner] || 'ian';
-      const designer = getDesigner(cl.notas);
-      const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
-      const pauta = getPauta(cl.notas);
-      const id = 'cc-' + cl.id;
-      const tipo = cl.tipo_card || 'regular';
-
-      const card = document.createElement('div');
-      card.className = `cc ${plannerClass}`;
-      card.dataset.planner = plannerClass;
-      card.dataset.status = tipo === 'inicia_junio' ? 'wait' : 'prog';
-      card.id = id;
-      card.style.animationDelay = (i * 0.03) + 's';
-
-      const noDesign = !cl.notas || cl.notas.includes('Sin diseño') || designer === 'Por contratar';
-
-      card.innerHTML = `
-        <div class="cc-hd" onclick="tog(event,'${id}')">
-          <div class="sem ${tipo === 'inicia_junio' ? 'cy' : tipo === 'sin_batches' ? 'am' : 'am'}"></div>
-          <div class="cc-info">
-            <div class="cc-name">${cl.nombre}</div>
-            <div class="cc-meta">
-              <div class="planner-wrap" onclick="event.stopPropagation()">
-                <span class="ptag ${plannerClass}">${planner}<button class="edit-p" onclick="openPDD(this)">✎</button></span>
-                <div class="pdd" id="pd-${cl.id}">
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
-                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
-                </div>
-              </div>
-              <span class="cc-meta-dot">·</span>
-              <span class="cc-meta-text">${cl.pais || 'Panamá'}</span>
-              ${!noDesign ? `<div class="dchip" onclick="event.stopPropagation();openDesigner('${id}','${designer}')">
-                <div class="d-av" style="background:${designerColor}">${designer[0]}</div>${designer} ✎
-              </div>` : '<span class="cc-meta-text" style="color:var(--txt3)">Sin diseño</span>'}
-            </div>
-          </div>
-          <div class="cc-pills">${buildPills(cl)}</div>
-          <span class="cc-arrow">▾</span>
-        </div>
-        <div class="cc-body">
-          ${buildBatches(cl)}
-          <div class="cc-ft">
-            <input class="cf-note" placeholder="Notas internas..." value=""/>
-            <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
-          </div>
-        </div>`;
-
-      const extras = document.getElementById('extras-section');
-      const arc = list.querySelector('.arc');
-      const insertBefore = extras || arc;
-      if (insertBefore) list.insertBefore(card, insertBefore);
-      else list.appendChild(card);
-    });
-
-    // Update stats
-    document.querySelectorAll('.stat-card .stat-val')[0].textContent = clientes.length;
-    console.log(`✓ Rendered ${clientes.length} clientes`);
-  } catch(e) {
-    console.warn('renderClientes error:', e.message);
-  }
-}
-
-function updateStats(clientes) {
-  const total = clientes.length;
-  const statCards = document.querySelectorAll('.stat-card .stat-val');
-  if (statCards[0]) statCards[0].textContent = total;
-}
-
-</script>
 </body>
 </html>
