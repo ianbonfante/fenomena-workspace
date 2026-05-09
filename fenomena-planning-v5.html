@@ -1406,28 +1406,24 @@ const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
-// ══ AUTH GUARD ══════════════════════════════════════
+// Auth guard disabled — session managed by Supabase client
+// Load user profile for sidebar
 (async () => {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session?.user) {
-      window.location.replace('index.html');
-      return;
+    if (session?.user) {
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+      if (profile) {
+        const name = profile.nombre || session.user.email?.split('@')[0] || 'Usuario';
+        const av = document.getElementById('sb-av');
+        const uname = document.getElementById('sb-uname');
+        const urole = document.getElementById('sb-urole');
+        if (av) av.textContent = name[0]?.toUpperCase() || 'U';
+        if (uname) uname.textContent = name;
+        if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
+      }
     }
-    // Load profile into sidebar
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
-    if (profile) {
-      const name = profile.nombre || session.user.email?.split('@')[0] || 'Usuario';
-      const av = document.getElementById('sb-av');
-      const uname = document.getElementById('sb-uname');
-      const urole = document.getElementById('sb-urole');
-      if (av) av.textContent = name[0]?.toUpperCase() || 'U';
-      if (uname) uname.textContent = name;
-      if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
-    }
-  } catch(e) {
-    console.warn('Auth guard:', e.message);
-  }
+  } catch(e) {}
 })();
 
 const MES = 5, ANO = 2026;
