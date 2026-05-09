@@ -807,6 +807,29 @@ function togSrv(btn) { btn.classList.toggle('sel'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
+
+// ══ AUTH GUARD ══════════════════════════════════════
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if (profile) {
+      const name = profile.nombre || session.user.email.split('@')[0];
+      const av = document.getElementById('sb-av');
+      const uname = document.getElementById('sb-uname');
+      const urole = document.getElementById('sb-urole');
+      if (av) av.textContent = name[0]?.toUpperCase() || 'U';
+      if (uname) uname.textContent = name;
+      if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
+    }
+  } catch(e) {
+    window.location.href = 'index.html';
+  }
+})();
 window.addEventListener('load',()=>{
   updateCounts();
   document.querySelectorAll('.pc').forEach((c,i)=>{c.style.animationDelay=(i*0.03)+'s';});

@@ -1406,6 +1406,31 @@ const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
+// ══ AUTH GUARD ══════════════════════════════════════
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    // Load user profile
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if (profile) {
+      const name = profile.nombre || session.user.email.split('@')[0];
+      const av = document.getElementById('sb-av');
+      const uname = document.getElementById('sb-uname');
+      const urole = document.getElementById('sb-urole');
+      if (av) av.textContent = name[0]?.toUpperCase() || 'U';
+      if (uname) uname.textContent = name;
+      if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
+    }
+  } catch(e) {
+    console.warn('Auth check failed:', e.message);
+    window.location.href = 'index.html';
+  }
+})();
+
 const MES = 5, ANO = 2026;
 let proyectosMap = {}, clientesMap = {}, piezaLib = [];
 

@@ -718,6 +718,29 @@ function showToast(msg) {
   clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
+
+// ══ AUTH GUARD ══════════════════════════════════════
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if (profile) {
+      const name = profile.nombre || session.user.email.split('@')[0];
+      const av = document.getElementById('sb-av');
+      const uname = document.getElementById('sb-uname');
+      const urole = document.getElementById('sb-urole');
+      if (av) av.textContent = name[0]?.toUpperCase() || 'U';
+      if (uname) uname.textContent = name;
+      if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
+    }
+  } catch(e) {
+    window.location.href = 'index.html';
+  }
+})();
 window.addEventListener('load', () => {
   document.querySelectorAll('.client-block').forEach((b,i) => { b.style.animationDelay = (i*0.06)+'s'; });
 });
