@@ -1102,7 +1102,7 @@ body {
     <div class="show-more" onclick="this.style.display='none'">+ VER TODOS LOS 27 CLIENTES</div>
 
     <!-- ══ EXTRA PROJECTS ══ -->
-    <div class="extras-section" style="padding:0">
+    <div class="extras-section" id="extras-section" style="padding:0">
       <div class="extras-hd">
         <div class="extras-title">⚡ Proyectos extra <span class="extras-ct">4 este mes</span></div>
         <button class="add-extra-btn" onclick="openExtra()">+ Agregar proyecto extra</button>
@@ -1762,6 +1762,7 @@ function showSaveToast(msg) {
 // ══ INIT ═════════════════════════════════════════════
 window.addEventListener('load', () => {
   loadPlanningData();
+  renderClientes();
   // Check auth
   (async () => {
     try {
@@ -1794,6 +1795,164 @@ async function doLogout() {
   } catch(e) {}
   window.location.href = 'index.html';
 }
+
+
+// ══ DYNAMIC CLIENT RENDERING ══════════════════════════════════
+const DESIGNERS_COLOR = {
+  'Didi': '#c084fc', 'Willcy': '#00AFEC', 'Gian': '#16a34a',
+  'Andreina': '#d97706', 'Ana Gabriela': '#ec4899', 'Salomón': '#7c3aed',
+  'Verónica': '#f43f5e', 'Monica': '#0ea5e9', 'Sonia': '#8b5cf6',
+  'Por contratar': '#9590AB'
+};
+const PLANNER_CLASS = { 'Ian': 'ian', 'Shelsea': 'shelsea', 'Megan': 'megan', 'Valeria': 'ian' };
+const PLANNER_COLOR = { 'Ian': 'var(--blue)', 'Shelsea': 'var(--purple)', 'Megan': 'var(--green)', 'Valeria': 'var(--blue)' };
+
+async function renderClientes() {
+  try {
+    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
+    if (error) throw error;
+    if (!clientes || clientes.length === 0) return;
+
+    const list = document.getElementById('client-list');
+    // Remove static demo cards but keep extras section and arc
+    const extras = document.getElementById('extras-section');
+    const arc = list.querySelector('.arc');
+    const showMore = list.querySelector('.show-more');
+
+    // Remove all .cc cards
+    list.querySelectorAll('.cc').forEach(el => el.remove());
+    if (showMore) showMore.remove();
+
+    // Extract designer from notas field
+    function getDesigner(notas) {
+      if (!notas) return 'Por contratar';
+      const m = notas.match(/Diseño:\s*([^.]+)\./);
+      return m ? m[1].trim().split(' +')[0].trim() : 'Por contratar';
+    }
+    function getPauta(notas) {
+      if (!notas) return null;
+      const m = notas.match(/Pauta:\s*([^.]+)\./);
+      return m ? m[1].trim() : null;
+    }
+    function getPiezas(notas) {
+      if (!notas) return '—';
+      const m = notas.match(/\d+[^.]+artes[^.]+\./);
+      return m ? m[0] : notas.split('.').pop().trim();
+    }
+
+    // Update stats
+    document.getElementById('stat-total') && (document.getElementById('stat-total').textContent = clientes.length);
+
+    clientes.forEach((cl, i) => {
+      const planner = cl.planning_responsable || 'Ian';
+      const plannerClass = PLANNER_CLASS[planner] || 'ian';
+      const designer = getDesigner(cl.notas);
+      const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
+      const pauta = getPauta(cl.notas);
+      const piezasDesc = cl.notas ? cl.notas.split('.').slice(2).join('.').trim() : '';
+      const id = 'cc-' + cl.id;
+
+      const card = document.createElement('div');
+      card.className = `cc ${plannerClass}`;
+      card.dataset.planner = plannerClass;
+      card.dataset.status = 'prog';
+      card.id = id;
+      card.style.animationDelay = (i * 0.04) + 's';
+
+      card.innerHTML = `
+        <div class="cc-hd" onclick="tog(event,'${id}')">
+          <div class="sem am"></div>
+          <div class="cc-info">
+            <div class="cc-name">${cl.nombre}</div>
+            <div class="cc-meta">
+              <div class="planner-wrap" onclick="event.stopPropagation()">
+                <span class="ptag ${plannerClass}">${planner}<button class="edit-p" onclick="openPDD(this)">✎</button></span>
+                <div class="pdd" id="pd-${cl.id}">
+                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
+                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
+                  <div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
+                </div>
+              </div>
+              <span class="cc-meta-dot">·</span>
+              <span class="cc-meta-text">${cl.pais || 'Panamá'}</span>
+              <div class="dchip" onclick="event.stopPropagation();openDesigner('${id}','${designer}')">
+                <div class="d-av" style="background:${designerColor}">${designer[0]}</div>${designer} ✎
+              </div>
+              ${pauta ? `<div class="dchip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📡 ${pauta}</div>` : ''}
+            </div>
+          </div>
+          <div class="cc-pills">
+            <span class="pill p-prog">⏳ En progreso</span>
+            ${piezasDesc ? `<span class="pill p-prog" style="background:var(--surface2);color:var(--txt3);border-color:var(--border)">${cl.notas?.split('.')[0]?.replace('Diseño:','').trim() || ''}</span>` : ''}
+          </div>
+          <span class="cc-arrow">▾</span>
+        </div>
+        <div class="cc-body">
+          <div class="cc-grid">
+            <div class="bsec">
+              <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
+              <div class="ssel">
+                <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
+                <button class="ss" onclick="setSt(this)">En progreso</button>
+                <button class="ss" onclick="setSt(this)">✓ Listo</button>
+                <button class="ss" onclick="setSt(this)">🔴 Atrasado</button>
+              </div>
+              <div class="pieces-list" id="pieces-b1-${cl.id}">
+                <div style="font-size:11px;color:var(--txt3);padding:8px 0;">${cl.notas ? cl.notas.split('Diseño:')[0].trim().replace(/^[^:]+:\s*/,'') : 'Sin piezas configuradas'}</div>
+              </div>
+              <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
+            </div>
+            <div class="bsec">
+              <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div>
+              <div class="ssel">
+                <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
+                <button class="ss" onclick="setSt(this)">En progreso</button>
+              </div>
+              <div class="pieces-list" id="pieces-b2-${cl.id}">
+                <div style="font-size:11px;color:var(--txt3);padding:8px 0;">Sin piezas configuradas</div>
+              </div>
+              <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
+            </div>
+            <div class="rsec">
+              <div class="rs-title">Media Bridge</div>
+              ${pauta ? `<div class="mbadge">📡 ${pauta} · ${cl.pais || 'Panamá'}</div>` : `<div style="font-size:11px;color:var(--txt3)">Sin pauta asignada</div>`}
+              <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div>
+              <input class="mi-sm" type="date"/>
+              ${pauta ? `<button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>` : ''}
+              <button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button>
+            </div>
+          </div>
+          <div class="cc-ft">
+            <input class="cf-note" placeholder="Notas internas..." value="${cl.notas ? cl.notas.substring(0, 80) + '...' : ''}"/>
+            <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
+          </div>
+        </div>`;
+
+      // Insert before extras section or arc
+      const insertBefore = extras || arc;
+      if (insertBefore) {
+        list.insertBefore(card, insertBefore);
+      } else {
+        list.appendChild(card);
+      }
+    });
+
+    // Update stat counters
+    updateStats(clientes);
+    console.log(`✓ Rendered ${clientes.length} clientes`);
+
+  } catch(e) {
+    console.warn('renderClientes error:', e.message);
+  }
+}
+
+function updateStats(clientes) {
+  const total = clientes.length;
+  // Update stats bar
+  const statCards = document.querySelectorAll('.stat-card .stat-val');
+  if (statCards[0]) statCards[0].textContent = total;
+}
+
 </script>
 </body>
 </html>
