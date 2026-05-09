@@ -186,12 +186,7 @@ const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
 const {createClient}=supabase;
 const sb=createClient(SB_URL,SB_ANON);
 
-(async()=>{
-  try{
-    const {data:{session}}=await sb.auth.getSession();
-    if(session?.user){showSuccess();setTimeout(()=>{location.href='fenomena-planning-v5.html';},600);}
-  }catch(e){}
-})();
+// No auto-redirect on load
 
 function togglePw(btn){
   const inp=btn.previousElementSibling;
