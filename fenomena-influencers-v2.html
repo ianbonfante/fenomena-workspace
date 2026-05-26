@@ -288,230 +288,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
   <!-- CONTENT -->
   <div class="content" id="influ-content">
 
-    <!-- RELOJÍN -->
-    <div class="client-block" data-client="relojin">
-      <div class="cb-header" onclick="this.parentElement.classList.toggle('open');this.querySelector('.cb-arrow').style.transform=this.parentElement.classList.contains('open')?'rotate(180deg)':''">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;">
-          <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#c084fc);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">R</div>
-          <div>
-            <div class="cb-name">Relojín</div>
-            <div class="cb-meta">Shelsea · Panamá · 3 influencers</div>
-          </div>
-        </div>
-        <div class="cb-pills">
-          <span class="pill p-late">1 atrasado</span>
-          <span class="pill p-pend">2 pagos pend.</span>
-          <span class="pill p-contract">✍️ 1 contrato</span>
-        </div>
-        <span class="cb-arrow" style="font-size:11px;color:var(--txt3);margin-left:8px;">▾</span>
-      </div>
-      <div class="cb-body">
-        <table class="influ-table">
-          <thead>
-            <tr>
-              <th>Influencer</th>
-              <th>Teléfono</th>
-              <th>Monto</th>
-              <th>Entrega contenido</th>
-              <th>Status</th>
-              <th>Pago</th>
-              <th>Contrato</th>
-              <th>Links</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr onclick="openInfluDetail('Sofía Reyes','S','#7c3aed','@sofiarey_pty','+507 6123-4567','$350','Aprobado','Pagado')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">S</div>
-                  <div><div class="influ-name">Sofía Reyes</div><div class="influ-handle">@sofiarey_pty</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6123-4567</td>
-              <td><span style="font-weight:800;color:var(--green)">$350</span></td>
-              <td style="font-size:12px;color:var(--txt2)">10 mayo · Reel + story</td>
-              <td><span class="status-badge sb-aprobado">Aprobado</span></td>
-              <td><span class="pay-badge pay-paid">Pagado</span></td>
-              <td><span class="contract-tag signed">✓ Firmado</span></td>
-              <td>
-                <div style="display:flex;gap:4px;">
-                  <a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a>
-                  <a class="link-btn" href="#" onclick="event.stopPropagation()">📄 Contrato</a>
-                </div>
-              </td>
-            </tr>
-            <tr onclick="openInfluDetail('Mariana López','M','#2563eb','@mariana.pty','+507 6234-5678','$400','Recibido','Pendiente')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#2563eb,#60a5fa)">M</div>
-                  <div><div class="influ-name">Mariana López</div><div class="influ-handle">@mariana.pty</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6234-5678</td>
-              <td><span style="font-weight:800;color:var(--green)">$400</span></td>
-              <td style="font-size:12px;color:var(--txt2)">8 mayo · Video orgánico</td>
-              <td><span class="status-badge sb-recibido">Recibido</span></td>
-              <td><span class="pay-badge pay-pending">Pendiente</span></td>
-              <td><span class="contract-tag signed">✓ Firmado</span></td>
-              <td>
-                <div style="display:flex;gap:4px;">
-                  <a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a>
-                </div>
-              </td>
-            </tr>
-            <tr onclick="openInfluDetail('Carlos Vega','C','#dc2626','@carlosvega','+507 6345-6789','$280','Atrasado','Pendiente')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#dc2626,#f87171)">C</div>
-                  <div><div class="influ-name">Carlos Vega</div><div class="influ-handle">@carlosvega_cr</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6345-6789</td>
-              <td><span style="font-weight:800;color:var(--green)">$280</span></td>
-              <td style="font-size:12px;color:var(--red);font-weight:700">⚠️ 3 mayo · Venció</td>
-              <td><span class="status-badge sb-atrasado">Atrasado</span></td>
-              <td><span class="pay-badge pay-pending">Pendiente</span></td>
-              <td><span class="contract-tag" onclick="event.stopPropagation();openContracts()">✍️ Pendiente firma</span></td>
-              <td>
-                <div style="display:flex;gap:4px;">
-                  <a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="cb-footer">
-          <div class="cb-total">Total: <span>$1,030</span> · 3 influencers</div>
-          <button class="cb-add" onclick="openAddInflu('Relojín')">+ Agregar influencer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- BELLA HOLANDESA PANAMÁ -->
-    <div class="client-block" data-client="bella-pty">
-      <div class="cb-header" onclick="this.parentElement.classList.toggle('open');this.querySelector('.cb-arrow').style.transform=this.parentElement.classList.contains('open')?'rotate(180deg)':''">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;">
-          <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">B</div>
-          <div>
-            <div class="cb-name">Bella Holandesa Panamá</div>
-            <div class="cb-meta">Shelsea · Panamá · 2 influencers</div>
-          </div>
-        </div>
-        <div class="cb-pills">
-          <span class="pill p-ok">Todos aprobados</span>
-          <span class="pill p-contract">✍️ 1 contrato</span>
-        </div>
-        <span class="cb-arrow" style="font-size:11px;color:var(--txt3);margin-left:8px;">▾</span>
-      </div>
-      <div class="cb-body">
-        <table class="influ-table">
-          <thead>
-            <tr>
-              <th>Influencer</th><th>Teléfono</th><th>Monto</th><th>Entrega</th><th>Status</th><th>Pago</th><th>Contrato</th><th>Links</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr onclick="openInfluDetail('Valentina Cruz','V','#0ea5e9','@vale.cruz.pty','+507 6456-7890','$500','Publicado','Pagado')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">V</div>
-                  <div><div class="influ-name">Valentina Cruz</div><div class="influ-handle">@vale.cruz.pty</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6456-7890</td>
-              <td><span style="font-weight:800;color:var(--green)">$500</span></td>
-              <td style="font-size:12px;color:var(--green);font-weight:700">5 mayo · Publicado ✓</td>
-              <td><span class="status-badge sb-publicado">Publicado</span></td>
-              <td><span class="pay-badge pay-paid">Pagado</span></td>
-              <td><span class="contract-tag signed">✓ Firmado</span></td>
-              <td><div style="display:flex;gap:4px;"><a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a><a class="link-btn" href="#" onclick="event.stopPropagation()">📄 Contrato</a></div></td>
-            </tr>
-            <tr onclick="openInfluDetail('Andrea Mora','A','#be185d','@andreamora_pty','+507 6567-8901','$380','Aprobado','Pendiente')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#be185d,#ec4899)">A</div>
-                  <div><div class="influ-name">Andrea Mora</div><div class="influ-handle">@andreamora_pty</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6567-8901</td>
-              <td><span style="font-weight:800;color:var(--green)">$380</span></td>
-              <td style="font-size:12px;color:var(--txt2)">15 mayo · Story + post</td>
-              <td><span class="status-badge sb-aprobado">Aprobado</span></td>
-              <td><span class="pay-badge pay-pending">Pendiente</span></td>
-              <td><span class="contract-tag" onclick="event.stopPropagation();openContracts()">✍️ Pendiente firma</span></td>
-              <td><div style="display:flex;gap:4px;"><a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a></div></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="cb-footer">
-          <div class="cb-total">Total: <span>$880</span> · 2 influencers</div>
-          <button class="cb-add" onclick="openAddInflu('Bella Holandesa PTY')">+ Agregar influencer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOLITA LEMPICKA -->
-    <div class="client-block" data-client="lolita">
-      <div class="cb-header" onclick="this.parentElement.classList.toggle('open');this.querySelector('.cb-arrow').style.transform=this.parentElement.classList.contains('open')?'rotate(180deg)':''">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;">
-          <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#be185d,#f9a8d4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">L</div>
-          <div>
-            <div class="cb-name">Lolita Lempicka</div>
-            <div class="cb-meta">Megan · Panamá · 2 influencers</div>
-          </div>
-        </div>
-        <div class="cb-pills">
-          <span class="pill p-pend">1 pend. contenido</span>
-          <span class="pill p-pend">2 pagos pend.</span>
-        </div>
-        <span class="cb-arrow" style="font-size:11px;color:var(--txt3);margin-left:8px;">▾</span>
-      </div>
-      <div class="cb-body">
-        <table class="influ-table">
-          <thead>
-            <tr><th>Influencer</th><th>Teléfono</th><th>Monto</th><th>Entrega</th><th>Status</th><th>Pago</th><th>Contrato</th><th>Links</th></tr>
-          </thead>
-          <tbody>
-            <tr onclick="openInfluDetail('Gabriela Torres','G','#be185d','@gabi.torres.pty','+507 6678-9012','$450','Pendiente','Pendiente')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#be185d,#f9a8d4)">G</div>
-                  <div><div class="influ-name">Gabriela Torres</div><div class="influ-handle">@gabi.torres.pty</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6678-9012</td>
-              <td><span style="font-weight:800;color:var(--green)">$450</span></td>
-              <td style="font-size:12px;color:var(--txt2)">20 mayo · Reel perfume</td>
-              <td><span class="status-badge sb-pendiente">Pendiente</span></td>
-              <td><span class="pay-badge pay-pending">Pendiente</span></td>
-              <td><span class="contract-tag signed">✓ Firmado</span></td>
-              <td><div style="display:flex;gap:4px;"><a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a><a class="link-btn" href="#" onclick="event.stopPropagation()">📄 Contrato</a></div></td>
-            </tr>
-            <tr onclick="openInfluDetail('Natalia Pinto','N','#d97706','@natalia_pinto','+507 6789-0123','$320','Recibido','Parcial')">
-              <td>
-                <div style="display:flex;align-items:center;gap:9px;">
-                  <div class="influ-av" style="background:linear-gradient(135deg,#d97706,#fbbf24)">N</div>
-                  <div><div class="influ-name">Natalia Pinto</div><div class="influ-handle">@natalia_pinto</div></div>
-                </div>
-              </td>
-              <td class="influ-phone">+507 6789-0123</td>
-              <td><span style="font-weight:800;color:var(--green)">$320</span></td>
-              <td style="font-size:12px;color:var(--txt2)">18 mayo · Story IG</td>
-              <td><span class="status-badge sb-recibido">Recibido</span></td>
-              <td><span class="pay-badge pay-partial">Parcial</span></td>
-              <td><span class="contract-tag signed">✓ Firmado</span></td>
-              <td><div style="display:flex;gap:4px;"><a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a></div></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="cb-footer">
-          <div class="cb-total">Total: <span>$770</span> · 2 influencers</div>
-          <button class="cb-add" onclick="openAddInflu('Lolita Lempicka')">+ Agregar influencer</button>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
+  </div><!-- demo removed --></div><!-- /content -->
 </div><!-- /main -->
 
 <!-- MODAL: CONTRACTS -->
@@ -554,14 +331,12 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <div class="m-sub" id="add-influ-sub">Nuevo influencer</div>
     <div class="mrow">
       <div class="mf"><label class="ml">Cliente</label>
-        <select class="mi" id="ai-client">
-          <option>Relojín</option><option>Bella Holandesa PTY</option><option>Bella Holandesa Perú</option><option>WhiteClaw</option><option>Lolita Lempicka</option><option>Barilla</option><option>Coors Light HN</option><option>Miller Lite HN</option><option>Coors Light PTY</option>
-        </select>
+        <select class="mi" id="ai-client"><option value="">Seleccionar cliente...</option></select>
       </div>
       <div class="mf"><label class="ml">Red social</label><select class="mi"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>X / Twitter</option></select></div>
     </div>
     <div class="mrow">
-      <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" placeholder="Nombre"/></div>
+      <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" id="ai-nombre" placeholder="Nombre completo"/></div>
       <div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="ai-handle" placeholder="@usuario"/></div>
     </div>
     <div class="mrow">
@@ -572,6 +347,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <div class="mrow">
       <div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date" id="ai-fecha"/></div>
       <div class="mf"><label class="ml">Status inicial</label><select class="mi" id="ai-status"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option></select></div>
+      <div class="mf"><label class="ml">Pago</label><select class="mi" id="ai-pago"><option>Pendiente</option><option>Parcial</option><option>Pagado</option></select></div>
     </div>
     <div class="m-divider"></div>
     <div class="mf">
@@ -875,8 +651,10 @@ function openAddInflu(clientName) {
 }
 
 async function saveNewInfluencer() {
-  const clienteId = document.getElementById('ai-client')?.value;
+  const clienteIdRaw = document.getElementById('ai-client')?.value;
   const nombre = document.getElementById('ai-nombre')?.value?.trim();
+  // clienteId could be UUID (from populateClientSelect) or empty
+  const clienteId = clienteIdRaw && clienteIdRaw !== '' ? clienteIdRaw : null;
   const handle = document.getElementById('ai-handle')?.value?.trim();
   const red = document.getElementById('ai-red')?.value || 'Instagram';
   const tel = document.getElementById('ai-tel')?.value?.trim();
@@ -885,7 +663,7 @@ async function saveNewInfluencer() {
   const status = document.getElementById('ai-status')?.value || 'Pendiente';
   const pago = document.getElementById('ai-pago')?.value || 'Pendiente';
 
-  if (!clienteId || !nombre) {
+  if (!nombre || !clienteIdRaw || clienteIdRaw === '') {
     showToast('⚠️ Completa cliente y nombre');
     return;
   }
