@@ -562,16 +562,16 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" placeholder="Nombre"/></div>
-      <div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" placeholder="@usuario"/></div>
+      <div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="ai-handle" placeholder="@usuario"/></div>
     </div>
     <div class="mrow">
-      <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" placeholder="+507 6000-0000"/></div>
-      <div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" placeholder="0.00"/></div>
+      <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="ai-tel" placeholder="+507 6000-0000"/></div>
+      <div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" id="ai-monto" placeholder="0.00"/></div>
     </div>
     <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección de entrega si aplica"/></div>
     <div class="mrow">
-      <div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date"/></div>
-      <div class="mf"><label class="ml">Status inicial</label><select class="mi"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option></select></div>
+      <div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date" id="ai-fecha"/></div>
+      <div class="mf"><label class="ml">Status inicial</label><select class="mi" id="ai-status"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option></select></div>
     </div>
     <div class="m-divider"></div>
     <div class="mf">
@@ -586,7 +586,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     </div>
     <div class="m-acts">
       <button class="btn b-ghost" onclick="closeModal('modal-add-influ')">Cancelar</button>
-      <button class="btn b-brand" onclick="closeModal('modal-add-influ');showToast('✓ Influencer agregado')">Agregar influencer</button>
+      <button class="btn b-brand" onclick="saveNewInfluencer()">Agregar influencer</button>
     </div>
   </div>
 </div>
@@ -646,108 +646,394 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
 
 <div id="save-toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-function openContracts() { document.getElementById('modal-contracts').classList.add('open'); }
+// ══ SUPABASE ══════════════════════════════════════════════════
+const SB_URL  = 'https://mzzqbgydhiglubucdwjb.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enFiZ3lkaGlnbHVidWNkd2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIwOTQsImV4cCI6MjA5MzU4ODA5NH0.ZDYHSnhhpBDAQ3Tcpn9oFmuABeZxKaztifrDTn19yKo';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_ANON);
 
-function signContract(btn) {
-  const row = btn.closest('.contract-row');
-  row.classList.add('signed');
-  row.querySelector('.cr-name').style.color = 'var(--green)';
-  btn.textContent = '✓ Firmado';
-  btn.style.background = 'var(--green)';
-  showToast('✓ Contrato firmado');
-}
+let clientesMap = {}, influs = [], currentFilter = 'all';
 
-function openAddInflu(client) {
-  const sub = document.getElementById('add-influ-sub');
-  sub.textContent = client ? 'Nuevo influencer para ' + client : 'Nuevo influencer';
-  if (client) {
-    const sel = document.getElementById('ai-client');
-    [...sel.options].forEach(o => { if(o.text.includes(client.split(' ')[0])) o.selected = true; });
-  }
-  document.getElementById('modal-add-influ').classList.add('open');
-}
-
-function openInfluDetail(name, initial, color, handle, phone, monto, status, pago) {
-  document.getElementById('det-av').textContent = initial;
-  document.getElementById('det-av').style.background = `linear-gradient(135deg,${color},${color}99)`;
-  document.getElementById('det-name').textContent = name;
-  document.getElementById('det-handle').textContent = handle;
-  document.getElementById('det-phone').textContent = phone;
-  document.getElementById('det-monto').textContent = monto;
-  document.getElementById('det-status').textContent = status;
-  document.getElementById('det-pago').textContent = pago;
-  document.getElementById('edit-name').value = name;
-  document.getElementById('edit-handle').value = handle;
-  document.getElementById('edit-phone').value = phone;
-  document.getElementById('edit-monto').value = monto.replace('$','');
-  document.getElementById('modal-influ-detail').classList.add('open');
-}
-
-function filt(btn, type) {
-  document.querySelectorAll('.filter-bar .fb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // Filter by status in table rows
-  document.querySelectorAll('.influ-table tbody tr').forEach(tr => {
-    if (type === 'all') { tr.style.display = ''; return; }
-    const badge = tr.querySelector('.status-badge')?.textContent?.toLowerCase() || '';
-    const pay = tr.querySelector('.pay-badge')?.textContent?.toLowerCase() || '';
-    if (type === 'pendiente') tr.style.display = badge.includes('pendiente') ? '' : 'none';
-    else if (type === 'atrasado') tr.style.display = badge.includes('atrasado') ? '' : 'none';
-    else if (type === 'pago') tr.style.display = pay.includes('pendiente') || pay.includes('parcial') ? '' : 'none';
-    else if (type === 'aprobado') tr.style.display = badge.includes('aprobado') ? '' : 'none';
-    else if (type === 'publicado') tr.style.display = badge.includes('publicado') ? '' : 'none';
-    else tr.style.display = '';
-  });
-}
-
-function searchInflu(q) {
-  q = q.toLowerCase();
-  document.querySelectorAll('.influ-table tbody tr').forEach(tr => {
-    const txt = tr.textContent.toLowerCase();
-    tr.style.display = !q || txt.includes(q) ? '' : 'none';
-  });
-}
-
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
-
-function showToast(msg) {
-  const t = document.getElementById('save-toast');
-  t.textContent = msg; t.style.opacity = '1';
-  clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = '0'; }, 2500);
-}
-
-
-// Auth guard disabled — session managed by Supabase client
-// Load user profile for sidebar
+// ══ LOAD PROFILE ══════════════════════════════════════════════
 (async () => {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
       const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
       if (profile) {
-        const name = profile.nombre || session.user.email?.split('@')[0] || 'Usuario';
+        const name = profile.nombre || 'Usuario';
         const av = document.getElementById('sb-av');
         const uname = document.getElementById('sb-uname');
         const urole = document.getElementById('sb-urole');
-        if (av) av.textContent = name[0]?.toUpperCase() || 'U';
+        if (av) { av.textContent = name[0]?.toUpperCase(); }
         if (uname) uname.textContent = name;
-        if (urole) urole.textContent = (profile.rol || 'usuario').toUpperCase();
+        if (urole) urole.textContent = (profile.rol || 'admin').toUpperCase();
       }
     }
   } catch(e) {}
 })();
-window.addEventListener('load', () => {
-  document.querySelectorAll('.client-block').forEach((b,i) => { b.style.animationDelay = (i*0.06)+'s'; });
-});
 
-async function doLogout() {
+// ══ LOAD DATA ══════════════════════════════════════════════════
+async function loadInfluencers() {
   try {
-    await sb.auth.signOut();
-  } catch(e) {}
+    // Load clientes
+    const { data: clientes } = await sb.from('clientes').select('*').eq('activo', true).order('nombre');
+    if (clientes) clientes.forEach(c => { clientesMap[c.id] = c; });
+
+    // Load influencers with cliente data
+    const { data: data, error } = await sb.from('influencers')
+      .select('*, clientes(nombre, planning_responsable)')
+      .eq('activo', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    influs = data || [];
+
+    updateStats();
+    renderInfluencers();
+    populateClientSelect();
+    console.log(`✓ Loaded ${influs.length} influencers`);
+  } catch(e) {
+    console.warn('loadInfluencers:', e.message);
+    // Keep demo data visible if load fails
+  }
+}
+
+function updateStats() {
+  const total = influs.length;
+  const pendContent = influs.filter(i => ['Pendiente','pendiente'].includes(i.status_contenido)).length;
+  const pendPago = influs.filter(i => ['Pendiente','pendiente'].includes(i.pago_status)).length;
+  const publicados = influs.filter(i => ['Publicado','publicado'].includes(i.status_contenido)).length;
+  const totalMonto = influs.reduce((s, i) => s + (parseFloat(i.monto_aprobado) || 0), 0);
+
+  const statVals = document.querySelectorAll('.stat-card .stat-val');
+  if (statVals[0]) statVals[0].textContent = total;
+  if (statVals[1]) statVals[1].textContent = pendContent;
+  if (statVals[2]) statVals[2].textContent = pendPago;
+  if (statVals[3]) statVals[3].textContent = publicados;
+  if (statVals[4]) statVals[4].textContent = '$' + totalMonto.toLocaleString();
+
+  // Update topbar
+  const topSub = document.querySelector('.tb-sub');
+  if (topSub) topSub.textContent = `Mayo 2026 · ${total} activos`;
+}
+
+function renderInfluencers() {
+  // Group by cliente
+  const byCliente = {};
+  influs.forEach(inf => {
+    const cname = inf.clientes?.nombre || 'Sin cliente';
+    if (!byCliente[cname]) byCliente[cname] = [];
+    byCliente[cname].push(inf);
+  });
+
+  const content = document.getElementById('influ-content');
+  if (!content) return;
+
+  // Remove existing client blocks
+  content.querySelectorAll('.client-block').forEach(el => el.remove());
+
+  Object.entries(byCliente).sort(([a],[b]) => a.localeCompare(b)).forEach(([clientName, clientInflus], idx) => {
+    // Apply current filter
+    const filtered = applyFilter(clientInflus);
+    if (filtered.length === 0 && currentFilter !== 'all') return;
+
+    const planner = clientInflus[0]?.clientes?.planning_responsable || '';
+    const totalMonto = clientInflus.reduce((s,i) => s + (parseFloat(i.monto_aprobado)||0), 0);
+    const atrasados = clientInflus.filter(i => i.status_contenido === 'Atrasado').length;
+    const pendPago = clientInflus.filter(i => ['Pendiente','pendiente'].includes(i.pago_status)).length;
+    const contratos = clientInflus.filter(i => !i.brief_notas?.includes('contrato_firmado')).length;
+
+    const block = document.createElement('div');
+    block.className = 'client-block';
+    block.dataset.client = clientName;
+    block.style.animationDelay = (idx * 0.06) + 's';
+
+    const pills = [
+      atrasados > 0 ? `<span class="pill p-late">${atrasados} atrasado${atrasados>1?'s':''}</span>` : '',
+      pendPago > 0 ? `<span class="pill p-pend">${pendPago} pago${pendPago>1?'s':''} pend.</span>` : '',
+      clientInflus.every(i => ['Aprobado','Publicado'].includes(i.status_contenido)) ? '<span class="pill p-ok">Todos aprobados</span>' : '',
+    ].filter(Boolean).join('');
+
+    block.innerHTML = `
+      <div class="cb-header" onclick="this.parentElement.classList.toggle('open');this.querySelector('.cb-arrow').style.transform=this.parentElement.classList.contains('open')?'rotate(180deg)':''">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;">
+          <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#c084fc);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">${clientName[0]}</div>
+          <div>
+            <div class="cb-name">${clientName}</div>
+            <div class="cb-meta">${planner} · ${clientInflus.length} influencer${clientInflus.length>1?'s':''}</div>
+          </div>
+        </div>
+        <div class="cb-pills">${pills || '<span class="pill p-prog">En progreso</span>'}</div>
+        <span class="cb-arrow" style="font-size:11px;color:var(--txt3);margin-left:8px;">▾</span>
+      </div>
+      <div class="cb-body">
+        <table class="influ-table">
+          <thead>
+            <tr>
+              <th>Influencer</th><th>Teléfono</th><th>Monto</th>
+              <th>Entrega</th><th>Status</th><th>Pago</th><th>Links</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-${clientName.replace(/\s+/g,'-')}">
+            ${clientInflus.map(inf => buildInfluRow(inf)).join('')}
+          </tbody>
+        </table>
+        <div class="cb-footer">
+          <div class="cb-total">Total: <span>$${totalMonto.toLocaleString()}</span> · ${clientInflus.length} influencer${clientInflus.length>1?'s':''}</div>
+          <button class="cb-add" onclick="openAddInflu('${clientName}')">+ Agregar influencer</button>
+        </div>
+      </div>`;
+
+    content.appendChild(block);
+  });
+
+  // If no real data, keep demo blocks
+  if (influs.length === 0) return;
+}
+
+function buildInfluRow(inf) {
+  const statusMap = {
+    'Pendiente': 'sb-pendiente', 'pendiente': 'sb-pendiente',
+    'Recibido': 'sb-recibido', 'recibido': 'sb-recibido',
+    'Aprobado': 'sb-aprobado', 'aprobado': 'sb-aprobado',
+    'Publicado': 'sb-publicado', 'publicado': 'sb-publicado',
+    'Atrasado': 'sb-atrasado', 'atrasado': 'sb-atrasado',
+  };
+  const payMap = {
+    'Pendiente': 'pay-pending', 'pendiente': 'pay-pending',
+    'Pagado': 'pay-paid', 'pagado': 'pay-paid',
+    'Parcial': 'pay-partial', 'parcial': 'pay-partial',
+  };
+  const status = inf.status_contenido || 'Pendiente';
+  const pago = inf.pago_status || 'Pendiente';
+  const fecha = inf.fecha_entrega_contenido ? new Date(inf.fecha_entrega_contenido).toLocaleDateString('es-PA',{day:'numeric',month:'short'}) : '—';
+  const isLate = inf.fecha_entrega_contenido && new Date(inf.fecha_entrega_contenido) < new Date() && !['Publicado','Aprobado'].includes(status);
+
+  return `<tr onclick="openInfluDetail('${inf.id}')">
+    <td>
+      <div style="display:flex;align-items:center;gap:9px;">
+        <div class="influ-av" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">${(inf.nombre||'?')[0]}</div>
+        <div><div class="influ-name">${inf.nombre||'—'}</div><div class="influ-handle">${inf.handle||'—'} · ${inf.red_social||'IG'}</div></div>
+      </div>
+    </td>
+    <td class="influ-phone">${inf.telefono||'—'}</td>
+    <td><span style="font-weight:800;color:var(--green)">$${parseFloat(inf.monto_aprobado||0).toLocaleString()}</span></td>
+    <td style="font-size:12px;color:${isLate?'var(--red)':'var(--txt2)'};font-weight:${isLate?'700':'400'}">${isLate?'⚠️ ':''} ${fecha}</td>
+    <td><span class="status-badge ${statusMap[status]||'sb-pendiente'}">${status}</span></td>
+    <td><span class="pay-badge ${payMap[pago]||'pay-pending'}">${pago}</span></td>
+    <td>
+      <div style="display:flex;gap:4px;">
+        ${inf.brief_notas ? `<a class="link-btn" href="#" onclick="event.stopPropagation()">📋 Brief</a>` : ''}
+      </div>
+    </td>
+  </tr>`;
+}
+
+function applyFilter(list) {
+  if (currentFilter === 'all') return list;
+  if (currentFilter === 'pendiente') return list.filter(i => ['Pendiente','pendiente'].includes(i.status_contenido));
+  if (currentFilter === 'atrasado') return list.filter(i => i.status_contenido === 'Atrasado');
+  if (currentFilter === 'pago') return list.filter(i => ['Pendiente','pendiente','Parcial'].includes(i.pago_status));
+  if (currentFilter === 'aprobado') return list.filter(i => ['Aprobado','aprobado'].includes(i.status_contenido));
+  if (currentFilter === 'publicado') return list.filter(i => ['Publicado','publicado'].includes(i.status_contenido));
+  return list;
+}
+
+function populateClientSelect() {
+  const sel = document.getElementById('ai-client');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Seleccionar cliente...</option>';
+  Object.values(clientesMap).sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(cl => {
+    const opt = document.createElement('option');
+    opt.value = cl.id;
+    opt.textContent = cl.nombre;
+    sel.appendChild(opt);
+  });
+}
+
+// ══ ADD INFLUENCER ══════════════════════════════════════════════
+let addingForClient = null;
+
+function openAddInflu(clientName) {
+  addingForClient = clientName;
+  document.getElementById('add-influ-sub').textContent = clientName ? 'Nuevo influencer para ' + clientName : 'Nuevo influencer';
+  // Pre-select client
+  const sel = document.getElementById('ai-client');
+  if (sel && clientName) {
+    const cl = Object.values(clientesMap).find(c => c.nombre === clientName);
+    if (cl) sel.value = cl.id;
+  }
+  // Clear form
+  ['ai-nombre','ai-handle','ai-tel','ai-monto','ai-fecha','ai-brief-name','ai-brief-url','ai-contrato-name','ai-contrato-url'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('modal-add-influ').classList.add('open');
+}
+
+async function saveNewInfluencer() {
+  const clienteId = document.getElementById('ai-client')?.value;
+  const nombre = document.getElementById('ai-nombre')?.value?.trim();
+  const handle = document.getElementById('ai-handle')?.value?.trim();
+  const red = document.getElementById('ai-red')?.value || 'Instagram';
+  const tel = document.getElementById('ai-tel')?.value?.trim();
+  const monto = parseFloat(document.getElementById('ai-monto')?.value) || 0;
+  const fecha = document.getElementById('ai-fecha')?.value || null;
+  const status = document.getElementById('ai-status')?.value || 'Pendiente';
+  const pago = document.getElementById('ai-pago')?.value || 'Pendiente';
+
+  if (!clienteId || !nombre) {
+    showToast('⚠️ Completa cliente y nombre');
+    return;
+  }
+
+  try {
+    const { data, error } = await sb.from('influencers').insert({
+      cliente_id: clienteId,
+      nombre, handle, red_social: red,
+      telefono: tel,
+      monto_aprobado: monto,
+      fecha_entrega_contenido: fecha,
+      status_contenido: status,
+      pago_status: pago,
+      activo: true
+    }).select('*, clientes(nombre, planning_responsable)').single();
+
+    if (error) throw error;
+
+    influs.unshift(data);
+    updateStats();
+    renderInfluencers();
+    closeModal('modal-add-influ');
+    showToast('✓ Influencer agregado');
+  } catch(e) {
+    showToast('Error al guardar: ' + e.message);
+    console.error(e);
+  }
+}
+
+// ══ EDIT INFLUENCER ════════════════════════════════════════════
+let editingInfluId = null;
+
+async function openInfluDetail(id) {
+  const inf = influs.find(i => i.id === id);
+  if (!inf) return;
+  editingInfluId = id;
+
+  document.getElementById('ie-title').textContent = inf.nombre || 'Influencer';
+  document.getElementById('ie-name').value = inf.nombre || '';
+  document.getElementById('ie-handle').value = inf.handle || '';
+  document.getElementById('ie-phone').value = inf.telefono || '';
+  document.getElementById('ie-amt').value = inf.monto_aprobado || '';
+
+  const statusSel = document.getElementById('edit-status');
+  const pagoSel = document.getElementById('edit-pago');
+  if (statusSel) statusSel.value = inf.status_contenido || 'Pendiente';
+  if (pagoSel) pagoSel.value = inf.pago_status || 'Pendiente';
+
+  const fechaEl = document.getElementById('edit-fecha');
+  if (fechaEl) fechaEl.value = inf.fecha_entrega_contenido || '';
+
+  document.getElementById('modal-influ-edit').classList.add('open');
+}
+
+async function saveInfluEdit() {
+  if (!editingInfluId) return;
+  const nombre = document.getElementById('ie-name')?.value?.trim();
+  const handle = document.getElementById('ie-handle')?.value?.trim();
+  const telefono = document.getElementById('ie-phone')?.value?.trim();
+  const monto = parseFloat(document.getElementById('ie-amt')?.value) || 0;
+  const status = document.getElementById('edit-status')?.value || 'Pendiente';
+  const pago = document.getElementById('edit-pago')?.value || 'Pendiente';
+  const fecha = document.getElementById('edit-fecha')?.value || null;
+
+  try {
+    const { error } = await sb.from('influencers').update({
+      nombre, handle, telefono,
+      monto_aprobado: monto,
+      status_contenido: status,
+      pago_status: pago,
+      fecha_entrega_contenido: fecha,
+      updated_at: new Date().toISOString()
+    }).eq('id', editingInfluId);
+
+    if (error) throw error;
+
+    // Update local data
+    const idx = influs.findIndex(i => i.id === editingInfluId);
+    if (idx >= 0) {
+      influs[idx] = { ...influs[idx], nombre, handle, telefono, monto_aprobado: monto, status_contenido: status, pago_status: pago, fecha_entrega_contenido: fecha };
+    }
+    updateStats();
+    renderInfluencers();
+    closeModal('modal-influ-edit');
+    showToast('✓ Influencer actualizado');
+  } catch(e) {
+    showToast('Error al guardar');
+    console.error(e);
+  }
+}
+
+// ══ CONTRACTS ══════════════════════════════════════════════════
+function openContracts() { document.getElementById('modal-contracts').classList.add('open'); }
+function signContract(btn) {
+  const row = btn.closest('.contract-row');
+  row.classList.add('signed');
+  row.querySelector('.cr-name').style.color = 'var(--green)';
+  btn.textContent = '✓ Firmado';
+  btn.style.background = 'var(--green)';
+  showToast('✓ Contrato marcado como firmado');
+}
+
+// ══ FILTER / SEARCH ════════════════════════════════════════════
+function filt(btn, type) {
+  document.querySelectorAll('.filter-bar .fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = type;
+  renderInfluencers();
+}
+
+function searchInflu(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.client-block').forEach(block => {
+    const rows = block.querySelectorAll('tbody tr');
+    let anyVisible = false;
+    rows.forEach(tr => {
+      const txt = tr.textContent.toLowerCase();
+      const show = !q || txt.includes(q);
+      tr.style.display = show ? '' : 'none';
+      if (show) anyVisible = true;
+    });
+    block.style.display = anyVisible || !q ? '' : 'none';
+  });
+}
+
+// ══ MODALS ═════════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// ══ TOAST ══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('save-toast');
+  if (!t) return;
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
+
+// ══ LOGOUT ═════════════════════════════════════════════════════
+async function doLogout() {
+  try { await sb.auth.signOut(); } catch(e) {}
   window.location.href = 'index.html';
 }
+
+// ══ INIT ═══════════════════════════════════════════════════════
+window.addEventListener('load', async () => {
+  await loadInfluencers();
+  document.querySelectorAll('.client-block').forEach((b,i) => { b.style.animationDelay = (i*0.06)+'s'; });
+});
 </script>
 </body>
 </html>
