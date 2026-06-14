@@ -253,23 +253,23 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
   <!-- STATS -->
   <div class="stats-bar">
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--purple)">23</div>
+      <div class="stat-val" style="color:var(--purple)">—</div>
       <div class="stat-lbl">Influencers activos</div>
     </div>
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--amber)">4</div>
+      <div class="stat-val" style="color:var(--amber)">—</div>
       <div class="stat-lbl">Contenido pendiente</div>
     </div>
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--red)">4</div>
+      <div class="stat-val" style="color:var(--red)">—</div>
       <div class="stat-lbl">Pagos pendientes</div>
     </div>
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--green)">11</div>
+      <div class="stat-val" style="color:var(--green)">—</div>
       <div class="stat-lbl">Publicados este mes</div>
     </div>
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--green)">$4,850</div>
+      <div class="stat-val" style="color:var(--green)">—</div>
       <div class="stat-lbl">Monto total aprobado</div>
     </div>
   </div>
@@ -333,7 +333,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
       <div class="mf"><label class="ml">Cliente</label>
         <select class="mi" id="ai-client"><option value="">Seleccionar cliente...</option></select>
       </div>
-      <div class="mf"><label class="ml">Red social</label><select class="mi"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>X / Twitter</option></select></div>
+      <div class="mf"><label class="ml">Red social</label><select class="mi" id="ai-red"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option><option value="twitter">Twitter</option><option value="otra">Otra</option></select></div>
     </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" id="ai-nombre" placeholder="Nombre completo"/></div>
@@ -346,8 +346,8 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección de entrega si aplica"/></div>
     <div class="mrow">
       <div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date" id="ai-fecha"/></div>
-      <div class="mf"><label class="ml">Status inicial</label><select class="mi" id="ai-status"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option></select></div>
-      <div class="mf"><label class="ml">Pago</label><select class="mi" id="ai-pago"><option>Pendiente</option><option>Parcial</option><option>Pagado</option></select></div>
+      <div class="mf"><label class="ml">Status inicial</label><select class="mi" id="ai-status"><option value="pendiente">Pendiente</option><option value="recibido">Recibido</option><option value="aprobado">Aprobado</option></select></div>
+      <div class="mf"><label class="ml">Pago</label><select class="mi" id="ai-pago"><option value="pendiente">Pendiente</option><option value="parcial">Parcial</option><option value="pagado">Pagado</option></select></div>
     </div>
     <div class="m-divider"></div>
     <div class="mf">
@@ -479,9 +479,9 @@ async function loadInfluencers() {
 
 function updateStats() {
   const total = influs.length;
-  const pendContent = influs.filter(i => ['Pendiente','pendiente'].includes(i.status_contenido)).length;
-  const pendPago = influs.filter(i => ['Pendiente','pendiente'].includes(i.pago_status)).length;
-  const publicados = influs.filter(i => ['Publicado','publicado'].includes(i.status_contenido)).length;
+  const pendContent = influs.filter(i => i.status_contenido === 'pendiente').length;
+  const pendPago = influs.filter(i => i.pago_status === 'pendiente').length;
+  const publicados = influs.filter(i => i.status_contenido === 'publicado').length;
   const totalMonto = influs.reduce((s, i) => s + (parseFloat(i.monto_aprobado) || 0), 0);
 
   const statVals = document.querySelectorAll('.stat-card .stat-val');
@@ -518,8 +518,8 @@ function renderInfluencers() {
 
     const planner = clientInflus[0]?.clientes?.planning_responsable || '';
     const totalMonto = clientInflus.reduce((s,i) => s + (parseFloat(i.monto_aprobado)||0), 0);
-    const atrasados = clientInflus.filter(i => i.status_contenido === 'Atrasado').length;
-    const pendPago = clientInflus.filter(i => ['Pendiente','pendiente'].includes(i.pago_status)).length;
+    const atrasados = clientInflus.filter(i => i.status_contenido === 'atrasado').length;
+    const pendPago = clientInflus.filter(i => i.pago_status === 'pendiente').length;
     const contratos = clientInflus.filter(i => !i.brief_notas?.includes('contrato_firmado')).length;
 
     const block = document.createElement('div');
@@ -530,7 +530,7 @@ function renderInfluencers() {
     const pills = [
       atrasados > 0 ? `<span class="pill p-late">${atrasados} atrasado${atrasados>1?'s':''}</span>` : '',
       pendPago > 0 ? `<span class="pill p-pend">${pendPago} pago${pendPago>1?'s':''} pend.</span>` : '',
-      clientInflus.every(i => ['Aprobado','Publicado'].includes(i.status_contenido)) ? '<span class="pill p-ok">Todos aprobados</span>' : '',
+      clientInflus.every(i => ['aprobado','publicado'].includes(i.status_contenido)) ? '<span class="pill p-ok">Todos aprobados</span>' : '',
     ].filter(Boolean).join('');
 
     block.innerHTML = `
@@ -572,21 +572,21 @@ function renderInfluencers() {
 
 function buildInfluRow(inf) {
   const statusMap = {
-    'Pendiente': 'sb-pendiente', 'pendiente': 'sb-pendiente',
-    'Recibido': 'sb-recibido', 'recibido': 'sb-recibido',
-    'Aprobado': 'sb-aprobado', 'aprobado': 'sb-aprobado',
-    'Publicado': 'sb-publicado', 'publicado': 'sb-publicado',
-    'Atrasado': 'sb-atrasado', 'atrasado': 'sb-atrasado',
+    'pendiente': 'sb-pendiente', 'recibido': 'sb-recibido',
+    'aprobado': 'sb-aprobado', 'publicado': 'sb-publicado', 'atrasado': 'sb-atrasado',
   };
   const payMap = {
-    'Pendiente': 'pay-pending', 'pendiente': 'pay-pending',
-    'Pagado': 'pay-paid', 'pagado': 'pay-paid',
-    'Parcial': 'pay-partial', 'parcial': 'pay-partial',
+    'pendiente': 'pay-pending', 'pagado': 'pay-paid', 'parcial': 'pay-partial',
   };
+  const statusLabel = {
+    'pendiente':'Pendiente','recibido':'Recibido','aprobado':'Aprobado',
+    'publicado':'Publicado','atrasado':'Atrasado'
+  };
+  const payLabel = { 'pendiente':'Pendiente','pagado':'Pagado','parcial':'Parcial' };
   const status = inf.status_contenido || 'Pendiente';
   const pago = inf.pago_status || 'Pendiente';
   const fecha = inf.fecha_entrega_contenido ? new Date(inf.fecha_entrega_contenido).toLocaleDateString('es-PA',{day:'numeric',month:'short'}) : '—';
-  const isLate = inf.fecha_entrega_contenido && new Date(inf.fecha_entrega_contenido) < new Date() && !['Publicado','Aprobado'].includes(status);
+  const isLate = inf.fecha_entrega_contenido && new Date(inf.fecha_entrega_contenido) < new Date() && !['publicado','aprobado'].includes(status);
 
   return `<tr onclick="openInfluDetail('${inf.id}')">
     <td>
@@ -610,11 +610,11 @@ function buildInfluRow(inf) {
 
 function applyFilter(list) {
   if (currentFilter === 'all') return list;
-  if (currentFilter === 'pendiente') return list.filter(i => ['Pendiente','pendiente'].includes(i.status_contenido));
-  if (currentFilter === 'atrasado') return list.filter(i => i.status_contenido === 'Atrasado');
-  if (currentFilter === 'pago') return list.filter(i => ['Pendiente','pendiente','Parcial'].includes(i.pago_status));
-  if (currentFilter === 'aprobado') return list.filter(i => ['Aprobado','aprobado'].includes(i.status_contenido));
-  if (currentFilter === 'publicado') return list.filter(i => ['Publicado','publicado'].includes(i.status_contenido));
+  if (currentFilter === 'pendiente') return list.filter(i => i.status_contenido === 'pendiente');
+  if (currentFilter === 'atrasado') return list.filter(i => i.status_contenido === 'atrasado');
+  if (currentFilter === 'pago') return list.filter(i => ['pendiente','parcial'].includes(i.pago_status));
+  if (currentFilter === 'aprobado') return list.filter(i => i.status_contenido === 'aprobado');
+  if (currentFilter === 'publicado') return list.filter(i => i.status_contenido === 'publicado');
   return list;
 }
 
@@ -656,12 +656,12 @@ async function saveNewInfluencer() {
   // clienteId could be UUID (from populateClientSelect) or empty
   const clienteId = clienteIdRaw && clienteIdRaw !== '' ? clienteIdRaw : null;
   const handle = document.getElementById('ai-handle')?.value?.trim();
-  const red = document.getElementById('ai-red')?.value || 'Instagram';
+  const red = document.getElementById('ai-red')?.value || 'instagram';
   const tel = document.getElementById('ai-tel')?.value?.trim();
   const monto = parseFloat(document.getElementById('ai-monto')?.value) || 0;
   const fecha = document.getElementById('ai-fecha')?.value || null;
-  const status = document.getElementById('ai-status')?.value || 'Pendiente';
-  const pago = document.getElementById('ai-pago')?.value || 'Pendiente';
+  const status = document.getElementById('ai-status')?.value || 'pendiente';
+  const pago = document.getElementById('ai-pago')?.value || 'pendiente';
 
   if (!nombre || !clienteIdRaw || clienteIdRaw === '') {
     showToast('⚠️ Completa cliente y nombre');

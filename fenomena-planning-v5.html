@@ -748,7 +748,6 @@ body {
   font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   color:var(--txt3);padding:11px 14px;text-align:left;
   border-bottom:1px solid var(--border);background:var(--surface2);
-  position:sticky;top:58px;z-index:10;
 }
 .ptbl tbody tr {
   border-bottom:1px solid var(--border);cursor:pointer;
@@ -898,7 +897,7 @@ body {
     <div class="tb-left">
       <span class="tb-page">Tablero Planning</span>
       <div class="tb-sep"></div>
-      <span class="tb-sub">Mayo 2026</span>
+      <span class="tb-sub">Junio 2026</span>
     </div>
     <div class="tb-right">
       <div class="tb-search">
@@ -1074,12 +1073,12 @@ body {
     <div class="m-sub">Influencers que requieren tu firma</div>
     <div class="contract-list">
       <div class="cl-row">
-        <div><div class="cl-client">Sofía Reyes — Relojín</div><div class="cl-type">Contrato de influencer · Mayo 2026</div></div>
+        <div><div class="cl-client">Sofía Reyes — Relojín</div><div class="cl-type">Contrato de influencer · Junio 2026</div></div>
         <div class="cl-due">Vence 10 mayo</div>
         <button class="cl-sign">✍️ Firmar</button>
       </div>
       <div class="cl-row">
-        <div><div class="cl-client">Valentina Cruz — Bella Holandesa</div><div class="cl-type">Contrato de influencer · Mayo 2026</div></div>
+        <div><div class="cl-client">Valentina Cruz — Bella Holandesa</div><div class="cl-type">Contrato de influencer · Junio 2026</div></div>
         <div class="cl-due">Vence 18 mayo</div>
         <button class="cl-sign">✍️ Firmar</button>
       </div>
@@ -1100,7 +1099,7 @@ body {
 <div class="overlay" id="modal-dir">
   <div class="modal">
     <div class="m-title">👥 Panel de directoras</div>
-    <div class="m-sub">Carga y equipo — Mayo 2026</div>
+    <div class="m-sub">Carga y equipo — Junio 2026</div>
     <div class="dir-tabs" id="dir-tabs">
       <button class="dir-tab active" onclick="switchDir(this,'ian')">Ian</button>
       <button class="dir-tab" onclick="switchDir(this,'andreina')">Andreina</button>
@@ -1300,7 +1299,7 @@ body {
 <div class="overlay" id="modal-carga">
   <div class="modal" style="width:620px">
     <div class="m-title">⚡ Carga de diseñadores</div>
-    <div class="m-sub">Puntos estimados por diseñador — Mayo 2026</div>
+    <div class="m-sub">Puntos estimados por diseñador — Junio 2026</div>
     <div class="carga-grid" id="carga-grid"></div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--txt3);">
       📊 Basado en piezas de clientes activos + proyectos extra. Semáforo: 🟢 &lt;70% · 🟡 70-90% · 🔴 &gt;90%
@@ -1355,7 +1354,7 @@ const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
-const MES = 5, ANO = 2026;
+const MES = 6, ANO = 2026;
 let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null;
 
 // Load user profile for sidebar
@@ -1456,7 +1455,7 @@ async function getOrCreateProyecto(clientName) {
       cliente_id: cl.id, mes: MES, año: ANO, estado: 'diseño',
       b1_status: 'pendiente', b2_status: 'pendiente',
       planning_nombre: cl.planning_responsable,
-      fecha_deadline_b1: '2026-05-15', fecha_deadline_b2: '2026-05-25'
+      fecha_deadline_b1: '2026-06-15', fecha_deadline_b2: '2026-06-25'
     }).select().single();
     if (nuevo) { proyectosMap[clientName] = nuevo; return nuevo; }
   } catch(e) { console.warn('getOrCreateProyecto:', e.message); }
