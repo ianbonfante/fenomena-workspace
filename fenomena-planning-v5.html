@@ -741,6 +741,89 @@ body {
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:2px; }
+
+/* ── TABLE VIEW ── */
+.ptbl { width:100%;border-collapse:collapse; }
+.ptbl thead th {
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--txt3);padding:11px 14px;text-align:left;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+  position:sticky;top:58px;z-index:10;
+}
+.ptbl tbody tr {
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.1s;animation:cin 0.2s ease both;
+}
+.ptbl tbody tr:hover { background:var(--surface2); }
+.ptbl tbody tr.selected { background:var(--purple-bg);border-left:3px solid var(--brand); }
+.ptbl tbody tr:last-child { border-bottom:none; }
+.ptbl tbody td { padding:11px 14px;font-size:13px;vertical-align:middle; }
+.ptbl .sem { width:8px;height:8px;border-radius:50%;display:inline-block; }
+.ptbl .cl-name { font-weight:700;color:var(--txt); }
+.ptbl .cl-country { font-size:11px;color:var(--txt3);margin-top:1px; }
+.ptbl .planner-pill {
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;
+}
+.ptbl .pp-ian { background:var(--blue-bg);color:var(--blue); }
+.ptbl .pp-shelsea { background:var(--purple-bg);color:var(--purple); }
+.ptbl .pp-megan { background:var(--green-bg);color:var(--green); }
+.ptbl .pp-valeria { background:var(--blue-bg);color:var(--blue); }
+.ptbl .designer-name { font-size:12px;color:var(--txt2);display:flex;align-items:center;gap:5px; }
+.ptbl .d-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+.st-pill {
+  font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;
+  display:inline-block;cursor:pointer;transition:all 0.15s;
+}
+.st-listo { background:var(--green-bg);color:var(--green);border:1px solid var(--green-border); }
+.st-prog { background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border); }
+.st-pend { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border); }
+.st-late { background:var(--red-bg);color:var(--red);border:1px solid var(--red-border); }
+.st-na { background:var(--surface2);color:var(--txt3);border:1px solid var(--border); }
+.media-st { font-size:11px;display:flex;align-items:center;gap:4px; }
+.media-ok { color:var(--green); }
+.media-wait { color:var(--amber); }
+.media-none { color:var(--txt3); }
+.pauta-name { font-size:11px;font-weight:600; }
+.pauta-c { color:var(--blue); }
+.pauta-b { color:var(--amber); }
+.pauta-none { color:var(--txt3); }
+
+/* Status dropdown on click */
+.st-dropdown {
+  position:absolute;background:var(--surface);border:1px solid var(--border2);
+  border-radius:9px;padding:5px;z-index:50;min-width:130px;
+  box-shadow:0 8px 24px rgba(36,3,84,0.12);display:none;
+}
+.st-dropdown.open { display:block; }
+.st-opt {
+  font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:600;
+  padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px;
+  color:var(--txt2);transition:background 0.1s;
+}
+.st-opt:hover { background:var(--surface2); }
+
+
+/* Notas inline cell */
+.note-cell {
+  width:100%;font-family:'Hanken Grotesk',sans-serif;font-size:12px;
+  color:var(--txt2);background:transparent;border:1px solid transparent;
+  border-radius:6px;padding:5px 8px;outline:none;transition:all 0.15s;
+}
+.note-cell:hover { background:var(--surface2);border-color:var(--border); }
+.note-cell:focus { background:var(--surface);border-color:var(--purple-border);color:var(--txt); }
+.note-cell::placeholder { color:var(--txt3); }
+
+/* Editable designer name */
+.designer-edit { cursor:pointer;position:relative;padding:4px 6px;border-radius:6px;transition:background 0.15s; }
+.designer-edit:hover { background:var(--surface2); }
+.d-edit-icon { font-size:12px;color:var(--txt3);opacity:0;margin-left:2px;transition:opacity 0.15s; }
+.designer-edit:hover .d-edit-icon { opacity:1; }
+.designer-input {
+  font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--txt);
+  background:var(--surface);border:1px solid var(--purple-border);border-radius:6px;
+  padding:4px 8px;outline:none;width:120px;
+}
+
 </style>
 </head>
 <body>
@@ -869,283 +952,55 @@ body {
     <button class="fb" onclick="filterBy(this,'influs')" style="color:var(--purple)">👥 Influs</button>
     <button class="fb" onclick="filterBy(this,'media-p')" style="color:var(--blue)">📡 Pend. Media</button>
     <div style="margin-left:auto;display:flex;gap:5px;align-items:center;">
-      <button class="fb" onclick="collapseAll()" style="font-size:11px;">⬆ Colapsar todo</button>
-      <button class="fb" onclick="expandAll()" style="font-size:11px;">⬇ Expandir todo</button>
-      <button class="fb" onclick="toggleGroupView(this)" id="group-btn" style="font-size:11px;">👤 Agrupar por planner</button>
       <button class="fb" onclick="openCargaModal()" style="color:var(--purple);font-size:11px;">⚡ Carga diseñadores</button>
     </div>
   </div>
 
   <!-- CLIENT CARDS -->
   <div class="client-list" id="client-list">
-
-    <!-- ═ RELOJÍN ═ -->
-    <div class="cc shelsea" data-planner="shelsea" data-status="late" data-influs="true" data-media-p="true" id="cc-r">
-      <div class="cc-hd" onclick="tog(event,'cc-r')">
-        <div class="sem rd"></div>
-        <div class="cc-info">
-          <div class="cc-name">Relojín</div>
-          <div class="cc-meta">
-            <div class="planner-wrap" onclick="event.stopPropagation()">
-              <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
-              <div class="pdd" id="pd-r">
-                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
-                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
-                <div class="pdd-o" onclick="chPlanner('cc-r','pd-r','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
-              </div>
-            </div>
-            <span class="cc-meta-dot">·</span>
-            <span class="cc-meta-text">Tipo C · Panamá · Grabación tienda</span>
-            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-r','Didi')">
-              <div class="d-av" style="background:#c084fc">D</div>Didi ✎
-            </div>
-          </div>
-        </div>
-        <div class="cc-pills">
-          <span class="pill p-late">🚨 Atrasado</span>
-          <span class="pill p-inf">👥 3 influs</span>
-          <span class="pill p-mpend">📡 Pend. Media</span>
-        </div>
-        <span class="cc-arrow">▾</span>
+    <!-- TABLE VIEW -->
+    <div class="table-wrap" id="table-wrap">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+        <table class="ptbl" id="planning-table">
+          <thead>
+            <tr>
+              <th style="width:3%"></th>
+              <th style="width:16%">Cliente</th>
+              <th>Planner</th>
+              <th>Diseñador</th>
+              <th>B1</th>
+              <th>B2</th>
+              <th>Deadline</th>
+              <th>Media</th>
+              <th>Pauta</th>
+              <th style="width:16%">Notas</th>
+            </tr>
+          </thead>
+          <tbody id="planning-tbody">
+            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--txt3);">Cargando clientes...</td></tr>
+          </tbody>
+        </table>
       </div>
-      <div class="cc-body">
-        <div class="cc-grid">
-          <div class="bsec">
-            <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--red)">0/14</span></div>
-            <div class="ssel">
-              <button class="ss late" onclick="setSt(this)">🔴 Atrasado</button>
-              <button class="ss" onclick="setSt(this)">En progreso</button>
-              <button class="ss" onclick="setSt(this)">✓ Listo</button>
-            </div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎥 Videos grabados</span>
-                <div class="pr-pts"><input type="number" value="5" min="1" max="20" title="Puntos complejidad"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/10</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--red)"></div></div>
-              <div class="pr" style="margin-top:2px">
-                <span class="pr-name">✏️ Vectoriales</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/4</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--red)"></div></div>
-            </div>
-            <button class="add-piece-btn" onclick="openPiece('Relojín B1')">+ Agregar pieza</button>
-          </div>
-          <div class="bsec">
-            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/14</span></div>
-            <div class="ssel">
-              <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-              <button class="ss" onclick="setSt(this)">En progreso</button>
-            </div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎥 Videos grabados</span>
-                <div class="pr-pts"><input type="number" value="5" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/10</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
-            </div>
-            <button class="add-piece-btn" onclick="openPiece('Relojín B2')">+ Agregar pieza</button>
-          </div>
-          <div class="rsec">
-            <div class="rs-title">Media Bridge</div>
-            <div class="mbadge">📡 Christian · META · TikTok · Google</div>
-            <div class="lf">
-              <label class="lf-lbl">Paper</label>
-              <div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div>
-            </div>
-            <input class="mi-sm" type="date"/>
-            <button class="nb nb-go" onclick="openNotify('Relojín','Christian')">📡 Notificar a Media</button>
-            <div class="rs-title" style="margin-top:4px">Influencers (3)</div>
-            <div class="influ-mini">
-              <div class="im-row" onclick="openInfluEdit('Sofía Reyes','@sofiarey_pty','+507 6123-4567','350')">
-                <div class="im-top"><span class="im-name">Sofía Reyes</span><span class="im-amt">$350</span><span class="im-st p-ok">OK</span></div>
-                <div class="im-sub">@sofiarey_pty · +507 6123-4567<a class="im-link" href="#">📋 Brief</a><a class="im-link" href="#">📄 Contrato</a></div>
-              </div>
-              <div class="im-row" onclick="openInfluEdit('Mariana López','@mariana.pty','+507 6234-5678','400')">
-                <div class="im-top"><span class="im-name">Mariana López</span><span class="im-amt">$400</span><span class="im-st p-prog">Recibido</span></div>
-                <div class="im-sub">@mariana.pty · +507 6234-5678</div>
-              </div>
-              <div class="im-row" onclick="openInfluEdit('Carlos Vega','@carlosvega','+507 6345-6789','280')">
-                <div class="im-top"><span class="im-name">Carlos Vega</span><span class="im-amt">$280</span><span class="im-st p-late">Tarde</span></div>
-                <div class="im-sub">@carlosvega · +507 6345-6789</div>
-              </div>
-            </div>
-            <button class="add-influ" onclick="openAddInflu('Relojín')">+ Agregar influencer</button>
-          </div>
-        </div>
-        <div class="cc-ft">
-          <input class="cf-note" placeholder="Notas internas de Planning..."/>
-          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div id="detail-panel" style="display:none;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(36,3,84,0.04);">
+      <div id="detail-header" style="padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="closeDetail()">
+        <span style="font-size:14px;color:var(--txt3);">▾</span>
+        <span id="detail-title" style="font-size:15px;font-weight:800;color:var(--txt);">—</span>
+        <span id="detail-pills" style="display:flex;gap:5px;"></span>
+        <span id="detail-meta" style="margin-left:auto;font-size:12px;color:var(--txt3);">—</span>
+      </div>
+      <div id="detail-body" style="padding:16px 18px;">
+        <div id="detail-grid" style="display:grid;grid-template-columns:1fr 1fr 220px;gap:0;"></div>
+        <div id="detail-footer" style="padding:10px 0 0;border-top:1px solid var(--border);margin-top:12px;display:flex;align-items:center;gap:8px;">
+          <input class="cf-note" id="detail-note" placeholder="Notas internas..." style="flex:1;font-size:12px;color:var(--txt);background:none;border:none;outline:none;font-family:'Hanken Grotesk',sans-serif;"/>
+          <button class="cf-save" onclick="saveDetailNote()">Guardar</button>
         </div>
       </div>
     </div>
 
-    <!-- ═ LA HIPOTECARIA ═ -->
-    <div class="cc ian" data-planner="ian" data-status="prog" data-media-p="true" id="cc-h">
-      <div class="cc-hd" onclick="tog(event,'cc-h')">
-        <div class="sem am"></div>
-        <div class="cc-info">
-          <div class="cc-name">La Hipotecaria</div>
-          <div class="cc-meta">
-            <div class="planner-wrap" onclick="event.stopPropagation()">
-              <span class="ptag ian">Ian<button class="edit-p" onclick="openPDD(this)">✎</button></span>
-              <div class="pdd" id="pd-h">
-                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
-                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
-                <div class="pdd-o" onclick="chPlanner('cc-h','pd-h','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
-              </div>
-            </div>
-            <span class="cc-meta-dot">·</span>
-            <span class="cc-meta-text">Tipo A · PTY · COL · SLV</span>
-            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-h','Por contratar')">
-              <div class="d-av" style="background:var(--amber)">?</div>Por contratar ✎
-            </div>
-          </div>
-        </div>
-        <div class="cc-pills">
-          <span class="pill p-prog">En progreso</span>
-          <span class="pill p-mpend">📡 Pend. Media</span>
-        </div>
-        <span class="cc-arrow">▾</span>
-      </div>
-      <div class="cc-body">
-        <div class="cc-grid">
-          <div class="bsec">
-            <div class="bsec-title">Batch 1 — Día 15 mayo<span class="bsec-count" style="color:var(--amber)">5/10</span></div>
-            <div class="ssel">
-              <button class="ss" onclick="setSt(this)">🔴 Atrasado</button>
-              <button class="ss prog" onclick="setSt(this)">En progreso</button>
-              <button class="ss" onclick="setSt(this)">✓ Listo</button>
-            </div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎠 Carruseles</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/5</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:60%;background:var(--amber)"></div></div>
-              <div class="pr" style="margin-top:2px">
-                <span class="pr-name">🎬 Reels</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">2</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/5</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:40%;background:var(--amber)"></div></div>
-            </div>
-            <button class="add-piece-btn" onclick="openPiece('Hip. B1')">+ Agregar pieza</button>
-          </div>
-          <div class="bsec">
-            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/10</span></div>
-            <div class="ssel">
-              <button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button>
-              <button class="ss" onclick="setSt(this)">En progreso</button>
-            </div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎠 Carruseles</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/5</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
-            </div>
-            <button class="add-piece-btn" onclick="openPiece('Hip. B2')">+ Agregar pieza</button>
-          </div>
-          <div class="rsec">
-            <div class="rs-title">Media Bridge</div>
-            <div class="mbadge">📡 Christian · META · Google · LinkedIn</div>
-            <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..."/><div class="lf-url">🔗</div></div></div>
-            <input class="mi-sm" type="date"/>
-            <button class="nb nb-go" onclick="openNotify('La Hipotecaria','Christian')">📡 Notificar a Media</button>
-            <button class="add-influ" onclick="openAddInflu('La Hipotecaria')" style="margin-top:4px">+ Agregar influencer</button>
-          </div>
-        </div>
-        <div class="cc-ft">
-          <input class="cf-note" placeholder="Notas internas..."/>
-          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
-        </div>
-      </div>
-    </div>
 
-    <!-- ═ ATTENZA ═ -->
-    <div class="cc shelsea" data-planner="shelsea" data-status="ok" id="cc-a">
-      <div class="cc-hd" onclick="tog(event,'cc-a')">
-        <div class="sem cy"></div>
-        <div class="cc-info">
-          <div class="cc-name">Attenza</div>
-          <div class="cc-meta">
-            <div class="planner-wrap" onclick="event.stopPropagation()">
-              <span class="ptag shelsea">Shelsea<button class="edit-p" onclick="openPDD(this)">✎</button></span>
-              <div class="pdd" id="pd-a">
-                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div>
-                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div>
-                <div class="pdd-o" onclick="chPlanner('cc-a','pd-a','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div>
-              </div>
-            </div>
-            <span class="cc-meta-dot">·</span>
-            <span class="cc-meta-text">Tipo A · Todos los países</span>
-            <div class="dchip" onclick="event.stopPropagation();openDesigner('cc-a','Willcy')">
-              <div class="d-av" style="background:var(--cyan)">W</div>Willcy ✎
-            </div>
-          </div>
-        </div>
-        <div class="cc-pills">
-          <span class="pill p-ok">✓ Aprobado</span>
-          <span class="pill p-media">📡 Media notificado</span>
-        </div>
-        <span class="cc-arrow">▾</span>
-      </div>
-      <div class="cc-body">
-        <div class="cc-grid">
-          <div class="bsec">
-            <div class="bsec-title">Batch 1 — Día 5 mayo<span class="bsec-count" style="color:var(--green)">✓ 3/3</span></div>
-            <div class="ssel"><button class="ss ok" onclick="setSt(this)">✓ Aprobado</button></div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎬 Reels</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">3</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total" style="color:var(--green)">✓/3</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:100%;background:var(--green)"></div></div>
-            </div>
-          </div>
-          <div class="bsec">
-            <div class="bsec-title">Batch 2 — Día 25 mayo<span class="bsec-count" style="color:var(--txt3)">0/3</span></div>
-            <div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button></div>
-            <div class="pieces-list">
-              <div class="pr">
-                <span class="pr-name">🎬 Reels</span>
-                <div class="pr-pts"><input type="number" value="2" min="1" max="20"/><span class="pr-pts-lbl">pts</span></div>
-                <div class="pc"><button class="pc-btn" onclick="chg(this,-1)">−</button><span class="pc-num">0</span><button class="pc-btn" onclick="chg(this,1)">+</button></div>
-                <span class="pr-total">/3</span>
-              </div>
-              <div class="pb-bg"><div class="pb" style="width:0%;background:var(--blue)"></div></div>
-            </div>
-          </div>
-          <div class="rsec">
-            <div class="rs-title">Media Bridge</div>
-            <div class="mbadge">📡 Belkys · META · Todos los países</div>
-            <div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" value="Attenza Mayo — Batch 1"/><div class="lf-url">🔗</div></div></div>
-            <button class="nb nb-sent">✓ Media notificado · 5 mayo</button>
-            <button class="add-influ" onclick="openAddInflu('Attenza')" style="margin-top:4px">+ Agregar influencer</button>
-          </div>
-        </div>
-        <div class="cc-ft">
-          <input class="cf-note" value="Aprobado por cliente 4 mayo."/>
-          <button class="cf-save" onclick="saveCardNote(this)">Guardar</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="show-more" onclick="this.style.display='none'">+ VER TODOS LOS 27 CLIENTES</div>
 
     <!-- ══ EXTRA PROJECTS ══ -->
     <div class="extras-section" id="extras-section" style="padding:0">
@@ -2023,20 +1878,26 @@ async function delExtra(btn, id) {
 // ══ FILTER / SEARCH ════════════════════════════════════════════
 function filterBy(btn, type) {
   if (btn) { document.querySelectorAll('.filter-bar .fb').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-  document.querySelectorAll('.cc').forEach(c => {
+  closeDetail();
+  document.querySelectorAll('.ptbl tbody tr').forEach(c => {
     if (type === 'all') { c.style.display = ''; return; }
-    if (type === 'late') { c.style.display = c.dataset.status === 'late' ? '' : 'none'; return; }
-    if (type === 'influs') { c.style.display = c.dataset.influs ? '' : 'none'; return; }
-    if (type === 'media-p') { c.style.display = c.dataset.mediaP ? '' : 'none'; return; }
-    if (['ok','prog','wait'].includes(type)) { c.style.display = c.dataset.status === type ? '' : 'none'; return; }
-    c.style.display = c.dataset.planner === type ? '' : 'none';
+    const name = c.dataset.clientName || '';
+    const planner = c.querySelector('.planner-pill')?.textContent?.toLowerCase() || '';
+    const b1 = c.querySelector('td:nth-child(5) .st-pill')?.textContent?.toLowerCase() || '';
+    const b2 = c.querySelector('td:nth-child(6) .st-pill')?.textContent?.toLowerCase() || '';
+    const media = c.querySelector('.media-st')?.textContent?.toLowerCase() || '';
+    if (type === 'late') { c.style.display = (b1.includes('atrasado') || b2.includes('atrasado')) ? '' : 'none'; return; }
+    if (type === 'media-p') { c.style.display = media.includes('esperando') ? '' : 'none'; return; }
+    if (['ian','shelsea','megan'].includes(type)) { c.style.display = planner.includes(type) ? '' : 'none'; return; }
+    c.style.display = '';
   });
 }
 function searchClients(q) {
   q = q.toLowerCase();
-  document.querySelectorAll('.cc').forEach(c => {
-    const n = c.querySelector('.cc-name')?.textContent?.toLowerCase() || '';
-    c.style.display = !q || n.includes(q) ? '' : 'none';
+  closeDetail();
+  document.querySelectorAll('.ptbl tbody tr').forEach(r => {
+    const txt = r.textContent.toLowerCase();
+    r.style.display = !q || txt.includes(q) ? '' : 'none';
   });
 }
 
@@ -2108,187 +1969,315 @@ async function renderClientes() {
     const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
     if (error) throw error;
     if (!clientes || clientes.length === 0) return;
-    const list = document.getElementById('client-list');
-    list.querySelectorAll('.cc').forEach(el => el.remove());
-    list.querySelectorAll('.show-more').forEach(el => el.remove());
+
+    const tbody = document.getElementById('planning-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
     clientes.forEach((cl, i) => {
       const planner = cl.planning_responsable || 'Ian';
-      const plannerClass = PLANNER_CLASS[planner] || 'ian';
+      const plannerClass = planner.toLowerCase().replace(' ','');
       const designer = getDesigner(cl.notas);
       const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
-      const id = 'cc-' + cl.id;
+      const pauta = getPauta(cl.notas);
+      const tipo = cl.tipo_card || 'regular';
+      const proyecto = proyectosMap[cl.nombre];
+      const b1 = proyecto?.b1_status || 'pendiente';
+      const b2 = proyecto?.b2_status || 'pendiente';
+      const mediaNotif = proyecto?.media_notificado || false;
+
+      // Determine semáforo color
+      let semColor = 'var(--amber)'; // default in progress
+      if (b1 === 'listo' && b2 === 'listo') semColor = 'var(--green)';
+      else if (b1 === 'atrasado' || b2 === 'atrasado') semColor = 'var(--red)';
+      else if (b1 === 'listo' || b2 === 'listo') semColor = 'var(--blue)';
+      else if (tipo === 'inicia_junio') semColor = 'var(--purple)';
+      else if (tipo === 'sin_batches') semColor = 'var(--amber)';
+
+      // Status pill builder
+      function stPill(status) {
+        const map = {
+          'listo': { cls:'st-listo', txt:'Listo' },
+          'en_progreso': { cls:'st-prog', txt:'En progreso' },
+          'pendiente': { cls:'st-pend', txt:'Pendiente' },
+          'atrasado': { cls:'st-late', txt:'Atrasado' },
+        };
+        if (tipo === 'inicia_junio') return '<span class="st-pill st-na">Junio</span>';
+        if (tipo === 'sin_batches') return '<span class="st-pill st-na">N/A</span>';
+        const s = map[status] || map['pendiente'];
+        return `<span class="st-pill ${s.cls}">${s.txt}</span>`;
+      }
+
+      // Media status
+      let mediaSt = '';
+      if (!pauta) {
+        mediaSt = '<span class="media-st media-none">Sin pauta</span>';
+      } else if (mediaNotif) {
+        mediaSt = '<span class="media-st media-ok"><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i> Notificado</span>';
+      } else if (b1 === 'listo' || b2 === 'listo') {
+        mediaSt = '<span class="media-st media-ok" style="color:var(--blue)"><i class="ti ti-send" style="font-size:14px" aria-hidden="true"></i> Listo p/enviar</span>';
+      } else {
+        mediaSt = '<span class="media-st media-wait"><i class="ti ti-clock" style="font-size:14px" aria-hidden="true"></i> Esperando artes</span>';
+      }
+
+      // Pauta responsable
+      let pautaSt = '';
+      if (!pauta) {
+        pautaSt = '<span class="pauta-name pauta-none">—</span>';
+      } else if (pauta === 'Christian') {
+        pautaSt = '<span class="pauta-name pauta-c">Christian</span>';
+      } else {
+        pautaSt = '<span class="pauta-name pauta-b">Belkys</span>';
+      }
+
+      // Deadline
+      let deadline = '15 may';
+      if (tipo === 'inicia_junio') deadline = 'Junio';
+      else if (tipo === 'sin_batches') deadline = '—';
+
       const noDesign = designer === 'Por contratar' || !cl.notas || cl.notas.includes('Sin diseño');
-      const card = document.createElement('div');
-      card.className = `cc ${plannerClass}`;
-      card.dataset.planner = plannerClass;
-      card.dataset.status = (cl.tipo_card === 'inicia_junio') ? 'wait' : 'prog';
-      card.id = id;
-      card.style.animationDelay = (i * 0.03) + 's';
-      card.innerHTML = `<div class="cc-hd" onclick="tog(event,'${id}')"><div class="sem am"></div><div class="cc-info"><div class="cc-name">${cl.nombre}</div><div class="cc-meta"><div class="planner-wrap" onclick="event.stopPropagation()"><span class="ptag ${plannerClass}">${planner}<button class="edit-p" onclick="openPDD(this)">✎</button></span><div class="pdd" id="pd-${cl.id}"><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','ian','Ian')"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>Ian</div><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','shelsea','Shelsea')"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>Shelsea</div><div class="pdd-o" onclick="chPlanner('${id}','pd-${cl.id}','megan','Megan')"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Megan</div></div></div><span class="cc-meta-dot">·</span><span class="cc-meta-text">${cl.pais||'Panamá'}</span>${!noDesign ? `<div class="dchip" onclick="event.stopPropagation();openDesigner('${id}','${designer}')"><div class="d-av" style="background:${designerColor}">${designer[0]}</div>${designer} ✎</div>` : '<span class="cc-meta-text" style="color:var(--txt3)">Sin diseño</span>'}</div></div><div class="cc-pills">${buildPills(cl)}</div><span class="cc-arrow">▾</span></div><div class="cc-body">${buildBody(cl)}<div class="cc-ft"><input class="cf-note" placeholder="Notas internas..."/><button class="cf-save" onclick="saveCardNote(this)">Guardar</button></div></div>`;
-      const extras = document.getElementById('extras-section');
-      const arc = list.querySelector('.arc');
-      list.insertBefore(card, extras || arc);
+
+      const tr = document.createElement('tr');
+      tr.dataset.clientName = cl.nombre;
+      tr.dataset.clientId = cl.id;
+      tr.style.animationDelay = (i * 0.02) + 's';
+      tr.onclick = () => openDetailPanel(cl, proyecto);
+
+      const noteVal = (proyecto?.notas || '').replace(/"/g,'&quot;');
+      tr.innerHTML = `
+        <td><div class="sem" style="background:${semColor}"></div></td>
+        <td>
+          <div class="cl-name">${cl.nombre}</div>
+          <div class="cl-country">${cl.pais || 'Panamá'}${cl.tipo ? ' · ' + cl.tipo : ''}</div>
+        </td>
+        <td><span class="planner-pill pp-${plannerClass}">${planner}</span></td>
+        <td>
+          <div class="designer-name designer-edit" onclick="event.stopPropagation();editDesignerName(this,'${cl.id}','${cl.nombre.replace(/'/g,"\\'")}')">
+            <div class="d-dot" style="background:${noDesign?'#9590AB':designerColor}"></div>
+            <span class="d-label">${noDesign ? 'Sin asignar' : designer}</span>
+            <i class="ti ti-pencil d-edit-icon" aria-hidden="true"></i>
+          </div>
+        </td>
+        <td><div style="position:relative">${stPill(b1)}</div></td>
+        <td><div style="position:relative">${stPill(b2)}</div></td>
+        <td style="font-size:12px;color:var(--txt2)">${deadline}</td>
+        <td>${mediaSt}</td>
+        <td>${pautaSt}</td>
+        <td>
+          <input class="note-cell" type="text" value="${noteVal}" placeholder="Agregar nota..."
+            onclick="event.stopPropagation()"
+            onchange="saveQuickNote('${cl.nombre.replace(/'/g,"\\'")}', this.value)"/>
+        </td>`;
+
+      tbody.appendChild(tr);
     });
+
+    // Update stats
     const statVals = document.querySelectorAll('.stat-card .stat-val');
     if (statVals[0]) statVals[0].textContent = clientes.length;
-    console.log('✓ Rendered', clientes.length, 'clientes');
+    const listos = clientes.filter(cl => {
+      const p = proyectosMap[cl.nombre];
+      return p && p.b1_status === 'listo' && p.b2_status === 'listo';
+    }).length;
+    const enProg = clientes.filter(cl => {
+      const p = proyectosMap[cl.nombre];
+      return p && (p.b1_status === 'en_progreso' || p.b2_status === 'en_progreso');
+    }).length;
+    const atrasados = clientes.filter(cl => {
+      const p = proyectosMap[cl.nombre];
+      return p && (p.b1_status === 'atrasado' || p.b2_status === 'atrasado');
+    }).length;
+    if (statVals[1]) statVals[1].textContent = listos;
+    if (statVals[2]) statVals[2].textContent = enProg;
+    if (statVals[3]) statVals[3].textContent = atrasados;
+
+    console.log('✓ Table rendered:', clientes.length, 'rows');
   } catch(e) { console.warn('renderClientes error:', e.message); }
 }
 
+let selectedClient = null;
 
-// ══ COLLAPSE / GROUP ═══════════════════════════════════════════
-let groupedView = false;
+function openDetailPanel(cl, proyecto) {
+  selectedClient = cl;
+  // Highlight selected row
+  document.querySelectorAll('.ptbl tbody tr').forEach(r => r.classList.remove('selected'));
+  const row = document.querySelector(`tr[data-client-name="${cl.nombre}"]`);
+  if (row) row.classList.add('selected');
 
-function collapseAll() {
-  document.querySelectorAll('.cc.open').forEach(c => c.classList.remove('open'));
+  const panel = document.getElementById('detail-panel');
+  panel.style.display = 'block';
+
+  const planner = cl.planning_responsable || 'Ian';
+  const designer = getDesigner(cl.notas);
+  const pauta = getPauta(cl.notas);
+  const tipo = cl.tipo_card || 'regular';
+  const b1 = proyecto?.b1_status || 'pendiente';
+  const b2 = proyecto?.b2_status || 'pendiente';
+  const piezasDesc = cl.notas ? cl.notas.split('. ').slice(2).join('. ').trim() : '';
+
+  document.getElementById('detail-title').textContent = cl.nombre;
+  document.getElementById('detail-meta').textContent = `${planner} · ${designer !== 'Por contratar' ? designer : 'Sin diseño'} · ${pauta || 'Sin pauta'}`;
+
+  const pills = document.getElementById('detail-pills');
+  let pillsHtml = '';
+  if (tipo === 'sin_batches') pillsHtml = '<span class="pill" style="background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);font-size:10px;padding:2px 8px;border-radius:20px;">Especial</span>';
+  else if (tipo === 'inicia_junio') pillsHtml = '<span class="pill" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);font-size:10px;padding:2px 8px;border-radius:20px;">Inicia Junio</span>';
+  pills.innerHTML = pillsHtml;
+
+  const grid = document.getElementById('detail-grid');
+
+  if (tipo === 'sin_batches') {
+    grid.style.gridTemplateColumns = '1fr 220px';
+    grid.innerHTML = `
+      <div class="bsec"><div class="bsec-title" style="color:var(--amber)">Proyecto especial</div><div style="font-size:13px;color:var(--txt2);line-height:1.7">${cl.notas||''}</div></div>
+      <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
+  } else if (tipo === 'inicia_junio') {
+    grid.style.gridTemplateColumns = '1fr 220px';
+    grid.innerHTML = `
+      <div class="bsec"><div style="background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:20px;margin-bottom:6px">📅</div><div style="font-size:13px;font-weight:700;color:var(--purple)">Inicia en Junio 2026</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">${cl.notas||''}</div></div></div>
+      <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
+  } else {
+    grid.style.gridTemplateColumns = '1fr 1fr 220px';
+    const mediaSection = pauta
+      ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
+      : `<div class="rsec"><div class="rs-title">Sin pauta activa</div><div style="font-size:11px;color:var(--txt3);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;">📵 Sin pauta</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:8px">+ Agregar influencer</button></div>`;
+
+    grid.innerHTML = `
+      <div class="bsec">
+        <div class="bsec-title">Batch 1 — Día 15<span class="bsec-count" id="d-b1-ct">—</span></div>
+        <div class="ssel">
+          <button class="ss ${b1==='pendiente'?'wait':''}" onclick="setStDetail(this,'B1','pendiente')">⏳ Pendiente</button>
+          <button class="ss ${b1==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B1','en_progreso')">En progreso</button>
+          <button class="ss ${b1==='listo'?'ok':''}" onclick="setStDetail(this,'B1','listo')">✓ Listo</button>
+          <button class="ss ${b1==='atrasado'?'late':''}" onclick="setStDetail(this,'B1','atrasado')">🔴 Atrasado</button>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);padding:6px 0">${piezasDesc || 'Sin piezas configuradas'}</div>
+        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
+      </div>
+      <div class="bsec">
+        <div class="bsec-title">Batch 2 — Día 25<span class="bsec-count" id="d-b2-ct">—</span></div>
+        <div class="ssel">
+          <button class="ss ${b2==='pendiente'?'wait':''}" onclick="setStDetail(this,'B2','pendiente')">⏳ Pendiente</button>
+          <button class="ss ${b2==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B2','en_progreso')">En progreso</button>
+          <button class="ss ${b2==='listo'?'ok':''}" onclick="setStDetail(this,'B2','listo')">✓ Listo</button>
+          <button class="ss ${b2==='atrasado'?'late':''}" onclick="setStDetail(this,'B2','atrasado')">🔴 Atrasado</button>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div>
+        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
+      </div>
+      ${mediaSection}`;
+  }
+
+  // Load notes
+  const noteEl = document.getElementById('detail-note');
+  if (noteEl) noteEl.value = proyecto?.notas || '';
+
+  // Scroll to panel
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-function expandAll() {
-  document.querySelectorAll('.cc').forEach(c => {
-    if (c.style.display !== 'none') c.classList.add('open');
+
+function closeDetail() {
+  document.getElementById('detail-panel').style.display = 'none';
+  document.querySelectorAll('.ptbl tbody tr').forEach(r => r.classList.remove('selected'));
+  selectedClient = null;
+}
+
+async function setStDetail(btn, batch, status) {
+  if (!selectedClient) return;
+  const ssel = btn.closest('.ssel');
+  ssel.querySelectorAll('.ss').forEach(b => b.className = 'ss');
+  const clsMap = { 'listo':'ok', 'en_progreso':'prog', 'pendiente':'wait', 'atrasado':'late' };
+  btn.classList.add(clsMap[status] || 'wait');
+  await saveBatchStatus(selectedClient.nombre, batch, status);
+  // Refresh table row
+  await loadPlanningData();
+  await renderClientes();
+  // Reopen detail
+  const p = proyectosMap[selectedClient.nombre];
+  openDetailPanel(selectedClient, p);
+}
+
+function saveDetailNote() {
+  if (!selectedClient) return;
+  const note = document.getElementById('detail-note')?.value || '';
+  saveNotes(selectedClient.nombre, note);
+}
+
+// ══ QUICK NOTES (table) ════════════════════════════════════════
+async function saveQuickNote(clientName, value) {
+  await saveNotes(clientName, value);
+}
+
+// ══ EDIT DESIGNER NAME INLINE ══════════════════════════════════
+const KNOWN_DESIGNERS = ['Didi','Willcy','Gian','Andreina','Ana Gabriela','Salomón','Verónica','Monica','Sonia','Por contratar'];
+
+function editDesignerName(el, clienteId, clientName) {
+  if (el.querySelector('.designer-input')) return; // already editing
+  const label = el.querySelector('.d-label');
+  const current = label.textContent.trim();
+  const currentVal = current === 'Sin asignar' ? '' : current;
+
+  const input = document.createElement('input');
+  input.className = 'designer-input';
+  input.type = 'text';
+  input.value = currentVal;
+  input.placeholder = 'Nombre diseñador...';
+  input.setAttribute('list', 'designer-suggestions');
+
+  // Add datalist suggestions if not present
+  if (!document.getElementById('designer-suggestions')) {
+    const dl = document.createElement('datalist');
+    dl.id = 'designer-suggestions';
+    dl.innerHTML = KNOWN_DESIGNERS.map(d => `<option value="${d}">`).join('');
+    document.body.appendChild(dl);
+  }
+
+  el.innerHTML = '';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+
+  const finish = async () => {
+    const newName = input.value.trim();
+    await saveDesignerName(clienteId, clientName, newName);
+  };
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(); }
+    if (e.key === 'Escape') { e.preventDefault(); renderClientes(); }
   });
-}
-function toggleGroupView(btn) {
-  groupedView = !groupedView;
-  btn.classList.toggle('active', groupedView);
-  if (groupedView) buildGroupView();
-  else removeGroupHeaders();
-}
-function buildGroupView() {
-  removeGroupHeaders();
-  const list = document.getElementById('client-list');
-  const planners = ['ian', 'shelsea', 'megan'];
-  const labels = { ian: 'Ian', shelsea: 'Shelsea', megan: 'Megan' };
-  const colors = { ian: 'var(--blue)', shelsea: 'var(--purple)', megan: 'var(--green)' };
-  const bgColors = { ian: 'var(--blue-bg)', shelsea: 'var(--purple-bg)', megan: 'var(--green-bg)' };
-
-  planners.forEach(planner => {
-    const cards = [...document.querySelectorAll(`.cc[data-planner="${planner}"]`)].filter(c => c.style.display !== 'none');
-    if (cards.length === 0) return;
-    const hdr = document.createElement('div');
-    hdr.className = 'group-header';
-    hdr.dataset.group = planner;
-    hdr.innerHTML = `
-      <div class="group-header-dot" style="background:${colors[planner]}"></div>
-      <span>${labels[planner]}</span>
-      <span class="group-count" style="background:${bgColors[planner]};color:${colors[planner]}">${cards.length} clientes</span>
-      <span class="group-arrow">▾</span>`;
-    hdr.onclick = () => toggleGroup(planner, hdr);
-    list.insertBefore(hdr, cards[0]);
-  });
-}
-function toggleGroup(planner, hdr) {
-  hdr.classList.toggle('collapsed');
-  const collapsed = hdr.classList.contains('collapsed');
-  document.querySelectorAll(`.cc[data-planner="${planner}"]`).forEach(c => {
-    c.style.display = collapsed ? 'none' : '';
-  });
-}
-function removeGroupHeaders() {
-  document.querySelectorAll('.group-header').forEach(h => h.remove());
-  document.querySelectorAll('.cc').forEach(c => { c.style.display = ''; });
+  input.addEventListener('blur', finish);
 }
 
-// ══ CARGA DISEÑADORES ══════════════════════════════════════════
-const CARGA_MAX = 80;
-const designerPts = {
-  'Didi': 0, 'Willcy': 0, 'Gian': 0, 'Andreina': 0,
-  'Ana Gabriela': 0, 'Salomón': 0, 'Verónica': 0, 'Monica': 0, 'Sonia': 0
-};
-
-function calcDesignerLoad() {
-  // Reset
-  Object.keys(designerPts).forEach(k => designerPts[k] = 0);
-  // Count from clientes
-  Object.values(clientesMap).forEach(cl => {
-    const designer = cl.notas ? (cl.notas.match(/Diseño: ([^.]+)\./) || [])[1]?.trim().split(' +')[0].trim() : null;
-    if (!designer || !designerPts.hasOwnProperty(designer)) return;
-    // Estimate pts from notas
-    const notas = cl.notas || '';
-    const nums = notas.match(/\d+/g) || ['0'];
-    const totalPiezas = parseInt(nums[0]) || 6;
-    designerPts[designer] += totalPiezas;
-  });
-  // Add extra projects
-  document.querySelectorAll('.extra-card').forEach(ec => {
-    const pts = parseInt(ec.querySelector('.ec-pts')?.textContent) || 0;
-    const who = ec.querySelector('.ec-who')?.textContent?.replace(/[🎨📋]\s*/,'').trim() || '';
-    if (designerPts.hasOwnProperty(who)) designerPts[who] += pts;
-  });
-}
-
-function openCargaModal() {
-  calcDesignerLoad();
-  const grid = document.getElementById('carga-grid');
-  if (!grid) return;
-  grid.innerHTML = Object.entries(designerPts).map(([name, pts]) => {
-    const pct = Math.min(100, Math.round(pts / CARGA_MAX * 100));
-    const color = pct >= 90 ? 'var(--red)' : pct >= 70 ? 'var(--amber)' : 'var(--green)';
-    const label = pct >= 90 ? '🔴 Sobrecargado' : pct >= 70 ? '🟡 Cargado' : '🟢 Disponible';
-    const labelBg = pct >= 90 ? 'var(--red-bg)' : pct >= 70 ? 'var(--amber-bg)' : 'var(--green-bg)';
-    const labelColor = pct >= 90 ? 'var(--red)' : pct >= 70 ? 'var(--amber)' : 'var(--green)';
-    return `<div class="carga-card">
-      <div class="carga-name">${name}</div>
-      <div class="carga-pts">${pts} pts estimados</div>
-      <div class="carga-bar-bg"><div class="carga-bar" style="width:${pct}%;background:${color}"></div></div>
-      <span class="carga-sem" style="background:${labelBg};color:${labelColor}">${label} · ${pct}%</span>
-    </div>`;
-  }).join('');
-  document.getElementById('modal-carga').classList.add('open');
-}
-
-// ══ EDIT EXTRA PROJECT ══════════════════════════════════════════
-let editingExtraId = null;
-function openEditExtra(id, client, planner, designer, piece, pts, deadline) {
-  editingExtraId = id;
-  document.getElementById('edit-ex-client').value = client;
-  document.getElementById('edit-ex-piece').value = piece;
-  document.getElementById('edit-ex-pts').value = pts;
-  document.getElementById('edit-ex-deadline').value = deadline || '';
-  document.getElementById('edit-ex-planner').value = planner;
-  document.getElementById('edit-ex-designer').value = designer || '';
-  document.getElementById('modal-edit-extra').classList.add('open');
-}
-async function saveEditExtra() {
-  if (!editingExtraId) return;
-  const piece = document.getElementById('edit-ex-piece').value;
-  const pts = parseInt(document.getElementById('edit-ex-pts').value) || 0;
-  const deadline = document.getElementById('edit-ex-deadline').value;
-  const planner = document.getElementById('edit-ex-planner').value;
-  const designer = document.getElementById('edit-ex-designer').value;
-  try {
-    await sb.from('proyectos_extra').update({
-      planner_nombre: planner,
-      diseñador_nombre: designer || null,
-      pts_total: pts,
-      deadline: deadline || null,
-      piezas: [{ nombre: piece, pts, cantidad: 1 }]
-    }).eq('id', editingExtraId);
-    // Update card UI
-    const card = document.querySelector(`.extra-card[data-id="${editingExtraId}"]`);
-    if (card) {
-      const ecp = card.querySelector('.ecp-name'); if(ecp) ecp.textContent = piece;
-      const ecpts = card.querySelector('.ec-pts'); if(ecpts) ecpts.textContent = pts + ' pts';
-      const ecdl = card.querySelector('.ec-dl'); if(ecdl) ecdl.textContent = '⏰ ' + (deadline || 'Sin fecha');
-    }
-    showSaveToast('✓ Proyecto extra actualizado');
-    closeModal('modal-edit-extra');
-  } catch(e) { showSaveToast('Error al guardar'); }
-}
-
-// ══ MEDIA RESPONSABLE ══════════════════════════════════════════
-async function saveMediaResponsable(clientName, responsable) {
+async function saveDesignerName(clienteId, clientName, newName) {
   try {
     const cl = clientesMap[clientName];
     if (!cl) return;
-    // Update notas to change Pauta
-    const oldNotas = cl.notas || '';
-    const newNotas = oldNotas.replace(/Pauta: [^.]+\./, `Pauta: ${responsable}.`);
-    await sb.from('clientes').update({ notas: newNotas }).eq('id', cl.id);
-    cl.notas = newNotas;
-    showSaveToast(`✓ Media asignado a ${responsable}`);
-  } catch(e) { showSaveToast('Error al guardar'); }
-}
+    let notas = cl.notas || '';
 
+    if (notas.match(/Diseño: [^.]*\./)) {
+      // Replace existing designer mention
+      if (newName) {
+        notas = notas.replace(/Diseño: [^.]*\./, `Diseño: ${newName}.`);
+      } else {
+        notas = notas.replace(/Diseño: [^.]*\./, `Sin diseño.`);
+      }
+    } else {
+      // Add new designer mention
+      if (newName) {
+        notas = notas ? `Diseño: ${newName}. ${notas}` : `Diseño: ${newName}.`;
+      }
+    }
+
+    await sb.from('clientes').update({ notas }).eq('id', clienteId);
+    cl.notas = notas;
+    showSaveToast('✓ Diseñador actualizado');
+    await renderClientes();
+  } catch(e) {
+    showSaveToast('Error al guardar');
+    console.warn(e);
+  }
+}
 
 // ══ INIT ═══════════════════════════════════════════════════════
 window.addEventListener('load', async () => {
