@@ -920,17 +920,17 @@ body {
       <div class="stat-val" style="color:var(--brand)">27</div>
       <div class="stat-lbl">Clientes activos</div>
     </div>
-    <div class="stat-card" onclick="filterBy(null,'ok')">
-      <div class="stat-val" style="color:var(--green)">11</div>
-      <div class="stat-lbl">En track</div>
+    <div class="stat-card" onclick="filterBySLA('ok')">
+      <div class="stat-val" style="color:var(--green)">—</div>
+      <div class="stat-lbl">🟢 A tiempo</div>
     </div>
-    <div class="stat-card" onclick="filterBy(null,'prog')">
-      <div class="stat-val" style="color:var(--blue)">8</div>
-      <div class="stat-lbl">En progreso</div>
+    <div class="stat-card" onclick="filterBySLA('warn')">
+      <div class="stat-val" style="color:var(--amber)">—</div>
+      <div class="stat-lbl">🟡 Por vencer (≤2d)</div>
     </div>
-    <div class="stat-card" onclick="filterBy(null,'late')">
-      <div class="stat-val" style="color:var(--red)">2</div>
-      <div class="stat-lbl">Atrasados</div>
+    <div class="stat-card" onclick="filterBySLA('late')">
+      <div class="stat-val" style="color:var(--red)">—</div>
+      <div class="stat-lbl">🔴 Vencidos</div>
     </div>
     <div class="stat-card" onclick="filterBy(null,'influs')">
       <div class="stat-val" style="color:var(--purple)">7</div>
@@ -952,6 +952,7 @@ body {
     <button class="fb" onclick="filterBy(this,'late')" style="color:var(--red)">🔴 Atrasados</button>
     <button class="fb" onclick="filterBy(this,'influs')" style="color:var(--purple)">👥 Influs</button>
     <button class="fb" onclick="filterBy(this,'media-p')" style="color:var(--blue)">📡 Pend. Media</button>
+    <button class="fb" onclick="filterBy(this,'media-conf')" style="color:var(--amber)">📨 Falta conf. Medios</button>
     <div style="margin-left:auto;display:flex;gap:5px;align-items:center;">
       <button class="fb" onclick="openCargaModal()" style="color:var(--purple);font-size:11px;">⚡ Carga diseñadores</button>
     </div>
@@ -1339,7 +1340,36 @@ const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
 let MES = 6, ANO = 2026;
-let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null;
+let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null, currentUserName = 'Planning';
+
+// ══ SLA HELPERS ═════════════════════════════════════════════════
+// verde = a tiempo · amarillo = deadline en ≤2 días · rojo = deadline vencido sin entregar
+function computeSLA(proyecto, tipo) {
+  if (tipo === 'inicia_junio') return { color:'var(--purple)', label:'Junio', state:'na' };
+  if (tipo === 'sin_batches')  return { color:'var(--amber)',  label:'—',     state:'na' };
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const b1 = proyecto?.b1_status || 'pendiente';
+  const b2 = proyecto?.b2_status || 'pendiente';
+  const fmt = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-PA',{day:'numeric',month:'short'}) : null;
+  const parse = d => d ? new Date(d + 'T00:00:00') : null;
+
+  const batches = [
+    { st: b1, dl: parse(proyecto?.fecha_deadline_b1), lbl: fmt(proyecto?.fecha_deadline_b1) },
+    { st: b2, dl: parse(proyecto?.fecha_deadline_b2), lbl: fmt(proyecto?.fecha_deadline_b2) },
+  ];
+  // El batch "activo" es el primero no listo; si ambos listos → verde
+  const activo = batches.find(b => b.st !== 'listo');
+  if (!activo) return { color:'var(--green)', label:'✓ Entregado', state:'ok' };
+
+  const dl = activo.dl;
+  const label = activo.lbl || '—';
+  if (!dl) return { color:'var(--amber)', label, state:'warn' };
+
+  const diffDias = Math.floor((dl - hoy) / 86400000);
+  if (activo.st === 'atrasado' || diffDias < 0) return { color:'var(--red)', label: label + ' · vencido', state:'late' };
+  if (diffDias <= 2) return { color:'var(--amber)', label: label + ` · ${diffDias === 0 ? 'hoy' : 'en ' + diffDias + 'd'}`, state:'warn' };
+  return { color:'var(--green)', label, state:'ok' };
+}
 
 // Load user profile for sidebar
 (async () => {
@@ -1350,6 +1380,7 @@ let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null;
       const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
       if (profile) {
         const name = profile.nombre || session.user.email?.split('@')[0] || 'Usuario';
+        currentUserName = name;
         const av = document.getElementById('sb-av');
         const uname = document.getElementById('sb-uname');
         const urole = document.getElementById('sb-urole');
@@ -1500,6 +1531,51 @@ async function saveMediaNotification(clientName, paper, paperUrl, fecha) {
     }
     showSaveToast('✓ Media notificado y guardado');
   } catch(e) { console.warn(e); }
+}
+
+// ══ FLUJO APROBADO PARA PAUTA → CONFIRMACIÓN DE MEDIOS ══════════
+async function saveAprobadoPauta(clientName) {
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  try {
+    const upd = {
+      aprobado_pauta: true,
+      aprobado_pauta_fecha: new Date().toISOString(),
+      aprobado_pauta_por: currentUserName,
+      updated_at: new Date().toISOString()
+    };
+    await sb.from('proyectos').update(upd).eq('id', p.id);
+    Object.assign(proyectosMap[clientName], upd);
+    showSaveToast('✓ Aprobado para pauta — pendiente confirmación de Medios');
+    await renderClientes();
+    const cl = clientesMap[clientName];
+    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+  } catch(e) { console.warn('saveAprobadoPauta:', e.message); }
+}
+
+async function confirmarMedios(clientName) {
+  const p = proyectosMap[clientName];
+  if (!p) return;
+  try {
+    const upd = {
+      medios_confirmado: true,
+      medios_confirmado_fecha: new Date().toISOString(),
+      medios_confirmado_por: currentUserName,
+      updated_at: new Date().toISOString()
+    };
+    await sb.from('proyectos').update(upd).eq('id', p.id);
+    Object.assign(proyectosMap[clientName], upd);
+    showSaveToast('✓ Medios confirmó recepción');
+    await renderClientes();
+    const cl = clientesMap[clientName];
+    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+  } catch(e) { console.warn('confirmarMedios:', e.message); }
+}
+
+function fmtFechaCorta(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('es-PA',{day:'numeric',month:'short'}) + ' ' +
+         new Date(iso).toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'});
 }
 
 async function savePieceToLib(nombre, pts, emoji) {
@@ -1879,6 +1955,7 @@ function filterBy(btn, type) {
     const media = c.querySelector('.media-st')?.textContent?.toLowerCase() || '';
     if (type === 'late') { c.style.display = (b1.includes('atrasado') || b2.includes('atrasado')) ? '' : 'none'; return; }
     if (type === 'media-p') { c.style.display = media.includes('esperando') ? '' : 'none'; return; }
+    if (type === 'media-conf') { c.style.display = media.includes('falta confirmar') ? '' : 'none'; return; }
     if (['ian','shelsea','megan'].includes(type)) { c.style.display = planner.includes(type) ? '' : 'none'; return; }
     c.style.display = '';
   });
@@ -1977,13 +2054,9 @@ async function renderClientes() {
       const b2 = proyecto?.b2_status || 'pendiente';
       const mediaNotif = proyecto?.media_notificado || false;
 
-      // Determine semáforo color
-      let semColor = 'var(--amber)'; // default in progress
-      if (b1 === 'listo' && b2 === 'listo') semColor = 'var(--green)';
-      else if (b1 === 'atrasado' || b2 === 'atrasado') semColor = 'var(--red)';
-      else if (b1 === 'listo' || b2 === 'listo') semColor = 'var(--blue)';
-      else if (tipo === 'inicia_junio') semColor = 'var(--purple)';
-      else if (tipo === 'sin_batches') semColor = 'var(--amber)';
+      // Semáforo automático por SLA (deadline real vs hoy)
+      const sla = computeSLA(proyecto, tipo);
+      const semColor = sla.color;
 
       // Status pill builder
       function stPill(status) {
@@ -1999,14 +2072,20 @@ async function renderClientes() {
         return `<span class="st-pill ${s.cls}">${s.txt}</span>`;
       }
 
-      // Media status
+      // Media status — cadena completa: artes → aprobado pauta → confirmado por medios
       let mediaSt = '';
+      const aprobadoPauta = proyecto?.aprobado_pauta || false;
+      const mediosConfirmado = proyecto?.medios_confirmado || false;
       if (!pauta) {
         mediaSt = '<span class="media-st media-none">Sin pauta</span>';
+      } else if (mediosConfirmado) {
+        mediaSt = '<span class="media-st media-ok"><i class="ti ti-circle-check" style="font-size:14px" aria-hidden="true"></i> Confirmado medios</span>';
+      } else if (aprobadoPauta) {
+        mediaSt = '<span class="media-st" style="color:var(--amber)"><i class="ti ti-send" style="font-size:14px" aria-hidden="true"></i> Enviado — falta confirmar</span>';
       } else if (mediaNotif) {
-        mediaSt = '<span class="media-st media-ok"><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i> Notificado</span>';
+        mediaSt = '<span class="media-st media-ok" style="color:var(--blue)"><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i> Notificado</span>';
       } else if (b1 === 'listo' || b2 === 'listo') {
-        mediaSt = '<span class="media-st media-ok" style="color:var(--blue)"><i class="ti ti-send" style="font-size:14px" aria-hidden="true"></i> Listo p/enviar</span>';
+        mediaSt = '<span class="media-st media-ok" style="color:var(--blue)"><i class="ti ti-send" style="font-size:14px" aria-hidden="true"></i> Listo p/aprobar</span>';
       } else {
         mediaSt = '<span class="media-st media-wait"><i class="ti ti-clock" style="font-size:14px" aria-hidden="true"></i> Esperando artes</span>';
       }
@@ -2021,16 +2100,15 @@ async function renderClientes() {
         pautaSt = '<span class="pauta-name pauta-b">Belkys</span>';
       }
 
-      // Deadline
-      let deadline = '15 may';
-      if (tipo === 'inicia_junio') deadline = 'Junio';
-      else if (tipo === 'sin_batches') deadline = '—';
+      // Deadline real desde SLA
+      const deadline = sla.label;
 
       const noDesign = designer === 'Por contratar' || !cl.notas || cl.notas.includes('Sin diseño');
 
       const tr = document.createElement('tr');
       tr.dataset.clientName = cl.nombre;
       tr.dataset.clientId = cl.id;
+      tr.dataset.sla = sla.state;
       tr.style.animationDelay = (i * 0.02) + 's';
       tr.onclick = () => openDetailPanel(cl, proyecto);
 
@@ -2051,7 +2129,7 @@ async function renderClientes() {
         </td>
         <td><div style="position:relative">${stPill(b1)}</div></td>
         <td><div style="position:relative">${stPill(b2)}</div></td>
-        <td style="font-size:12px;color:var(--txt2)">${deadline}</td>
+        <td style="font-size:12px;font-weight:${sla.state==='late'?'700':sla.state==='warn'?'600':'400'};color:${sla.state==='late'?'var(--red)':sla.state==='warn'?'var(--amber)':'var(--txt2)'}">${deadline}</td>
         <td>${mediaSt}</td>
         <td>${pautaSt}</td>
         <td>
@@ -2063,24 +2141,19 @@ async function renderClientes() {
       tbody.appendChild(tr);
     });
 
-    // Update stats
+    // Update stats — calculados por SLA real (deadline vs hoy)
     const statVals = document.querySelectorAll('.stat-card .stat-val');
     if (statVals[0]) statVals[0].textContent = clientes.length;
-    const listos = clientes.filter(cl => {
-      const p = proyectosMap[cl.nombre];
-      return p && p.b1_status === 'listo' && p.b2_status === 'listo';
-    }).length;
-    const enProg = clientes.filter(cl => {
-      const p = proyectosMap[cl.nombre];
-      return p && (p.b1_status === 'en_progreso' || p.b2_status === 'en_progreso');
-    }).length;
-    const atrasados = clientes.filter(cl => {
-      const p = proyectosMap[cl.nombre];
-      return p && (p.b1_status === 'atrasado' || p.b2_status === 'atrasado');
-    }).length;
-    if (statVals[1]) statVals[1].textContent = listos;
-    if (statVals[2]) statVals[2].textContent = enProg;
-    if (statVals[3]) statVals[3].textContent = atrasados;
+    let aTiempo = 0, porVencer = 0, vencidos = 0;
+    clientes.forEach(cl => {
+      const s = computeSLA(proyectosMap[cl.nombre], cl.tipo_card || 'regular');
+      if (s.state === 'ok') aTiempo++;
+      else if (s.state === 'warn') porVencer++;
+      else if (s.state === 'late') vencidos++;
+    });
+    if (statVals[1]) statVals[1].textContent = aTiempo;
+    if (statVals[2]) statVals[2].textContent = porVencer;
+    if (statVals[3]) statVals[3].textContent = vencidos;
 
     console.log('✓ Table rendered:', clientes.length, 'rows');
   } catch(e) { console.warn('renderClientes error:', e.message); }
@@ -2131,8 +2204,30 @@ function openDetailPanel(cl, proyecto) {
       <div class="bsec"><div style="background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:20px;margin-bottom:6px">📅</div><div style="font-size:13px;font-weight:700;color:var(--purple)">Inicia en Junio 2026</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">${cl.notas||''}</div></div></div>
       <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
   } else {
+    // Bloque de aprobación pauta en dos pasos
+    const clSafe = cl.nombre.replace(/'/g,"\\'");
+    const apr = proyecto?.aprobado_pauta;
+    const conf = proyecto?.medios_confirmado;
+    let pautaFlowHtml = '';
+    if (conf) {
+      pautaFlowHtml = `<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
+        <div style="color:var(--green);font-weight:700;">✓ Aprobado y confirmado</div>
+        <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
+        <div style="color:var(--txt2)">Confirmó Medios: ${proyecto.medios_confirmado_por || '—'} · ${fmtFechaCorta(proyecto.medios_confirmado_fecha)}</div>
+      </div>`;
+    } else if (apr) {
+      pautaFlowHtml = `<div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
+        <div style="color:var(--amber);font-weight:700;">📨 Enviado a Medios — falta confirmación</div>
+        <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
+      </div>
+      <button class="nb nb-go" style="margin-top:6px;background:var(--green);border-color:var(--green);" onclick="confirmarMedios('${clSafe}')">✓ Confirmar recepción (Medios)</button>`;
+    } else {
+      pautaFlowHtml = `<button class="nb nb-go" style="margin-top:6px;" onclick="saveAprobadoPauta('${clSafe}')">✅ Aprobar para pauta</button>
+      <div style="font-size:10px;color:var(--txt3);margin-top:3px;text-align:center;">Marca el diseño como aprobado y notifica a Medios</div>`;
+    }
+
     const mediaSection = pauta
-      ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
+      ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>${pautaFlowHtml}<button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
       : `<div class="rsec"><div class="rs-title">Sin pauta activa</div><div style="font-size:11px;color:var(--txt3);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;">📵 Sin pauta</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:8px">+ Agregar influencer</button></div>`;
 
     gridHtml = `
@@ -2192,6 +2287,16 @@ function closeDetail() {
   if (selectedRow) selectedRow.classList.remove('selected');
   selectedClient = null;
   selectedRow = null;
+}
+
+// ══ FILTRO POR SLA (clic en stat cards) ═════════════════════════
+let slaFilterActive = null;
+function filterBySLA(state) {
+  closeDetail();
+  slaFilterActive = (slaFilterActive === state) ? null : state;
+  document.querySelectorAll('#planning-tbody tr[data-client-name]').forEach(tr => {
+    tr.style.display = (!slaFilterActive || tr.dataset.sla === slaFilterActive) ? '' : 'none';
+  });
 }
 
 async function setStDetail(btn, batch, status) {

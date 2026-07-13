@@ -341,7 +341,15 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="ai-tel" placeholder="+507 6000-0000"/></div>
+      <div class="mf"><label class="ml">Email</label><input class="mi" type="email" id="ai-email" placeholder="correo@ejemplo.com"/></div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Manager / Representante</label><input class="mi" type="text" id="ai-manager" placeholder="Nombre del manager"/></div>
+      <div class="mf"><label class="ml">Contacto del manager</label><input class="mi" type="text" id="ai-manager-contacto" placeholder="Tel o email del manager"/></div>
+    </div>
+    <div class="mrow">
       <div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" id="ai-monto" placeholder="0.00"/></div>
+      <div class="mf"><label class="ml">Tarifa referencial</label><input class="mi" type="text" id="ai-tarifa" placeholder="ej. $150/post"/></div>
     </div>
     <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección de entrega si aplica"/></div>
     <div class="mrow">
@@ -367,55 +375,49 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
   </div>
 </div>
 
-<!-- MODAL: INFLUENCER DETAIL -->
-<div class="overlay" id="modal-influ-detail">
+<!-- MODAL: INFLUENCER EDIT (ficha de contacto) -->
+<div class="overlay" id="modal-influ-edit">
   <div class="modal">
     <div class="influ-detail-header">
-      <div class="influ-detail-av" id="det-av" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">S</div>
+      <div class="influ-detail-av" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">👤</div>
       <div>
-        <div class="influ-detail-name" id="det-name">Sofía Reyes</div>
-        <div class="influ-detail-handle" id="det-handle">@sofiarey_pty</div>
-        <div style="font-size:12px;color:var(--txt3);margin-top:2px" id="det-phone">+507 6123-4567</div>
+        <div class="influ-detail-name" id="ie-title">Influencer</div>
+        <div class="influ-detail-handle" style="font-size:11px;color:var(--txt3);">Ficha de contacto y seguimiento</div>
       </div>
     </div>
-    <div class="stat-row">
-      <div class="stat-mini"><div class="stat-mini-lbl">Monto</div><div class="stat-mini-val" id="det-monto" style="color:var(--green)">$350</div></div>
-      <div class="stat-mini"><div class="stat-mini-lbl">Status</div><div class="stat-mini-val" id="det-status" style="font-size:13px">Aprobado</div></div>
-      <div class="stat-mini"><div class="stat-mini-lbl">Pago</div><div class="stat-mini-val" id="det-pago" style="font-size:13px">Pagado</div></div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="ie-name"/></div>
+      <div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="ie-handle"/></div>
     </div>
     <div class="mrow">
-      <div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="edit-name"/></div>
-      <div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="edit-handle"/></div>
+      <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="ie-phone"/></div>
+      <div class="mf"><label class="ml">Email</label><input class="mi" type="email" id="ie-email" placeholder="correo@ejemplo.com"/></div>
     </div>
     <div class="mrow">
-      <div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="edit-phone"/></div>
-      <div class="mf"><label class="ml">Monto ($)</label><input class="mi" type="number" id="edit-monto"/></div>
+      <div class="mf"><label class="ml">Manager / Representante</label><input class="mi" type="text" id="ie-manager" placeholder="Nombre del manager"/></div>
+      <div class="mf"><label class="ml">Contacto del manager</label><input class="mi" type="text" id="ie-manager-contacto" placeholder="Tel o email del manager"/></div>
     </div>
-    <div class="mf"><label class="ml">Dirección</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección"/></div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" id="ie-amt"/></div>
+      <div class="mf"><label class="ml">Tarifa referencial</label><input class="mi" type="text" id="ie-tarifa" placeholder="ej. $150/post · $300/reel"/></div>
+    </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Status contenido</label>
         <select class="mi" id="edit-status">
-          <option>Pendiente</option><option>Recibido</option><option selected>Aprobado</option><option>Publicado</option><option>Atrasado</option>
+          <option value="pendiente">Pendiente</option><option value="recibido">Recibido</option><option value="aprobado">Aprobado</option><option value="publicado">Publicado</option><option value="atrasado">Atrasado</option>
         </select>
       </div>
       <div class="mf"><label class="ml">Estado pago</label>
         <select class="mi" id="edit-pago">
-          <option selected>Pagado</option><option>Pendiente</option><option>Parcial</option>
+          <option value="pendiente">Pendiente</option><option value="parcial">Parcial</option><option value="pagado">Pagado</option>
         </select>
       </div>
+      <div class="mf"><label class="ml">Fecha entrega</label><input class="mi" type="date" id="edit-fecha"/></div>
     </div>
-    <div class="m-divider"></div>
-    <div class="mf">
-      <label class="ml">Brief</label>
-      <div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre visible" value="Brief Mayo Relojín"/><div class="lf-url">🔗</div></div>
-    </div>
-    <div class="mf">
-      <label class="ml">Contrato / Media Kit</label>
-      <div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre visible" value="Contrato Sofía 2026"/><div class="lf-url">🔗</div></div>
-    </div>
+    <div class="mf"><label class="ml">Notas</label><input class="mi" type="text" id="ie-notas" placeholder="Notas de la relación, historial, preferencias..."/></div>
     <div class="m-acts">
-      <button class="btn b-ghost" onclick="closeModal('modal-influ-detail')">Cancelar</button>
-      <button class="btn b-brand" onclick="closeModal('modal-influ-detail');showToast('✓ Influencer actualizado')">Guardar cambios</button>
+      <button class="btn b-ghost" onclick="closeModal('modal-influ-edit')">Cancelar</button>
+      <button class="btn b-brand" onclick="saveInfluEdit()">Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -549,7 +551,7 @@ function renderInfluencers() {
         <table class="influ-table">
           <thead>
             <tr>
-              <th>Influencer</th><th>Teléfono</th><th>Monto</th>
+              <th>Influencer</th><th>Contacto</th><th>Manager</th><th>Monto</th>
               <th>Entrega</th><th>Status</th><th>Pago</th><th>Links</th>
             </tr>
           </thead>
@@ -595,7 +597,13 @@ function buildInfluRow(inf) {
         <div><div class="influ-name">${inf.nombre||'—'}</div><div class="influ-handle">${inf.handle||'—'} · ${inf.red_social||'IG'}</div></div>
       </div>
     </td>
-    <td class="influ-phone">${inf.telefono||'—'}</td>
+    <td class="influ-phone">
+      <div>${inf.telefono||'—'}</div>
+      ${inf.email ? `<div style="font-size:10.5px;color:var(--txt3)">${inf.email}</div>` : ''}
+    </td>
+    <td style="font-size:11.5px;">
+      ${inf.manager_nombre ? `<div style="font-weight:600;color:var(--txt2)">${inf.manager_nombre}</div>${inf.manager_contacto ? `<div style="font-size:10.5px;color:var(--txt3)">${inf.manager_contacto}</div>` : ''}` : '<span style="color:var(--txt3)">—</span>'}
+    </td>
     <td><span style="font-weight:800;color:var(--green)">$${parseFloat(inf.monto_aprobado||0).toLocaleString()}</span></td>
     <td style="font-size:12px;color:${isLate?'var(--red)':'var(--txt2)'};font-weight:${isLate?'700':'400'}">${isLate?'⚠️ ':''} ${fecha}</td>
     <td><span class="status-badge ${statusMap[status]||'sb-pendiente'}">${status}</span></td>
@@ -643,7 +651,7 @@ function openAddInflu(clientName) {
     if (cl) sel.value = cl.id;
   }
   // Clear form
-  ['ai-nombre','ai-handle','ai-tel','ai-monto','ai-fecha','ai-brief-name','ai-brief-url','ai-contrato-name','ai-contrato-url'].forEach(id => {
+  ['ai-nombre','ai-handle','ai-tel','ai-email','ai-manager','ai-manager-contacto','ai-tarifa','ai-monto','ai-fecha','ai-brief-name','ai-brief-url','ai-contrato-name','ai-contrato-url'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -658,6 +666,10 @@ async function saveNewInfluencer() {
   const handle = document.getElementById('ai-handle')?.value?.trim();
   const red = document.getElementById('ai-red')?.value || 'instagram';
   const tel = document.getElementById('ai-tel')?.value?.trim();
+  const email = document.getElementById('ai-email')?.value?.trim() || null;
+  const managerNombre = document.getElementById('ai-manager')?.value?.trim() || null;
+  const managerContacto = document.getElementById('ai-manager-contacto')?.value?.trim() || null;
+  const tarifa = document.getElementById('ai-tarifa')?.value?.trim() || null;
   const monto = parseFloat(document.getElementById('ai-monto')?.value) || 0;
   const fecha = document.getElementById('ai-fecha')?.value || null;
   const status = document.getElementById('ai-status')?.value || 'pendiente';
@@ -673,6 +685,7 @@ async function saveNewInfluencer() {
       cliente_id: clienteId,
       nombre, handle, red_social: red,
       telefono: tel,
+      email, manager_nombre: managerNombre, manager_contacto: managerContacto, tarifa,
       monto_aprobado: monto,
       fecha_entrega_contenido: fecha,
       status_contenido: status,
@@ -706,6 +719,11 @@ async function openInfluDetail(id) {
   document.getElementById('ie-handle').value = inf.handle || '';
   document.getElementById('ie-phone').value = inf.telefono || '';
   document.getElementById('ie-amt').value = inf.monto_aprobado || '';
+  document.getElementById('ie-email').value = inf.email || '';
+  document.getElementById('ie-manager').value = inf.manager_nombre || '';
+  document.getElementById('ie-manager-contacto').value = inf.manager_contacto || '';
+  document.getElementById('ie-tarifa').value = inf.tarifa || '';
+  document.getElementById('ie-notas').value = inf.notas || '';
 
   const statusSel = document.getElementById('edit-status');
   const pagoSel = document.getElementById('edit-pago');
@@ -724,13 +742,20 @@ async function saveInfluEdit() {
   const handle = document.getElementById('ie-handle')?.value?.trim();
   const telefono = document.getElementById('ie-phone')?.value?.trim();
   const monto = parseFloat(document.getElementById('ie-amt')?.value) || 0;
-  const status = document.getElementById('edit-status')?.value || 'Pendiente';
-  const pago = document.getElementById('edit-pago')?.value || 'Pendiente';
+  const status = document.getElementById('edit-status')?.value || 'pendiente';
+  const pago = document.getElementById('edit-pago')?.value || 'pendiente';
   const fecha = document.getElementById('edit-fecha')?.value || null;
+  const email = document.getElementById('ie-email')?.value?.trim() || null;
+  const managerNombre = document.getElementById('ie-manager')?.value?.trim() || null;
+  const managerContacto = document.getElementById('ie-manager-contacto')?.value?.trim() || null;
+  const tarifa = document.getElementById('ie-tarifa')?.value?.trim() || null;
+  const notas = document.getElementById('ie-notas')?.value?.trim() || null;
 
   try {
     const { error } = await sb.from('influencers').update({
       nombre, handle, telefono,
+      email, manager_nombre: managerNombre, manager_contacto: managerContacto,
+      tarifa, notas,
       monto_aprobado: monto,
       status_contenido: status,
       pago_status: pago,
@@ -743,7 +768,7 @@ async function saveInfluEdit() {
     // Update local data
     const idx = influs.findIndex(i => i.id === editingInfluId);
     if (idx >= 0) {
-      influs[idx] = { ...influs[idx], nombre, handle, telefono, monto_aprobado: monto, status_contenido: status, pago_status: pago, fecha_entrega_contenido: fecha };
+      influs[idx] = { ...influs[idx], nombre, handle, telefono, email, manager_nombre: managerNombre, manager_contacto: managerContacto, tarifa, notas, monto_aprobado: monto, status_contenido: status, pago_status: pago, fecha_entrega_contenido: fecha };
     }
     updateStats();
     renderInfluencers();
