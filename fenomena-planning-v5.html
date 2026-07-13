@@ -1578,6 +1578,23 @@ function fmtFechaCorta(iso) {
          new Date(iso).toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'});
 }
 
+// ══ EDICIÓN DE DEADLINE (recalcula semáforo SLA) ════════════════
+async function saveDeadline(clientName, batch, fecha) {
+  if (!fecha) return;
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  const field = batch === 'b1' ? 'fecha_deadline_b1' : 'fecha_deadline_b2';
+  try {
+    await sb.from('proyectos').update({ [field]: fecha, updated_at: new Date().toISOString() }).eq('id', p.id);
+    proyectosMap[clientName][field] = fecha;
+    showSaveToast(`✓ Deadline ${batch.toUpperCase()} actualizado`);
+    // Re-render para recalcular semáforo y stats, manteniendo el detalle abierto
+    await renderClientes();
+    const cl = clientesMap[clientName];
+    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+  } catch(e) { console.warn('saveDeadline:', e.message); }
+}
+
 async function savePieceToLib(nombre, pts, emoji) {
   try {
     await sb.from('pieza_biblioteca').insert({ nombre, pts: parseInt(pts)||1, emoji: emoji||'' })
@@ -2239,6 +2256,10 @@ function openDetailPanel(cl, proyecto) {
           <button class="ss ${b1==='listo'?'ok':''}" onclick="setStDetail(this,'B1','listo')">✓ Listo</button>
           <button class="ss ${b1==='atrasado'?'late':''}" onclick="setStDetail(this,'B1','atrasado')">🔴 Atrasado</button>
         </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+          <label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:0.05em;">Deadline B1</label>
+          <input class="mi-sm" type="date" value="${proyecto?.fecha_deadline_b1||''}" onchange="saveDeadline('${clSafe}','b1',this.value)" onclick="event.stopPropagation()" style="flex:1;"/>
+        </div>
         <div style="font-size:11px;color:var(--txt3);padding:6px 0">${piezasDesc || 'Sin piezas configuradas'}</div>
         <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
       </div>
@@ -2249,6 +2270,10 @@ function openDetailPanel(cl, proyecto) {
           <button class="ss ${b2==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B2','en_progreso')">En progreso</button>
           <button class="ss ${b2==='listo'?'ok':''}" onclick="setStDetail(this,'B2','listo')">✓ Listo</button>
           <button class="ss ${b2==='atrasado'?'late':''}" onclick="setStDetail(this,'B2','atrasado')">🔴 Atrasado</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+          <label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:0.05em;">Deadline B2</label>
+          <input class="mi-sm" type="date" value="${proyecto?.fecha_deadline_b2||''}" onchange="saveDeadline('${clSafe}','b2',this.value)" onclick="event.stopPropagation()" style="flex:1;"/>
         </div>
         <div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div>
         <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
