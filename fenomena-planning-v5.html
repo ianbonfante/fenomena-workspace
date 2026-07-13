@@ -1287,7 +1287,7 @@ body {
     <div class="m-sub">Puntos estimados por diseñador — Junio 2026</div>
     <div class="carga-grid" id="carga-grid"></div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--txt3);">
-      📊 Basado en piezas de clientes activos + proyectos extra. Semáforo: 🟢 &lt;70% · 🟡 70-90% · 🔴 &gt;90%
+      📊 Cálculo: 10 pts por cliente asignado + pts de proyectos extra del mes, sobre capacidad de 40 pts. Semáforo: 🟢 &lt;70% · 🟡 70-90% · 🔴 &gt;90%
     </div>
     <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-carga')">Cerrar</button></div>
   </div>
@@ -1339,12 +1339,15 @@ const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
-let MES = 6, ANO = 2026;
+// Mes y año actuales automáticos — al abrir siempre carga el mes en curso
+const _hoy = new Date();
+let MES = _hoy.getMonth() + 1, ANO = _hoy.getFullYear();
 let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null, currentUserName = 'Planning';
 
 // ══ SLA HELPERS ═════════════════════════════════════════════════
 // verde = a tiempo · amarillo = deadline en ≤2 días · rojo = deadline vencido sin entregar
 function computeSLA(proyecto, tipo) {
+  if (proyecto?.activo_mes === false) return { color:'var(--border)', label:'Pausado', state:'na' };
   if (tipo === 'inicia_junio') return { color:'var(--purple)', label:'Junio', state:'na' };
   if (tipo === 'sin_batches')  return { color:'var(--amber)',  label:'—',     state:'na' };
   const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -1465,13 +1468,17 @@ async function getOrCreateProyecto(clientName) {
     const { data: existing } = await sb.from('proyectos')
       .select('*').eq('cliente_id', cl.id).eq('mes', MES).eq('año', ANO).single();
     if (existing) { proyectosMap[clientName] = existing; return existing; }
-    // Create new
+    // Create new — reglas de entrega:
+    // B1: se entrega el 25 del mes ANTERIOR (máximo el 1 del mes corriente)
+    // B2: se entrega el 10 del mes corriente (máximo el 15)
+    const mesPrev = MES === 1 ? 12 : MES - 1;
+    const anoPrev = MES === 1 ? ANO - 1 : ANO;
     const { data: nuevo } = await sb.from('proyectos').insert({
       cliente_id: cl.id, mes: MES, año: ANO, estado: 'diseño',
       b1_status: 'pendiente', b2_status: 'pendiente',
       planning_nombre: cl.planning_responsable,
-      fecha_deadline_b1: `${ANO}-${String(MES).padStart(2,'0')}-15`,
-      fecha_deadline_b2: `${ANO}-${String(MES).padStart(2,'0')}-25`
+      fecha_deadline_b1: `${anoPrev}-${String(mesPrev).padStart(2,'0')}-25`,
+      fecha_deadline_b2: `${ANO}-${String(MES).padStart(2,'0')}-10`
     }).select().single();
     if (nuevo) { proyectosMap[clientName] = nuevo; return nuevo; }
   } catch(e) { console.warn('getOrCreateProyecto:', e.message); }
@@ -1547,9 +1554,8 @@ async function saveAprobadoPauta(clientName) {
     await sb.from('proyectos').update(upd).eq('id', p.id);
     Object.assign(proyectosMap[clientName], upd);
     showSaveToast('✓ Aprobado para pauta — pendiente confirmación de Medios');
-    await renderClientes();
-    const cl = clientesMap[clientName];
-    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+    updateRow(clientName);
+    refreshPautaFlow(clientName);
   } catch(e) { console.warn('saveAprobadoPauta:', e.message); }
 }
 
@@ -1566,10 +1572,39 @@ async function confirmarMedios(clientName) {
     await sb.from('proyectos').update(upd).eq('id', p.id);
     Object.assign(proyectosMap[clientName], upd);
     showSaveToast('✓ Medios confirmó recepción');
-    await renderClientes();
-    const cl = clientesMap[clientName];
-    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+    updateRow(clientName);
+    refreshPautaFlow(clientName);
   } catch(e) { console.warn('confirmarMedios:', e.message); }
+}
+
+// Re-renderiza SOLO el bloque de aprobación de pauta dentro del panel abierto
+function buildPautaFlow(clientName) {
+  const clSafe = clientName.replace(/'/g,"\\'");
+  const proyecto = proyectosMap[clientName];
+  const apr = proyecto?.aprobado_pauta;
+  const conf = proyecto?.medios_confirmado;
+  if (conf) {
+    return `<div id="pauta-flow"><div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
+      <div style="color:var(--green);font-weight:700;">✓ Aprobado y confirmado</div>
+      <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
+      <div style="color:var(--txt2)">Confirmó Medios: ${proyecto.medios_confirmado_por || '—'} · ${fmtFechaCorta(proyecto.medios_confirmado_fecha)}</div>
+    </div></div>`;
+  }
+  if (apr) {
+    return `<div id="pauta-flow"><div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
+      <div style="color:var(--amber);font-weight:700;">📨 Enviado a Medios — falta confirmación</div>
+      <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
+    </div>
+    <button class="nb nb-go" style="margin-top:6px;background:var(--green);border-color:var(--green);" onclick="confirmarMedios('${clSafe}')">✓ Confirmar recepción (Medios)</button></div>`;
+  }
+  return `<div id="pauta-flow"><button class="nb nb-go" style="margin-top:6px;" onclick="saveAprobadoPauta('${clSafe}')">✅ Aprobar para pauta</button>
+  <div style="font-size:10px;color:var(--txt3);margin-top:3px;text-align:center;">Marca el diseño como aprobado y notifica a Medios</div></div>`;
+}
+
+function refreshPautaFlow(clientName) {
+  if (selectedClient?.nombre !== clientName) return;
+  const el = document.getElementById('pauta-flow');
+  if (el) el.outerHTML = buildPautaFlow(clientName);
 }
 
 function fmtFechaCorta(iso) {
@@ -1588,10 +1623,8 @@ async function saveDeadline(clientName, batch, fecha) {
     await sb.from('proyectos').update({ [field]: fecha, updated_at: new Date().toISOString() }).eq('id', p.id);
     proyectosMap[clientName][field] = fecha;
     showSaveToast(`✓ Deadline ${batch.toUpperCase()} actualizado`);
-    // Re-render para recalcular semáforo y stats, manteniendo el detalle abierto
-    await renderClientes();
-    const cl = clientesMap[clientName];
-    if (cl) openDetailPanel(cl, proyectosMap[clientName]);
+    // Solo la fila se actualiza — el panel se queda abierto tal cual
+    updateRow(clientName);
   } catch(e) { console.warn('saveDeadline:', e.message); }
 }
 
@@ -1623,6 +1656,49 @@ async function saveExtraProject(data) {
   } catch(e) { console.warn('saveExtraProject:', e.message); return null; }
 }
 
+let extrasCache = {};
+let editingExtraId = null;
+
+// ══ EDITAR PROYECTO EXTRA ═══════════════════════════════════════
+function openEditExtra(id) {
+  const ex = extrasCache[id];
+  if (!ex) { showSaveToast('No se encontró el proyecto'); return; }
+  editingExtraId = id;
+  const piece0 = (ex.piezas || [])[0] || {};
+  document.getElementById('edit-ex-client').value = ex.cliente_nombre || '';
+  document.getElementById('edit-ex-planner').value = ex.planner_nombre || 'Ian';
+  document.getElementById('edit-ex-designer').value = ex.diseñador_nombre || '';
+  document.getElementById('edit-ex-piece').value = piece0.nombre || '';
+  document.getElementById('edit-ex-pts').value = ex.pts_total || 0;
+  document.getElementById('edit-ex-deadline').value = ex.deadline || '';
+  document.getElementById('modal-edit-extra').classList.add('open');
+}
+
+async function saveEditExtra() {
+  if (!editingExtraId) return;
+  const ex = extrasCache[editingExtraId];
+  const planner = document.getElementById('edit-ex-planner').value;
+  const designer = document.getElementById('edit-ex-designer').value || null;
+  const piece = document.getElementById('edit-ex-piece').value.trim();
+  const pts = parseInt(document.getElementById('edit-ex-pts').value) || 0;
+  const dl = document.getElementById('edit-ex-deadline').value || null;
+  if (!piece) { alert('La descripción de pieza no puede quedar vacía'); return; }
+  const piezas = [{ nombre: piece, pts, cantidad: (ex?.piezas?.[0]?.cantidad) || 1 }];
+  try {
+    const { error } = await sb.from('proyectos_extra').update({
+      planner_nombre: planner,
+      diseñador_nombre: designer,
+      piezas, pts_total: pts,
+      deadline: dl
+    }).eq('id', editingExtraId);
+    if (error) throw error;
+    showSaveToast('✓ Proyecto extra actualizado');
+    closeModal('modal-edit-extra');
+    editingExtraId = null;
+    await loadExtras(); // solo la grilla de extras se refresca, la tabla no se toca
+  } catch(e) { console.warn('saveEditExtra:', e.message); showSaveToast('Error al actualizar'); }
+}
+
 async function loadExtras() {
   try {
     const grid = document.getElementById('extras-grid');
@@ -1630,6 +1706,9 @@ async function loadExtras() {
     grid.innerHTML = '';
     const { data: extras } = await sb.from('proyectos_extra')
       .select('*').eq('mes', MES).eq('año', ANO).order('created_at');
+
+    extrasCache = {};
+    (extras || []).forEach(ex => { extrasCache[ex.id] = ex; });
 
     // Update extras count badge
     const ctEl = document.querySelector('.extras-ct');
@@ -1651,7 +1730,7 @@ async function loadExtras() {
           <div style="flex:1"><div class="ec-client">${ex.cliente_nombre}</div><div class="ec-sub">${ex.planner_nombre}${ex.diseñador_nombre ? ' · ' + ex.diseñador_nombre : ''}</div></div>
           ${ex.pts_total > 0 ? `<span class="ec-pts" style="${isDesign ? 'background:var(--amber-bg);color:var(--amber)' : 'background:var(--blue-bg);color:var(--blue)'}">${ex.pts_total} pts</span>` : ''}
           <span class="ec-type-badge ${isDesign ? 'type-design' : 'type-plan'}">${isDesign ? 'Con diseño' : 'Solo Planning'}</span>
-          <button class="ec-edit" onclick="openEditExtra('${ex.id}','${ex.cliente_nombre}','${ex.planner_nombre}','${ex.diseñador_nombre||''}','${piece0.nombre||''}','${ex.pts_total||0}','${ex.deadline||''}')">✏️</button>
+          <button class="ec-edit" onclick="openEditExtra('${ex.id}')">✏️</button>
           <button class="ec-del" onclick="delExtra(this,'${ex.id}')">✕</button>
         </div>
         <div class="ec-pieces">${piezas.map(p => `<div class="ecp"><span class="ecp-name">${p.nombre||p.name||''}</span><span class="ecp-qty">×${p.cantidad||p.qty||1}</span>${p.pts>0?`<span class="ecp-pts">${p.pts}pts c/u</span>`:''}</div>`).join('')}</div>
@@ -1857,6 +1936,69 @@ async function confirmNotifyDB() {
 
 // ══ PIECES ═════════════════════════════════════════════════════
 function openPiece(ctx) { document.getElementById('piece-sub').textContent = 'Agregar pieza a ' + ctx; document.getElementById('modal-piece').classList.add('open'); }
+
+// ══ CARGA DE DISEÑADORES ════════════════════════════════════════
+// Configuración: puntos estimados por cliente regular y capacidad mensual por diseñador
+const PTS_POR_CLIENTE = 10;
+const CAPACIDAD_MENSUAL = 40;
+
+async function openCargaModal() {
+  const grid = document.getElementById('carga-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:12px;">Calculando carga...</div>';
+  document.getElementById('modal-carga').classList.add('open');
+
+  // 1) Carga base: clientes activos asignados a cada diseñador
+  const carga = {};
+  Object.values(clientesMap).forEach(cl => {
+    const d = getDesigner(cl.notas);
+    if (!d || d === 'Por contratar') return;
+    if (!carga[d]) carga[d] = { pts: 0, clientes: [], extras: 0 };
+    carga[d].pts += PTS_POR_CLIENTE;
+    carga[d].clientes.push(cl.nombre);
+  });
+
+  // 2) Proyectos extra del mes activo
+  try {
+    const { data: extras } = await sb.from('proyectos_extra')
+      .select('diseñador_nombre, pts_total').eq('mes', MES).eq('año', ANO);
+    (extras || []).forEach(ex => {
+      const d = (ex.diseñador_nombre || '').trim();
+      if (!d) return;
+      if (!carga[d]) carga[d] = { pts: 0, clientes: [], extras: 0 };
+      carga[d].pts += ex.pts_total || 0;
+      carga[d].extras += ex.pts_total || 0;
+    });
+  } catch(e) { console.warn('carga extras:', e.message); }
+
+  // 3) Render ordenado por carga descendente
+  const entries = Object.entries(carga).sort((a,b) => b[1].pts - a[1].pts);
+  if (entries.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:12px;">Sin diseñadores asignados este mes</div>';
+    return;
+  }
+  grid.innerHTML = entries.map(([nombre, c]) => {
+    const pct = Math.round((c.pts / CAPACIDAD_MENSUAL) * 100);
+    let semBg, semTxt, semLbl;
+    if (pct < 70)      { semBg = 'var(--green-bg)'; semTxt = 'var(--green)'; semLbl = '🟢 Con espacio'; }
+    else if (pct <= 90){ semBg = 'var(--amber-bg)'; semTxt = 'var(--amber)'; semLbl = '🟡 Cerca del límite'; }
+    else               { semBg = 'var(--red-bg,#fde8e8)'; semTxt = 'var(--red)'; semLbl = '🔴 Sobrecargado'; }
+    const barColor = pct < 70 ? 'var(--green)' : pct <= 90 ? 'var(--amber)' : 'var(--red)';
+    const color = DESIGNERS_COLOR[nombre] || '#9590AB';
+    return `<div class="carga-card">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div class="d-dot" style="background:${color};width:9px;height:9px;border-radius:50%;"></div>
+        <div class="carga-name">${nombre}</div>
+      </div>
+      <div class="carga-pts">${c.pts} pts / ${CAPACIDAD_MENSUAL} · ${c.clientes.length} cliente${c.clientes.length!==1?'s':''}${c.extras>0 ? ` · +${c.extras} pts extra` : ''}</div>
+      <div class="carga-bar-bg"><div class="carga-bar" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="carga-sem" style="background:${semBg};color:${semTxt}">${semLbl} · ${pct}%</span>
+      </div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:7px;line-height:1.5;">${c.clientes.join(' · ') || 'Solo proyectos extra'}</div>
+    </div>`;
+  }).join('');
+}
 function selLib(btn, name, pts) {
   document.getElementById('p-name').value = name;
   document.getElementById('p-pts').value = pts;
@@ -1929,6 +2071,7 @@ async function confirmExtra() {
   const piezas = [{ nombre: piece, pts, cantidad: qty }];
   const result = await saveExtraProject({ client, type: planType, planner, designer, piezas, pts: total, deadline: dl, notas });
   if (result) {
+    extrasCache[result.id] = result;
     const isDesign = planType === 'design';
     const card = document.createElement('div');
     card.className = `extra-card ${isDesign ? 'design' : 'planning'}`;
@@ -1938,7 +2081,7 @@ async function confirmExtra() {
         <div style="flex:1"><div class="ec-client">${client}</div><div class="ec-sub">${planner}${designer ? ' · ' + designer : ''}</div></div>
         ${total > 0 ? `<span class="ec-pts" style="${isDesign ? 'background:var(--amber-bg);color:var(--amber)' : 'background:var(--blue-bg);color:var(--blue)'}">${total} pts</span>` : ''}
         <span class="ec-type-badge ${isDesign ? 'type-design' : 'type-plan'}">${isDesign ? 'Con diseño' : 'Solo Planning'}</span>
-        <button class="ec-edit" onclick="openEditExtra('${result.id}','${client}','${planner}','${designer||''}','${piece}','${total}','${dl||''}')">✏️</button>
+        <button class="ec-edit" onclick="openEditExtra('${result.id}')">✏️</button>
         <button class="ec-del" onclick="delExtra(this,'${result.id}')">✕</button>
       </div>
       <div class="ec-pieces"><div class="ecp"><span class="ecp-name">${piece}</span><span class="ecp-qty">×${qty}</span>${pts > 0 ? `<span class="ecp-pts">${pts}pts c/u</span>` : ''}</div></div>
@@ -2049,17 +2192,9 @@ function buildBody(cl) {
   return `<div class="cc-grid"><div class="bsec"><div class="bsec-title">Batch 1 — Día 15<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div><div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button><button class="ss" onclick="setSt(this)">En progreso</button><button class="ss" onclick="setSt(this)">✓ Listo</button><button class="ss" onclick="setSt(this)">🔴 Atrasado</button></div><div class="pieces-list"><div style="font-size:11px;color:var(--txt3);padding:6px 0">${piezasDesc||'Sin piezas configuradas'}</div></div><button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button></div><div class="bsec"><div class="bsec-title">Batch 2 — Día 25<span class="bsec-count" style="color:var(--txt3)">0 piezas</span></div><div class="ssel"><button class="ss wait" onclick="setSt(this)">⏳ Pendiente</button><button class="ss" onclick="setSt(this)">En progreso</button><button class="ss" onclick="setSt(this)">✓ Listo</button><button class="ss" onclick="setSt(this)">🔴 Atrasado</button></div><div class="pieces-list"><div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div></div><button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button></div>${mediaSec}</div>`;
 }
 
-async function renderClientes() {
-  try {
-    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
-    if (error) throw error;
-    if (!clientes || clientes.length === 0) return;
+let clientesList = [];
 
-    const tbody = document.getElementById('planning-tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    clientes.forEach((cl, i) => {
+function buildRow(cl, i) {
       const planner = cl.planning_responsable || 'Ian';
       const plannerClass = planner.toLowerCase().replace(' ','');
       const designer = getDesigner(cl.notas);
@@ -2070,13 +2205,15 @@ async function renderClientes() {
       const b1 = proyecto?.b1_status || 'pendiente';
       const b2 = proyecto?.b2_status || 'pendiente';
       const mediaNotif = proyecto?.media_notificado || false;
+      const pausado = proyecto?.activo_mes === false;
 
       // Semáforo automático por SLA (deadline real vs hoy)
       const sla = computeSLA(proyecto, tipo);
       const semColor = sla.color;
+      const clSafe = cl.nombre.replace(/'/g,"\\'");
 
-      // Status pill builder
-      function stPill(status) {
+      // Status pill builder — clickeable para ciclar status directo en la tabla
+      function stPill(status, batch) {
         const map = {
           'listo': { cls:'st-listo', txt:'Listo' },
           'en_progreso': { cls:'st-prog', txt:'En progreso' },
@@ -2084,9 +2221,14 @@ async function renderClientes() {
           'atrasado': { cls:'st-late', txt:'Atrasado' },
         };
         if (tipo === 'inicia_junio') return '<span class="st-pill st-na">Junio</span>';
-        if (tipo === 'sin_batches') return '<span class="st-pill st-na">N/A</span>';
+        if (tipo === 'sin_batches') {
+          if (batch === 'B2') return '<span class="st-pill st-na">—</span>';
+          const s = map[status] || map['pendiente'];
+          return `<span class="st-pill ${s.cls}" style="cursor:pointer" title="Clic para cambiar status del retainer" onclick="event.stopPropagation();cycleStatus('${clSafe}','${batch}')">${s.txt}</span>`;
+        }
+        if (pausado) return '<span class="st-pill st-na">—</span>';
         const s = map[status] || map['pendiente'];
-        return `<span class="st-pill ${s.cls}">${s.txt}</span>`;
+        return `<span class="st-pill ${s.cls}" style="cursor:pointer" title="Clic para cambiar: pendiente → en progreso → listo" onclick="event.stopPropagation();cycleStatus('${clSafe}','${batch}')">${s.txt}</span>`;
       }
 
       // Media status — cadena completa: artes → aprobado pauta → confirmado por medios
@@ -2118,59 +2260,99 @@ async function renderClientes() {
       }
 
       // Deadline real desde SLA
-      const deadline = sla.label;
+      const deadline = pausado ? 'Pausado este mes' : sla.label;
 
       const noDesign = designer === 'Por contratar' || !cl.notas || cl.notas.includes('Sin diseño');
 
       const tr = document.createElement('tr');
       tr.dataset.clientName = cl.nombre;
       tr.dataset.clientId = cl.id;
-      tr.dataset.sla = sla.state;
+      tr.dataset.sla = pausado ? 'na' : sla.state;
       tr.style.animationDelay = (i * 0.02) + 's';
-      tr.onclick = () => openDetailPanel(cl, proyecto);
+      if (pausado) tr.style.opacity = '0.45';
+      tr.onclick = () => openDetailPanel(cl, proyectosMap[cl.nombre]);
+
+      // Chip de display si el cliente lo lleva
+      let displayChip = '';
+      if (proyecto?.tiene_display) {
+        const ds = proyecto?.display_status || 'pendiente';
+        const dcol = ds === 'listo' ? 'var(--green)' : ds === 'en_progreso' ? 'var(--blue)' : 'var(--amber)';
+        displayChip = `<span title="Artes de display: ${ds.replace('_',' ')}" style="display:inline-block;margin-left:6px;font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;background:${dcol};color:white;vertical-align:middle;">DISPLAY</span>`;
+      }
 
       const noteVal = (proyecto?.notas || '').replace(/"/g,'&quot;');
       tr.innerHTML = `
-        <td><div class="sem" style="background:${semColor}"></div></td>
+        <td><div class="sem" style="background:${pausado ? 'var(--border)' : semColor}"></div></td>
         <td>
-          <div class="cl-name">${cl.nombre}</div>
-          <div class="cl-country">${cl.pais || 'Panamá'}${cl.tipo ? ' · ' + cl.tipo : ''}</div>
+          <div class="cl-name">${cl.nombre}${displayChip}</div>
+          <div class="cl-country">${cl.pais || 'Panamá'}</div>
         </td>
         <td><span class="planner-pill pp-${plannerClass}">${planner}</span></td>
         <td>
-          <div class="designer-name designer-edit" onclick="event.stopPropagation();editDesignerName(this,'${cl.id}','${cl.nombre.replace(/'/g,"\\'")}')">
+          <div class="designer-name designer-edit" onclick="event.stopPropagation();editDesignerName(this,'${cl.id}','${clSafe}')">
             <div class="d-dot" style="background:${noDesign?'#9590AB':designerColor}"></div>
             <span class="d-label">${noDesign ? 'Sin asignar' : designer}</span>
             <i class="ti ti-pencil d-edit-icon" aria-hidden="true"></i>
           </div>
         </td>
-        <td><div style="position:relative">${stPill(b1)}</div></td>
-        <td><div style="position:relative">${stPill(b2)}</div></td>
-        <td style="font-size:12px;font-weight:${sla.state==='late'?'700':sla.state==='warn'?'600':'400'};color:${sla.state==='late'?'var(--red)':sla.state==='warn'?'var(--amber)':'var(--txt2)'}">${deadline}</td>
+        <td><div style="position:relative">${stPill(b1,'B1')}</div></td>
+        <td><div style="position:relative">${stPill(b2,'B2')}</div></td>
+        <td style="font-size:12px;font-weight:${sla.state==='late'?'700':sla.state==='warn'?'600':'400'};color:${pausado?'var(--txt3)':sla.state==='late'?'var(--red)':sla.state==='warn'?'var(--amber)':'var(--txt2)'}">${deadline}</td>
         <td>${mediaSt}</td>
         <td>${pautaSt}</td>
         <td>
           <input class="note-cell" type="text" value="${noteVal}" placeholder="Agregar nota..."
             onclick="event.stopPropagation()"
-            onchange="saveQuickNote('${cl.nombre.replace(/'/g,"\\'")}', this.value)"/>
+            onchange="saveQuickNote('${clSafe}', this.value)"/>
         </td>`;
+      return tr;
+}
 
-      tbody.appendChild(tr);
-    });
+// Actualiza SOLO la fila de un cliente — sin tocar el resto de la tabla ni el panel abierto
+function updateRow(clientName) {
+  const oldTr = document.querySelector(`#planning-tbody tr[data-client-name="${CSS.escape(clientName)}"]`);
+  const cl = clientesList.find(c => c.nombre === clientName) || clientesMap[clientName];
+  if (!oldTr || !cl) return;
+  const wasSelected = oldTr.classList.contains('selected');
+  const newTr = buildRow(cl, 0);
+  newTr.style.animationDelay = '0s';
+  if (wasSelected) { newTr.classList.add('selected'); }
+  oldTr.replaceWith(newTr);
+  if (wasSelected) selectedRow = newTr;
+  if (slaFilterActive && newTr.dataset.sla !== slaFilterActive) newTr.style.display = 'none';
+  updateStats();
+}
 
-    // Update stats — calculados por SLA real (deadline vs hoy)
-    const statVals = document.querySelectorAll('.stat-card .stat-val');
-    if (statVals[0]) statVals[0].textContent = clientes.length;
-    let aTiempo = 0, porVencer = 0, vencidos = 0;
-    clientes.forEach(cl => {
-      const s = computeSLA(proyectosMap[cl.nombre], cl.tipo_card || 'regular');
-      if (s.state === 'ok') aTiempo++;
-      else if (s.state === 'warn') porVencer++;
-      else if (s.state === 'late') vencidos++;
-    });
-    if (statVals[1]) statVals[1].textContent = aTiempo;
-    if (statVals[2]) statVals[2].textContent = porVencer;
-    if (statVals[3]) statVals[3].textContent = vencidos;
+function updateStats() {
+  const statVals = document.querySelectorAll('.stat-card .stat-val');
+  if (statVals[0]) statVals[0].textContent = clientesList.length;
+  let aTiempo = 0, porVencer = 0, vencidos = 0;
+  clientesList.forEach(cl => {
+    const p = proyectosMap[cl.nombre];
+    if (p?.activo_mes === false) return; // pausados no cuentan
+    const s = computeSLA(p, cl.tipo_card || 'regular');
+    if (s.state === 'ok') aTiempo++;
+    else if (s.state === 'warn') porVencer++;
+    else if (s.state === 'late') vencidos++;
+  });
+  if (statVals[1]) statVals[1].textContent = aTiempo;
+  if (statVals[2]) statVals[2].textContent = porVencer;
+  if (statVals[3]) statVals[3].textContent = vencidos;
+}
+
+async function renderClientes() {
+  try {
+    const { data: clientes, error } = await sb.from('clientes').select('*').eq('activo', true).order('planning_responsable').order('nombre');
+    if (error) throw error;
+    if (!clientes || clientes.length === 0) return;
+    clientesList = clientes;
+
+    const tbody = document.getElementById('planning-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    clientes.forEach((cl, i) => tbody.appendChild(buildRow(cl, i)));
+    updateStats();
 
     console.log('✓ Table rendered:', clientes.length, 'rows');
   } catch(e) { console.warn('renderClientes error:', e.message); }
@@ -2212,8 +2394,17 @@ function openDetailPanel(cl, proyecto) {
 
   if (tipo === 'sin_batches') {
     gridCols = '1fr 220px';
+    const clSafeR = cl.nombre.replace(/'/g,"\\'");
     gridHtml = `
-      <div class="bsec"><div class="bsec-title" style="color:var(--amber)">Proyecto especial</div><div style="font-size:13px;color:var(--txt2);line-height:1.7">${cl.notas||''}</div></div>
+      <div class="bsec"><div class="bsec-title" style="color:var(--amber)">Retainer / Proyecto continuo</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:8px;">${cl.notas||'Ajustes generales sin batches fijos.'}</div>
+        <div class="ssel">
+          <button class="ss ${b1==='pendiente'?'wait':''}" onclick="setStDetail(this,'B1','pendiente')">⏳ Con pendientes</button>
+          <button class="ss ${b1==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B1','en_progreso')">En progreso</button>
+          <button class="ss ${b1==='listo'?'ok':''}" onclick="setStDetail(this,'B1','listo')">✓ Al día</button>
+        </div>
+        <button class="add-influ" onclick="event.stopPropagation();togglePausaMes('${clSafeR}')" style="margin-top:8px;color:var(--txt3);">${proyecto?.activo_mes === false ? '▶ Reactivar este mes' : '⏸ No activa este mes'}</button>
+      </div>
       <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
   } else if (tipo === 'inicia_junio') {
     gridCols = '1fr 220px';
@@ -2221,27 +2412,8 @@ function openDetailPanel(cl, proyecto) {
       <div class="bsec"><div style="background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:20px;margin-bottom:6px">📅</div><div style="font-size:13px;font-weight:700;color:var(--purple)">Inicia en Junio 2026</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">${cl.notas||''}</div></div></div>
       <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
   } else {
-    // Bloque de aprobación pauta en dos pasos
     const clSafe = cl.nombre.replace(/'/g,"\\'");
-    const apr = proyecto?.aprobado_pauta;
-    const conf = proyecto?.medios_confirmado;
-    let pautaFlowHtml = '';
-    if (conf) {
-      pautaFlowHtml = `<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
-        <div style="color:var(--green);font-weight:700;">✓ Aprobado y confirmado</div>
-        <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
-        <div style="color:var(--txt2)">Confirmó Medios: ${proyecto.medios_confirmado_por || '—'} · ${fmtFechaCorta(proyecto.medios_confirmado_fecha)}</div>
-      </div>`;
-    } else if (apr) {
-      pautaFlowHtml = `<div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;padding:9px 10px;margin-top:6px;font-size:11px;line-height:1.5;">
-        <div style="color:var(--amber);font-weight:700;">📨 Enviado a Medios — falta confirmación</div>
-        <div style="color:var(--txt2)">Aprobó: ${proyecto.aprobado_pauta_por || '—'} · ${fmtFechaCorta(proyecto.aprobado_pauta_fecha)}</div>
-      </div>
-      <button class="nb nb-go" style="margin-top:6px;background:var(--green);border-color:var(--green);" onclick="confirmarMedios('${clSafe}')">✓ Confirmar recepción (Medios)</button>`;
-    } else {
-      pautaFlowHtml = `<button class="nb nb-go" style="margin-top:6px;" onclick="saveAprobadoPauta('${clSafe}')">✅ Aprobar para pauta</button>
-      <div style="font-size:10px;color:var(--txt3);margin-top:3px;text-align:center;">Marca el diseño como aprobado y notifica a Medios</div>`;
-    }
+    const pautaFlowHtml = buildPautaFlow(cl.nombre);
 
     const mediaSection = pauta
       ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>${pautaFlowHtml}<button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
@@ -2249,7 +2421,7 @@ function openDetailPanel(cl, proyecto) {
 
     gridHtml = `
       <div class="bsec">
-        <div class="bsec-title">Batch 1 — Día 15<span class="bsec-count" id="d-b1-ct">—</span></div>
+        <div class="bsec-title">Batch 1 · entrega 25 mes anterior (máx día 1)<span class="bsec-count" id="d-b1-ct">—</span></div>
         <div class="ssel">
           <button class="ss ${b1==='pendiente'?'wait':''}" onclick="setStDetail(this,'B1','pendiente')">⏳ Pendiente</button>
           <button class="ss ${b1==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B1','en_progreso')">En progreso</button>
@@ -2264,7 +2436,7 @@ function openDetailPanel(cl, proyecto) {
         <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B1')">+ Agregar pieza</button>
       </div>
       <div class="bsec">
-        <div class="bsec-title">Batch 2 — Día 25<span class="bsec-count" id="d-b2-ct">—</span></div>
+        <div class="bsec-title">Batch 2 · entrega día 10 (máx día 15)<span class="bsec-count" id="d-b2-ct">—</span></div>
         <div class="ssel">
           <button class="ss ${b2==='pendiente'?'wait':''}" onclick="setStDetail(this,'B2','pendiente')">⏳ Pendiente</button>
           <button class="ss ${b2==='en_progreso'?'prog':''}" onclick="setStDetail(this,'B2','en_progreso')">En progreso</button>
@@ -2275,8 +2447,9 @@ function openDetailPanel(cl, proyecto) {
           <label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:0.05em;">Deadline B2</label>
           <input class="mi-sm" type="date" value="${proyecto?.fecha_deadline_b2||''}" onchange="saveDeadline('${clSafe}','b2',this.value)" onclick="event.stopPropagation()" style="flex:1;"/>
         </div>
-        <div style="font-size:11px;color:var(--txt3);padding:6px 0">Sin piezas configuradas</div>
-        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')">+ Agregar pieza</button>
+        ${buildDisplayBlock(cl.nombre)}
+        <button class="add-piece-btn" onclick="openPiece('${cl.nombre} B2')" style="margin-top:6px;">+ Agregar pieza</button>
+        <button class="add-influ" onclick="event.stopPropagation();togglePausaMes('${clSafe}')" style="margin-top:6px;color:var(--txt3);">${proyecto?.activo_mes === false ? '▶ Reactivar este mes' : '⏸ No activa este mes'}</button>
       </div>
       ${mediaSection}`;
   }
@@ -2330,14 +2503,116 @@ async function setStDetail(btn, batch, status) {
   ssel.querySelectorAll('.ss').forEach(b => b.className = 'ss');
   const clsMap = { 'listo':'ok', 'en_progreso':'prog', 'pendiente':'wait', 'atrasado':'late' };
   btn.classList.add(clsMap[status] || 'wait');
-  await saveBatchStatus(selectedClient.nombre, batch, status);
-  // Refresh table + reopen detail for same client
   const clName = selectedClient.nombre;
-  await loadPlanningData();
-  await renderClientes();
-  const cl = clientesMap[clName];
-  const p = proyectosMap[clName];
-  if (cl) openDetailPanel(cl, p);
+  const field = batch === 'B1' ? 'b1_status' : 'b2_status';
+  if (proyectosMap[clName]) proyectosMap[clName][field] = status;
+  await saveBatchStatus(clName, batch, status);
+  if (proyectosMap[clName]) proyectosMap[clName][field] = status;
+  // Solo actualizar la fila — el panel se queda como está, sin glitch
+  updateRow(clName);
+}
+
+// ══ CICLO DE STATUS DIRECTO EN LA TABLA (un clic) ═══════════════
+// pendiente → en progreso → listo → pendiente
+// Sincroniza los botones del panel abierto cuando el status cambió desde la tabla
+function syncDetailButtons(batch, status) {
+  const detail = document.getElementById('detail-row');
+  if (!detail) return;
+  const bsecs = detail.querySelectorAll('.bsec');
+  const bsec = batch === 'b1' ? bsecs[0] : bsecs[1];
+  if (!bsec) return;
+  const ssel = bsec.querySelector('.ssel');
+  if (!ssel) return;
+  ssel.querySelectorAll('.ss').forEach(b => b.className = 'ss');
+  const cls = { 'listo':'ok', 'en_progreso':'prog', 'pendiente':'wait', 'atrasado':'late' }[status] || 'wait';
+  const btn = [...ssel.querySelectorAll('.ss')].find(b => {
+    const t = b.textContent.toLowerCase();
+    if (cls==='ok') return t.includes('listo');
+    if (cls==='prog') return t.includes('progreso');
+    if (cls==='wait') return t.includes('pendiente');
+    if (cls==='late') return t.includes('atrasado');
+  });
+  if (btn) btn.classList.add(cls);
+}
+
+async function cycleStatus(clientName, batch) {
+  const order = ['pendiente', 'en_progreso', 'listo'];
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  const field = batch === 'B1' ? 'b1_status' : 'b2_status';
+  const current = p[field] || 'pendiente';
+  const idx = order.indexOf(current);
+  const next = order[(idx + 1) % order.length]; // atrasado también avanza a pendiente
+  proyectosMap[clientName][field] = next;
+  updateRow(clientName);
+  // Si el panel de este cliente está abierto, sincronizar sus botones
+  if (selectedClient?.nombre === clientName) syncDetailButtons(batch.toLowerCase(), next);
+  try {
+    await sb.from('proyectos').update({ [field]: next, updated_at: new Date().toISOString() }).eq('id', p.id);
+    showSaveToast(`✓ ${batch}: ${next.replace('_',' ')}`);
+  } catch(e) { console.warn('cycleStatus:', e.message); }
+}
+
+// ══ PAUSAR / REACTIVAR CLIENTE ESTE MES ═════════════════════════
+async function togglePausaMes(clientName) {
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  const nuevo = !(p.activo_mes === false); // toggle → pausar si estaba activo
+  const activo = !nuevo ? true : false;
+  try {
+    await sb.from('proyectos').update({ activo_mes: activo, updated_at: new Date().toISOString() }).eq('id', p.id);
+    proyectosMap[clientName].activo_mes = activo;
+    updateRow(clientName);
+    closeDetail();
+    showSaveToast(activo ? '✓ Cliente reactivado este mes' : '⏸ Cliente pausado este mes');
+  } catch(e) { console.warn('togglePausaMes:', e.message); }
+}
+
+// ══ DISPLAY: TOGGLE Y STATUS ════════════════════════════════════
+async function toggleDisplay(clientName) {
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  const nuevo = !p.tiene_display;
+  try {
+    await sb.from('proyectos').update({ tiene_display: nuevo, display_status: nuevo ? (p.display_status || 'pendiente') : null, updated_at: new Date().toISOString() }).eq('id', p.id);
+    proyectosMap[clientName].tiene_display = nuevo;
+    if (nuevo && !proyectosMap[clientName].display_status) proyectosMap[clientName].display_status = 'pendiente';
+    updateRow(clientName);
+    const el = document.getElementById('display-block');
+    if (el) el.outerHTML = buildDisplayBlock(clientName);
+    showSaveToast(nuevo ? '✓ Display agregado a entregables' : '✓ Display removido');
+  } catch(e) { console.warn('toggleDisplay:', e.message); }
+}
+
+async function cycleDisplayStatus(clientName) {
+  const p = proyectosMap[clientName];
+  if (!p) return;
+  const order = ['pendiente','en_progreso','listo'];
+  const next = order[(order.indexOf(p.display_status || 'pendiente') + 1) % order.length];
+  p.display_status = next;
+  updateRow(clientName);
+  const el = document.getElementById('display-block');
+  if (el) el.outerHTML = buildDisplayBlock(clientName);
+  try {
+    await sb.from('proyectos').update({ display_status: next, updated_at: new Date().toISOString() }).eq('id', p.id);
+    showSaveToast(`✓ Display: ${next.replace('_',' ')}`);
+  } catch(e) { console.warn('cycleDisplayStatus:', e.message); }
+}
+
+function buildDisplayBlock(clientName) {
+  const clSafe = clientName.replace(/'/g,"\\'");
+  const p = proyectosMap[clientName];
+  if (!p?.tiene_display) {
+    return `<div id="display-block" style="margin-top:8px;"><button class="add-influ" onclick="event.stopPropagation();toggleDisplay('${clSafe}')">🖥️ + Agregar artes de display</button></div>`;
+  }
+  const ds = p.display_status || 'pendiente';
+  const dcol = ds === 'listo' ? 'var(--green)' : ds === 'en_progreso' ? 'var(--blue)' : 'var(--amber)';
+  const dlbl = ds === 'listo' ? '✓ Listo' : ds === 'en_progreso' ? 'En progreso' : '⏳ Pendiente';
+  return `<div id="display-block" style="margin-top:8px;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
+    <span style="font-size:11px;font-weight:700;">🖥️ Display</span>
+    <button onclick="event.stopPropagation();cycleDisplayStatus('${clSafe}')" style="cursor:pointer;border:none;border-radius:10px;padding:3px 10px;font-size:10.5px;font-weight:700;background:${dcol};color:white;" title="Clic para cambiar status">${dlbl}</button>
+    <button onclick="event.stopPropagation();toggleDisplay('${clSafe}')" style="cursor:pointer;border:none;background:none;color:var(--txt3);font-size:11px;margin-left:auto;" title="Quitar display">✕</button>
+  </div>`;
 }
 
 function saveDetailNote() {
@@ -2471,8 +2746,19 @@ async function ensureAllProyectos() {
 
 // ══ INIT ═══════════════════════════════════════════════════════
 window.addEventListener('load', async () => {
+  // Sincronizar tab de mes con el mes real
+  document.querySelectorAll('.mtab').forEach(b => {
+    b.classList.remove('active');
+    const oc = b.getAttribute('onclick') || '';
+    if (oc.includes(`,${MES},${ANO})`)) b.classList.add('active');
+  });
+  const tbMonth = document.getElementById('tb-month');
+  if (tbMonth) tbMonth.textContent = `${MONTH_NAMES[MES]} ${ANO}`;
+
   await loadPlanningData();
+  await ensureAllProyectos();
   await renderClientes();
+  await loadExtras();
   setTimeout(() => {
     applyDataToCards();
     document.querySelectorAll('.cc').forEach((c, i) => { c.style.animationDelay = (i * 0.05) + 's'; });
