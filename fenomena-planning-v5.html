@@ -933,11 +933,11 @@ body {
       <div class="stat-lbl">🔴 Vencidos</div>
     </div>
     <div class="stat-card" onclick="filterBy(null,'influs')">
-      <div class="stat-val" style="color:var(--purple)">7</div>
+      <div class="stat-val" style="color:var(--purple)" id="stat-influs">—</div>
       <div class="stat-lbl">Con influencers</div>
     </div>
     <div class="stat-card">
-      <div class="stat-val" style="color:var(--amber)">4</div>
+      <div class="stat-val" style="color:var(--amber)" id="stat-extras">—</div>
       <div class="stat-lbl">Proyectos extra</div>
     </div>
   </div>
@@ -1190,15 +1190,15 @@ body {
   <div class="modal">
     <div class="m-title">👥 Agregar influencer</div>
     <div class="m-sub" id="influ-sub">Nuevo influencer</div>
-    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" placeholder="Nombre completo"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" placeholder="@usuario"/></div></div>
-    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" placeholder="+507 6000-0000"/></div><div class="mf"><label class="ml">Red social</label><select class="mi"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Nombre</label><input class="mi" type="text" id="pi-nombre" placeholder="Nombre completo"/></div><div class="mf"><label class="ml">@Handle</label><input class="mi" type="text" id="pi-handle" placeholder="@usuario"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Teléfono</label><input class="mi" type="tel" id="pi-tel" placeholder="+507 6000-0000"/></div><div class="mf"><label class="ml">Red social</label><select class="mi" id="pi-red"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select></div></div>
     <div class="mf"><label class="ml">Dirección / Ubicación</label><input class="mi" type="text" placeholder="Ciudad, País · Dirección si aplica"/></div>
-    <div class="mrow"><div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" placeholder="0.00"/></div><div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" id="pi-monto" placeholder="0.00"/></div><div class="mf"><label class="ml">Fecha entrega contenido</label><input class="mi" type="date" id="pi-fecha"/></div></div>
     <div class="m-divider"></div>
-    <div class="mf"><label class="ml">Brief (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
-    <div class="mf"><label class="ml">Contrato / Media Kit (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
-    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi"><option>Pendiente</option><option>Recibido</option><option>Aprobado</option><option>Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi"><option>Pendiente</option><option>Parcial</option><option>Pagado</option></select></div></div>
-    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ')">Cancelar</button><button class="btn b-brand" onclick="closeModal('modal-influ')">Agregar influencer</button></div>
+    <div class="mf"><label class="ml">Brief (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" id="pi-brief-url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mf"><label class="ml">Contrato / Media Kit (Dropbox)</label><div style="display:flex;gap:6px"><input class="mi" type="text" placeholder="Nombre visible" style="flex:2;font-size:12px;padding:7px 10px"/><input class="mi" type="url" id="pi-contrato-url" placeholder="https://dropbox.com/..." style="flex:3;font-size:12px;padding:7px 10px"/></div></div>
+    <div class="mrow"><div class="mf"><label class="ml">Status contenido</label><select class="mi" id="pi-status"><option value="pendiente">Pendiente</option><option value="recibido">Recibido</option><option value="aprobado">Aprobado</option><option value="publicado">Publicado</option></select></div><div class="mf"><label class="ml">Pago</label><select class="mi" id="pi-pago"><option value="pendiente">Pendiente</option><option value="parcial">Parcial</option><option value="pagado">Pagado</option></select></div></div>
+    <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-influ')">Cancelar</button><button class="btn b-brand" onclick="confirmAddInflu()">Agregar influencer</button></div>
   </div>
 </div>
 
@@ -1348,6 +1348,7 @@ let proyectosMap = {}, clientesMap = {}, piezaLib = [], currentUser = null, curr
 // verde = a tiempo · amarillo = deadline en ≤2 días · rojo = deadline vencido sin entregar
 function computeSLA(proyecto, tipo) {
   if (proyecto?.activo_mes === false) return { color:'var(--border)', label:'Pausado', state:'na' };
+  if (tipo === 'solo_influencers') return { color:'var(--purple)', label:'Solo influencers', state:'na' };
   if (tipo === 'inicia_junio') return { color:'var(--purple)', label:'Junio', state:'na' };
   if (tipo === 'sin_batches')  return { color:'var(--amber)',  label:'—',     state:'na' };
   const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -1659,6 +1660,16 @@ async function saveExtraProject(data) {
 let extrasCache = {};
 let editingExtraId = null;
 
+// ══ CONTADORES REALES (influencers y extras) ════════════════════
+async function updateTopCounters() {
+  try {
+    const { data: infs } = await sb.from('influencers').select('cliente_id');
+    const uniques = new Set((infs || []).map(i => i.cliente_id).filter(Boolean));
+    const el = document.getElementById('stat-influs');
+    if (el) el.textContent = uniques.size;
+  } catch(e) { console.warn('updateTopCounters:', e.message); }
+}
+
 // ══ EDITAR PROYECTO EXTRA ═══════════════════════════════════════
 function openEditExtra(id) {
   const ex = extrasCache[id];
@@ -1713,6 +1724,8 @@ async function loadExtras() {
     // Update extras count badge
     const ctEl = document.querySelector('.extras-ct');
     if (ctEl) ctEl.textContent = `${(extras||[]).length} este mes`;
+    const statEx = document.getElementById('stat-extras');
+    if (statEx) statEx.textContent = (extras||[]).length;
 
     if (!extras || extras.length === 0) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:13px;">Sin proyectos extra este mes</div>';
@@ -1948,11 +1961,14 @@ async function openCargaModal() {
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:12px;">Calculando carga...</div>';
   document.getElementById('modal-carga').classList.add('open');
 
-  // 1) Carga base: clientes activos asignados a cada diseñador
+  // 1) Carga base: clientes activos asignados a cada diseñador (pausados NO cuentan)
   const carga = {};
   Object.values(clientesMap).forEach(cl => {
     const d = getDesigner(cl.notas);
     if (!d || d === 'Por contratar') return;
+    if (proyectosMap[cl.nombre]?.activo_mes === false) return; // pausado este mes
+    const tipoCl = cl.tipo_card || 'regular';
+    if (tipoCl === 'solo_influencers') return; // sin batch de contenido, no carga diseño
     if (!carga[d]) carga[d] = { pts: 0, clientes: [], extras: 0 };
     carga[d].pts += PTS_POR_CLIENTE;
     carga[d].clientes.push(cl.nombre);
@@ -2030,7 +2046,60 @@ function loadLibSuggestions() {
 }
 
 // ══ INFLUENCERS ════════════════════════════════════════════════
-function openAddInflu(c) { document.getElementById('influ-sub').textContent = 'Nuevo influencer para ' + c; document.getElementById('modal-influ').classList.add('open'); }
+let pendingInfluClient = null;
+function openAddInflu(c) {
+  pendingInfluClient = c;
+  document.getElementById('influ-sub').textContent = 'Nuevo influencer para ' + c;
+  ['pi-nombre','pi-handle','pi-tel','pi-monto','pi-fecha','pi-brief-url','pi-contrato-url'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('modal-influ').classList.add('open');
+}
+
+async function confirmAddInflu() {
+  const nombre = document.getElementById('pi-nombre')?.value?.trim();
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
+  const cl = clientesMap[pendingInfluClient];
+  try {
+    const { error } = await sb.from('influencers').insert({
+      cliente_id: cl?.id || null,
+      nombre,
+      handle: document.getElementById('pi-handle')?.value?.trim() || null,
+      red_social: document.getElementById('pi-red')?.value || 'Instagram',
+      telefono: document.getElementById('pi-tel')?.value?.trim() || null,
+      monto_aprobado: parseFloat(document.getElementById('pi-monto')?.value) || 0,
+      fecha_entrega_contenido: document.getElementById('pi-fecha')?.value || null,
+      status_contenido: document.getElementById('pi-status')?.value || 'pendiente',
+      pago_status: document.getElementById('pi-pago')?.value || 'pendiente',
+      brief_url: document.getElementById('pi-brief-url')?.value?.trim() || null,
+      contrato_url: document.getElementById('pi-contrato-url')?.value?.trim() || null
+    });
+    if (error) throw error;
+    closeModal('modal-influ');
+    showSaveToast(`✓ ${nombre} agregado a ${pendingInfluClient}`);
+    updateTopCounters();
+  } catch(e) {
+    console.warn('confirmAddInflu:', e.message);
+    // Reintento sin columnas de URL por si no existen en la tabla
+    try {
+      const { error: e2 } = await sb.from('influencers').insert({
+        cliente_id: cl?.id || null,
+        nombre,
+        handle: document.getElementById('pi-handle')?.value?.trim() || null,
+        red_social: document.getElementById('pi-red')?.value || 'Instagram',
+        telefono: document.getElementById('pi-tel')?.value?.trim() || null,
+        monto_aprobado: parseFloat(document.getElementById('pi-monto')?.value) || 0,
+        fecha_entrega_contenido: document.getElementById('pi-fecha')?.value || null,
+        status_contenido: document.getElementById('pi-status')?.value || 'pendiente',
+        pago_status: document.getElementById('pi-pago')?.value || 'pendiente'
+      });
+      if (e2) throw e2;
+      closeModal('modal-influ');
+      showSaveToast(`✓ ${nombre} agregado a ${pendingInfluClient}`);
+      updateTopCounters();
+    } catch(e3) { showSaveToast('Error al guardar influencer'); console.warn(e3.message); }
+  }
+}
 function openInfluEdit(name, handle, phone, amt) {
   document.getElementById('ie-title').textContent = name;
   document.getElementById('ie-name').value = name;
@@ -2221,6 +2290,7 @@ function buildRow(cl, i) {
           'atrasado': { cls:'st-late', txt:'Atrasado' },
         };
         if (tipo === 'inicia_junio') return '<span class="st-pill st-na">Junio</span>';
+        if (tipo === 'solo_influencers') return '<span class="st-pill st-na">—</span>';
         if (tipo === 'sin_batches') {
           if (batch === 'B2') return '<span class="st-pill st-na">—</span>';
           const s = map[status] || map['pendiente'];
@@ -2388,11 +2458,22 @@ function openDetailPanel(cl, proyecto) {
   let pillsHtml = '';
   if (tipo === 'sin_batches') pillsHtml = '<span class="pill" style="background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);font-size:10px;padding:2px 8px;border-radius:20px;">Especial</span>';
   else if (tipo === 'inicia_junio') pillsHtml = '<span class="pill" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);font-size:10px;padding:2px 8px;border-radius:20px;">Inicia Junio</span>';
+  else if (tipo === 'solo_influencers') pillsHtml = '<span class="pill" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);font-size:10px;padding:2px 8px;border-radius:20px;">👥 Solo influencers</span>';
 
   let gridHtml = '';
   let gridCols = '1fr 1fr 220px';
 
-  if (tipo === 'sin_batches') {
+  if (tipo === 'solo_influencers') {
+    gridCols = '1fr 220px';
+    const clSafeI = cl.nombre.replace(/'/g,"\\'");
+    gridHtml = `
+      <div class="bsec"><div class="bsec-title" style="color:var(--purple)">👥 Cliente solo influencers</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.6;">Sin batches de contenido — la actividad de este cliente son colaboraciones con influencers. Gestiona perfiles, entregas y pagos desde el módulo de Influencers.</div>
+        <a href="fenomena-influencers-v2.html" class="add-piece-btn" style="display:block;text-align:center;margin-top:8px;text-decoration:none;">Abrir módulo Influencers →</a>
+        <button class="add-influ" onclick="event.stopPropagation();togglePausaMes('${clSafeI}')" style="margin-top:8px;color:var(--txt3);">${proyecto?.activo_mes === false ? '▶ Reactivar este mes' : '⏸ No activa este mes'}</button>
+      </div>
+      <div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div>`;
+  } else if (tipo === 'sin_batches') {
     gridCols = '1fr 220px';
     const clSafeR = cl.nombre.replace(/'/g,"\\'");
     gridHtml = `
@@ -2759,6 +2840,7 @@ window.addEventListener('load', async () => {
   await ensureAllProyectos();
   await renderClientes();
   await loadExtras();
+  updateTopCounters();
   setTimeout(() => {
     applyDataToCards();
     document.querySelectorAll('.cc').forEach((c, i) => { c.style.animationDelay = (i * 0.05) + 's'; });
