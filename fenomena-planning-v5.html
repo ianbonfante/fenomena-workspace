@@ -1554,6 +1554,14 @@ async function saveLinkContenido(clientName, batch, url) {
   } catch(e) { console.warn('saveLinkContenido:', e.message); }
 }
 
+// ══ EMAILJS — configuración (emailjs.com, gratis 200 correos/mes) ══
+// 1) Crea cuenta en emailjs.com  2) Add New Service → Gmail → conecta la cuenta
+// 3) Crea un template (ver instrucciones)  4) Pega aquí los 3 IDs:
+const EMAILJS_PUBLIC_KEY = 'PEGAR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'PEGAR_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'PEGAR_TEMPLATE_ID';
+const MEDIA_EMAILS = 'belkys@fenomenadigital.com, christian@fenomenadigital.com'; // ← ajustar correos reales
+
 // Aprobar para pauta = guardar aprobación + enviar correo a Medios con los links
 async function aprobarYNotificar(clientName) {
   const p = proyectosMap[clientName];
@@ -1566,21 +1574,40 @@ async function aprobarYNotificar(clientName) {
   const btn = document.querySelector('#pauta-flow .nb-go');
   if (btn) { btn.disabled = true; btn.textContent = 'Enviando correo...'; }
 
+  // Texto de links según el caso: por batch o link único
+  let linksTexto = '';
+  if (linkB1 && linkB2 && linkB1 !== linkB2) {
+    linksTexto = `Batch 1: ${linkB1}\nBatch 2: ${linkB2}`;
+  } else {
+    const unico = linkB1 || linkB2;
+    const cual = (linkB1 && linkB2) ? 'Contenido completo del mes (link único)' : (linkB1 ? 'Batch 1' : 'Batch 2');
+    linksTexto = `${cual}: ${unico}`;
+  }
+
   let emailOk = false;
-  try {
-    const r = await fetch('/api/notify-pauta', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cliente: clientName,
-        mes: `${MONTH_NAMES[MES]} ${ANO}`,
-        aprobadoPor: currentUserName,
-        linkB1, linkB2
-      })
-    });
-    emailOk = r.ok;
-    if (!r.ok) console.warn('notify-pauta:', (await r.json())?.error);
-  } catch(e) { console.warn('notify-pauta fetch:', e.message); }
+  if (EMAILJS_PUBLIC_KEY !== 'PEGAR_PUBLIC_KEY') {
+    try {
+      const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          template_params: {
+            to_email: MEDIA_EMAILS,
+            cliente: clientName,
+            mes: `${MONTH_NAMES[MES]} ${ANO}`,
+            aprobado_por: currentUserName,
+            links: linksTexto,
+            workspace_url: window.location.href
+          }
+        })
+      });
+      emailOk = r.ok;
+      if (!r.ok) console.warn('emailjs:', await r.text());
+    } catch(e) { console.warn('emailjs fetch:', e.message); }
+  }
 
   await saveAprobadoPauta(clientName);
 
@@ -1590,12 +1617,8 @@ async function aprobarYNotificar(clientName) {
     // Fallback: abrir el correo prellenado en el cliente de mail
     if (confirm('No se pudo enviar el correo automático. ¿Abrir tu correo con el mensaje prellenado para enviarlo manual?')) {
       const cuerpo = encodeURIComponent(
-        `Hola equipo de Medios,\n\nEl contenido de ${clientName} (${MONTH_NAMES[MES]} ${ANO}) fue aprobado para pauta por ${currentUserName}.\n\n` +
-        (linkB1 && linkB2 && linkB1 !== linkB2
-          ? `Batch 1: ${linkB1}\nBatch 2: ${linkB2}`
-          : `Contenido: ${linkB1 || linkB2}`) +
-        `\n\nPor favor confirmen la recepción en el Workspace.\n\nSaludos`);
-      window.location.href = `mailto:?subject=${encodeURIComponent('✅ ' + clientName + ' — contenido aprobado para pauta')}&body=${cuerpo}`;
+        `Hola equipo de Medios,\n\nEl contenido de ${clientName} (${MONTH_NAMES[MES]} ${ANO}) fue aprobado para pauta por ${currentUserName}.\n\n${linksTexto}\n\nPor favor confirmen la recepción en el Workspace.\n\nSaludos`);
+      window.location.href = `mailto:${MEDIA_EMAILS}?subject=${encodeURIComponent('✅ ' + clientName + ' — contenido aprobado para pauta')}&body=${cuerpo}`;
     }
   }
 }
