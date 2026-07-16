@@ -221,7 +221,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <a class="ni active"><span class="ni-icon">👥</span>Influencers</a>
     <a class="ni" href="fenomena-pipeline-v2.html"><span class="ni-icon">🎯</span>Pipeline</a>
     <div class="sb-section" style="margin-top:8px">Agencia</div>
-    <a class="ni" href="fenomena-media-v2.html"><span class="ni-icon">📡</span>Media</a>
+    <a class="ni" href="fenomena-media-v2.html"><span class="ni-icon">📇</span>Cheat Sheet</a>
     <a class="ni" href="fenomena-admin-v2.html"><span class="ni-icon">🔒</span>Admin</a>
   </nav>
   <div class="sb-bottom">
@@ -333,7 +333,18 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
       <div class="mf"><label class="ml">Cliente</label>
         <select class="mi" id="ai-client"><option value="">Seleccionar cliente...</option></select>
       </div>
-      <div class="mf"><label class="ml">Red social</label><select class="mi" id="ai-red"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option><option value="twitter">Twitter</option><option value="otra">Otra</option></select></div>
+      <div class="mf"><label class="ml">Redes donde postea</label>
+        <div id="ai-redes" style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 0;">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="Instagram" checked> Instagram</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="TikTok"> TikTok</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="YouTube"> YouTube</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="Facebook"> Facebook</label>
+        </div>
+      </div>
+      <div class="mrow">
+        <div class="mf"><label class="ml">Piezas compradas</label><input class="mi" type="number" id="ai-piezas" min="1" placeholder="ej. 3"/></div>
+        <div class="mf"><label class="ml">Meses activos</label><input class="mi" type="text" id="ai-meses" placeholder="ej. jul, ago 2026"/></div>
+      </div>
     </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Nombre completo</label><input class="mi" type="text" id="ai-nombre" placeholder="Nombre completo"/></div>
@@ -400,6 +411,18 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <div class="mrow">
       <div class="mf"><label class="ml">Monto aprobado ($)</label><input class="mi" type="number" id="ie-amt"/></div>
       <div class="mf"><label class="ml">Tarifa referencial</label><input class="mi" type="text" id="ie-tarifa" placeholder="ej. $150/post · $300/reel"/></div>
+    </div>
+    <div class="mf"><label class="ml">Redes donde postea (activación actual)</label>
+      <div id="ie-redes" style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 0;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="Instagram"> Instagram</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="TikTok"> TikTok</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="YouTube"> YouTube</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" value="Facebook"> Facebook</label>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><label class="ml">Piezas compradas</label><input class="mi" type="number" id="ie-piezas" min="1" placeholder="ej. 3"/></div>
+      <div class="mf"><label class="ml">Meses activos</label><input class="mi" type="text" id="ie-meses" placeholder="ej. jul, ago, sep 2026"/></div>
     </div>
     <div class="mrow">
       <div class="mf"><label class="ml">Status contenido</label>
@@ -594,7 +617,7 @@ function buildInfluRow(inf) {
     <td>
       <div style="display:flex;align-items:center;gap:9px;">
         <div class="influ-av" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">${(inf.nombre||'?')[0]}</div>
-        <div><div class="influ-name">${inf.nombre||'—'}</div><div class="influ-handle">${inf.handle||'—'} · ${inf.red_social||'IG'}</div></div>
+        <div><div class="influ-name">${inf.nombre||'—'}</div><div class="influ-handle">${inf.handle||'—'} · ${inf.redes || inf.red_social || 'IG'}</div>${(inf.piezas_cantidad || inf.meses_activos) ? `<div style="font-size:10px;color:var(--purple);font-weight:600;margin-top:2px;">${inf.piezas_cantidad ? inf.piezas_cantidad + ' pieza' + (inf.piezas_cantidad>1?'s':'') : ''}${inf.piezas_cantidad && inf.meses_activos ? ' · ' : ''}${inf.meses_activos || ''}</div>` : ''}</div>
       </div>
     </td>
     <td class="influ-phone">
@@ -664,7 +687,11 @@ async function saveNewInfluencer() {
   // clienteId could be UUID (from populateClientSelect) or empty
   const clienteId = clienteIdRaw && clienteIdRaw !== '' ? clienteIdRaw : null;
   const handle = document.getElementById('ai-handle')?.value?.trim();
-  const red = document.getElementById('ai-red')?.value || 'instagram';
+  const redesArr = [...document.querySelectorAll('#ai-redes input:checked')].map(c => c.value);
+  const redes = redesArr.join(', ') || 'Instagram';
+  const red = (redesArr[0] || 'Instagram').toLowerCase();
+  const piezasCant = parseInt(document.getElementById('ai-piezas')?.value) || null;
+  const mesesAct = document.getElementById('ai-meses')?.value?.trim() || null;
   const tel = document.getElementById('ai-tel')?.value?.trim();
   const email = document.getElementById('ai-email')?.value?.trim() || null;
   const managerNombre = document.getElementById('ai-manager')?.value?.trim() || null;
@@ -684,6 +711,7 @@ async function saveNewInfluencer() {
     const { data, error } = await sb.from('influencers').insert({
       cliente_id: clienteId,
       nombre, handle, red_social: red,
+      redes, piezas_cantidad: piezasCant, meses_activos: mesesAct,
       telefono: tel,
       email, manager_nombre: managerNombre, manager_contacto: managerContacto, tarifa,
       monto_aprobado: monto,
@@ -724,6 +752,12 @@ async function openInfluDetail(id) {
   document.getElementById('ie-manager-contacto').value = inf.manager_contacto || '';
   document.getElementById('ie-tarifa').value = inf.tarifa || '';
   document.getElementById('ie-notas').value = inf.notas || '';
+  document.getElementById('ie-piezas').value = inf.piezas_cantidad || '';
+  document.getElementById('ie-meses').value = inf.meses_activos || '';
+  const redesActivas = (inf.redes || inf.red_social || '').split(',').map(r => r.trim());
+  document.querySelectorAll('#ie-redes input[type=checkbox]').forEach(chk => {
+    chk.checked = redesActivas.includes(chk.value);
+  });
 
   const statusSel = document.getElementById('edit-status');
   const pagoSel = document.getElementById('edit-pago');
@@ -750,12 +784,18 @@ async function saveInfluEdit() {
   const managerContacto = document.getElementById('ie-manager-contacto')?.value?.trim() || null;
   const tarifa = document.getElementById('ie-tarifa')?.value?.trim() || null;
   const notas = document.getElementById('ie-notas')?.value?.trim() || null;
+  const redes = [...document.querySelectorAll('#ie-redes input:checked')].map(c => c.value).join(', ') || null;
+  const piezasCant = parseInt(document.getElementById('ie-piezas')?.value) || null;
+  const mesesAct = document.getElementById('ie-meses')?.value?.trim() || null;
 
   try {
     const { error } = await sb.from('influencers').update({
       nombre, handle, telefono,
       email, manager_nombre: managerNombre, manager_contacto: managerContacto,
       tarifa, notas,
+      redes, red_social: redes ? redes.split(',')[0].trim() : undefined,
+      piezas_cantidad: piezasCant,
+      meses_activos: mesesAct,
       monto_aprobado: monto,
       status_contenido: status,
       pago_status: pago,
@@ -768,7 +808,7 @@ async function saveInfluEdit() {
     // Update local data
     const idx = influs.findIndex(i => i.id === editingInfluId);
     if (idx >= 0) {
-      influs[idx] = { ...influs[idx], nombre, handle, telefono, email, manager_nombre: managerNombre, manager_contacto: managerContacto, tarifa, notas, monto_aprobado: monto, status_contenido: status, pago_status: pago, fecha_entrega_contenido: fecha };
+      influs[idx] = { ...influs[idx], nombre, handle, telefono, email, manager_nombre: managerNombre, manager_contacto: managerContacto, tarifa, notas, redes, piezas_cantidad: piezasCant, meses_activos: mesesAct, monto_aprobado: monto, status_contenido: status, pago_status: pago, fecha_entrega_contenido: fecha };
     }
     updateStats();
     renderInfluencers();

@@ -865,7 +865,7 @@ body {
 
     <div class="sb-section" style="margin-top:8px">Agencia</div>
     <a class="ni" href="fenomena-media-v2.html">
-      <span class="ni-icon">📡</span>Media
+      <span class="ni-icon">📇</span>Cheat Sheet
     </a>
     <a class="ni" onclick="openDirModal()">
       <span class="ni-icon">👥</span>Directoras
@@ -1542,6 +1542,64 @@ async function saveMediaNotification(clientName, paper, paperUrl, fecha) {
 }
 
 // ══ FLUJO APROBADO PARA PAUTA → CONFIRMACIÓN DE MEDIOS ══════════
+// Guarda el link de contenido por batch
+async function saveLinkContenido(clientName, batch, url) {
+  const p = await getOrCreateProyecto(clientName);
+  if (!p) return;
+  const field = batch === 'b1' ? 'link_contenido_b1' : 'link_contenido_b2';
+  try {
+    await sb.from('proyectos').update({ [field]: url || null, updated_at: new Date().toISOString() }).eq('id', p.id);
+    proyectosMap[clientName][field] = url || null;
+    showSaveToast(`✓ Link ${batch.toUpperCase()} guardado`);
+  } catch(e) { console.warn('saveLinkContenido:', e.message); }
+}
+
+// Aprobar para pauta = guardar aprobación + enviar correo a Medios con los links
+async function aprobarYNotificar(clientName) {
+  const p = proyectosMap[clientName];
+  const linkB1 = p?.link_contenido_b1 || '';
+  const linkB2 = p?.link_contenido_b2 || '';
+  if (!linkB1 && !linkB2) {
+    alert('Agrega al menos un link de contenido (Dropbox o Basecamp) antes de aprobar para pauta — es lo que le llega a Medios.');
+    return;
+  }
+  const btn = document.querySelector('#pauta-flow .nb-go');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando correo...'; }
+
+  let emailOk = false;
+  try {
+    const r = await fetch('/api/notify-pauta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cliente: clientName,
+        mes: `${MONTH_NAMES[MES]} ${ANO}`,
+        aprobadoPor: currentUserName,
+        linkB1, linkB2
+      })
+    });
+    emailOk = r.ok;
+    if (!r.ok) console.warn('notify-pauta:', (await r.json())?.error);
+  } catch(e) { console.warn('notify-pauta fetch:', e.message); }
+
+  await saveAprobadoPauta(clientName);
+
+  if (emailOk) {
+    showSaveToast('✉️ Correo enviado a Belkys y Christian');
+  } else {
+    // Fallback: abrir el correo prellenado en el cliente de mail
+    if (confirm('No se pudo enviar el correo automático. ¿Abrir tu correo con el mensaje prellenado para enviarlo manual?')) {
+      const cuerpo = encodeURIComponent(
+        `Hola equipo de Medios,\n\nEl contenido de ${clientName} (${MONTH_NAMES[MES]} ${ANO}) fue aprobado para pauta por ${currentUserName}.\n\n` +
+        (linkB1 && linkB2 && linkB1 !== linkB2
+          ? `Batch 1: ${linkB1}\nBatch 2: ${linkB2}`
+          : `Contenido: ${linkB1 || linkB2}`) +
+        `\n\nPor favor confirmen la recepción en el Workspace.\n\nSaludos`);
+      window.location.href = `mailto:?subject=${encodeURIComponent('✅ ' + clientName + ' — contenido aprobado para pauta')}&body=${cuerpo}`;
+    }
+  }
+}
+
 async function saveAprobadoPauta(clientName) {
   const p = await getOrCreateProyecto(clientName);
   if (!p) return;
@@ -1598,8 +1656,8 @@ function buildPautaFlow(clientName) {
     </div>
     <button class="nb nb-go" style="margin-top:6px;background:var(--green);border-color:var(--green);" onclick="confirmarMedios('${clSafe}')">✓ Confirmar recepción (Medios)</button></div>`;
   }
-  return `<div id="pauta-flow"><button class="nb nb-go" style="margin-top:6px;" onclick="saveAprobadoPauta('${clSafe}')">✅ Aprobar para pauta</button>
-  <div style="font-size:10px;color:var(--txt3);margin-top:3px;text-align:center;">Marca el diseño como aprobado y notifica a Medios</div></div>`;
+  return `<div id="pauta-flow"><button class="nb nb-go" style="margin-top:6px;" onclick="aprobarYNotificar('${clSafe}')">✅ Aprobar para pauta + avisar a Medios</button>
+  <div style="font-size:10px;color:var(--txt3);margin-top:3px;text-align:center;">Envía correo a Belkys y Christian con los links de contenido</div></div>`;
 }
 
 function refreshPautaFlow(clientName) {
@@ -1964,7 +2022,7 @@ async function openCargaModal() {
   // 1) Carga base: clientes activos asignados a cada diseñador (pausados NO cuentan)
   const carga = {};
   Object.values(clientesMap).forEach(cl => {
-    const d = getDesigner(cl.notas);
+    const d = getDesignerFor(cl);
     if (!d || d === 'Por contratar') return;
     if (proyectosMap[cl.nombre]?.activo_mes === false) return; // pausado este mes
     const tipoCl = cl.tipo_card || 'regular';
@@ -2237,17 +2295,20 @@ function getPauta(notas) {
   const m = notas.match(/Pauta: ([^.]+)\./);
   return m ? m[1].trim() : null;
 }
+// Prefieren las columnas del Cheat Sheet; caen a las notas si están vacías
+function getDesignerFor(cl) { return cl?.diseñador_asignado || getDesigner(cl?.notas); }
+function getPautaFor(cl) { return cl?.pauta_responsable || getPauta(cl?.notas); }
 function buildPills(cl) {
   const tipo = cl.tipo_card || 'regular';
   if (tipo === 'sin_batches') return '<span class="pill" style="background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);">⚡ Especial</span>';
   if (tipo === 'inicia_junio') return '<span class="pill" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);">📅 Inicia Junio</span>';
-  const pauta = getPauta(cl.notas);
+  const pauta = getPautaFor(cl);
   if (!pauta) return '<span class="pill p-prog">⏳ En progreso</span><span class="pill" style="background:var(--surface2);color:var(--txt3);border:1px solid var(--border);">📵 Sin pauta</span>';
   return '<span class="pill p-prog">⏳ En progreso</span>';
 }
 function buildBody(cl) {
   const tipo = cl.tipo_card || 'regular';
-  const pauta = getPauta(cl.notas);
+  const pauta = getPautaFor(cl);
   const piezasDesc = cl.notas ? cl.notas.split('. ').slice(2).join('. ').trim() : '';
   if (tipo === 'sin_batches') {
     return `<div class="cc-grid" style="grid-template-columns:1fr 220px;"><div class="bsec"><div class="bsec-title" style="color:var(--amber)">⚡ Proyecto especial</div><div style="font-size:13px;color:var(--txt2);line-height:1.7">${cl.notas||''}</div><button class="add-piece-btn" onclick="openPiece('${cl.nombre}')">+ Agregar tarea</button></div><div class="rsec"><div class="rs-title">Influencers</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')">+ Agregar influencer</button></div></div>`;
@@ -2266,9 +2327,9 @@ let clientesList = [];
 function buildRow(cl, i) {
       const planner = cl.planning_responsable || 'Ian';
       const plannerClass = planner.toLowerCase().replace(' ','');
-      const designer = getDesigner(cl.notas);
+      const designer = getDesignerFor(cl);
       const designerColor = DESIGNERS_COLOR[designer] || '#9590AB';
-      const pauta = getPauta(cl.notas);
+      const pauta = getPautaFor(cl);
       const tipo = cl.tipo_card || 'regular';
       const proyecto = proyectosMap[cl.nombre];
       const b1 = proyecto?.b1_status || 'pendiente';
@@ -2448,8 +2509,8 @@ function openDetailPanel(cl, proyecto) {
   row.classList.add('selected');
 
   const planner = cl.planning_responsable || 'Ian';
-  const designer = getDesigner(cl.notas);
-  const pauta = getPauta(cl.notas);
+  const designer = getDesignerFor(cl);
+  const pauta = getPautaFor(cl);
   const tipo = cl.tipo_card || 'regular';
   const b1 = proyecto?.b1_status || 'pendiente';
   const b2 = proyecto?.b2_status || 'pendiente';
@@ -2497,7 +2558,11 @@ function openDetailPanel(cl, proyecto) {
     const pautaFlowHtml = buildPautaFlow(cl.nombre);
 
     const mediaSection = pauta
-      ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/><button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>${pautaFlowHtml}<button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
+      ? `<div class="rsec"><div class="rs-title">Media Bridge</div><div class="mbadge">📡 ${pauta}</div><div class="lf"><label class="lf-lbl">Paper</label><div class="lf-wrap"><input class="lf-name" type="text" placeholder="Nombre del Paper..." value="${proyecto?.paper_nombre||''}"/><div class="lf-url">🔗</div></div></div><input class="mi-sm" type="date" value="${proyecto?.fecha_publicacion||''}"/>
+      <div class="lf" style="margin-top:6px;"><label class="lf-lbl">🔗 Link contenido B1</label><input class="lf-name" type="url" placeholder="Dropbox / Basecamp..." value="${proyecto?.link_contenido_b1||''}" onchange="saveLinkContenido('${clSafe}','b1',this.value)" onclick="event.stopPropagation()"/></div>
+      <div class="lf" style="margin-top:4px;"><label class="lf-lbl">🔗 Link contenido B2</label><input class="lf-name" type="url" placeholder="Dropbox / Basecamp... (igual a B1 = link único)" value="${proyecto?.link_contenido_b2||''}" onchange="saveLinkContenido('${clSafe}','b2',this.value)" onclick="event.stopPropagation()"/></div>
+      <div style="font-size:9.5px;color:var(--txt3);margin-top:2px;">Si un solo link tiene todo el mes, llena solo uno o repite el mismo en ambos.</div>
+      <button class="nb nb-go" onclick="openNotify('${cl.nombre}','${pauta}')">📡 Notificar a Media</button>${pautaFlowHtml}<button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:4px">+ Agregar influencer</button></div>`
       : `<div class="rsec"><div class="rs-title">Sin pauta activa</div><div style="font-size:11px;color:var(--txt3);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;">📵 Sin pauta</div><button class="add-influ" onclick="openAddInflu('${cl.nombre}')" style="margin-top:8px">+ Agregar influencer</button></div>`;
 
     gridHtml = `
@@ -2752,6 +2817,11 @@ async function saveDesignerName(clienteId, clientName, newName) {
   try {
     const cl = clientesMap[clientName];
     if (!cl) return;
+    // Guardar también en la columna del Cheat Sheet para mantener ambos sincronizados
+    try {
+      await sb.from('clientes').update({ diseñador_asignado: newName || null }).eq('id', clienteId);
+      cl.diseñador_asignado = newName || null;
+    } catch(e) { console.warn('col diseñador_asignado:', e.message); }
     let notas = cl.notas || '';
 
     if (notas.match(/Diseño: [^.]*\./)) {
