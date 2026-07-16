@@ -859,9 +859,11 @@ body {
     <a class="ni" href="fenomena-influencers-v2.html">
       <span class="ni-icon">👥</span>Influencers
     </a>
+    <!-- Pipeline oculto por ahora — descomentar para reactivar
     <a class="ni" href="fenomena-pipeline-v2.html">
       <span class="ni-icon">🎯</span>Pipeline
     </a>
+    -->
 
     <div class="sb-section" style="margin-top:8px">Agencia</div>
     <a class="ni" href="fenomena-media-v2.html">
@@ -1287,7 +1289,7 @@ body {
     <div class="m-sub">Puntos estimados por diseñador — Junio 2026</div>
     <div class="carga-grid" id="carga-grid"></div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--txt3);">
-      📊 Cálculo: 10 pts por cliente asignado + pts de proyectos extra del mes, sobre capacidad de 40 pts. Semáforo: 🟢 &lt;70% · 🟡 70-90% · 🔴 &gt;90%
+      📊 Cálculo: suma de piezas/mes de cada cuenta asignada (editable en el Cheat Sheet) + piezas de extras, sobre capacidad de 45 piezas. Semáforo: 🟢 &lt;70% · 🟡 70-90% · 🔴 &gt;90%
     </div>
     <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-carga')">Cerrar</button></div>
   </div>
@@ -2032,9 +2034,10 @@ async function confirmNotifyDB() {
 function openPiece(ctx) { document.getElementById('piece-sub').textContent = 'Agregar pieza a ' + ctx; document.getElementById('modal-piece').classList.add('open'); }
 
 // ══ CARGA DE DISEÑADORES ════════════════════════════════════════
-// Configuración: puntos estimados por cliente regular y capacidad mensual por diseñador
-const PTS_POR_CLIENTE = 10;
-const CAPACIDAD_MENSUAL = 40;
+// Carga = suma de piezas/mes de las cuentas asignadas + piezas de proyectos extra.
+// Las piezas/mes de cada cuenta se editan en el Cheat Sheet.
+const PIEZAS_DEFAULT = 8;       // si la cuenta no tiene piezas_mes definido
+const CAPACIDAD_PIEZAS = 45;    // capacidad mensual por diseñador
 
 async function openCargaModal() {
   const grid = document.getElementById('carga-grid');
@@ -2042,40 +2045,42 @@ async function openCargaModal() {
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:12px;">Calculando carga...</div>';
   document.getElementById('modal-carga').classList.add('open');
 
-  // 1) Carga base: clientes activos asignados a cada diseñador (pausados NO cuentan)
+  // 1) Carga base: piezas/mes de las cuentas asignadas (pausados NO cuentan)
   const carga = {};
   Object.values(clientesMap).forEach(cl => {
     const d = getDesignerFor(cl);
     if (!d || d === 'Por contratar') return;
     if (proyectosMap[cl.nombre]?.activo_mes === false) return; // pausado este mes
     const tipoCl = cl.tipo_card || 'regular';
-    if (tipoCl === 'solo_influencers') return; // sin batch de contenido, no carga diseño
-    if (!carga[d]) carga[d] = { pts: 0, clientes: [], extras: 0 };
-    carga[d].pts += PTS_POR_CLIENTE;
-    carga[d].clientes.push(cl.nombre);
+    if (tipoCl === 'solo_influencers') return; // sin batch de contenido
+    const pz = parseInt(cl.piezas_mes) || PIEZAS_DEFAULT;
+    if (!carga[d]) carga[d] = { pz: 0, clientes: [], extras: 0 };
+    carga[d].pz += pz;
+    carga[d].clientes.push(`${cl.nombre} (${pz})`);
   });
 
-  // 2) Proyectos extra del mes activo
+  // 2) Proyectos extra del mes activo (suma de cantidades de piezas)
   try {
     const { data: extras } = await sb.from('proyectos_extra')
-      .select('diseñador_nombre, pts_total').eq('mes', MES).eq('año', ANO);
+      .select('diseñador_nombre, piezas').eq('mes', MES).eq('año', ANO);
     (extras || []).forEach(ex => {
       const d = (ex.diseñador_nombre || '').trim();
       if (!d) return;
-      if (!carga[d]) carga[d] = { pts: 0, clientes: [], extras: 0 };
-      carga[d].pts += ex.pts_total || 0;
-      carga[d].extras += ex.pts_total || 0;
+      const pzEx = (ex.piezas || []).reduce((s,p) => s + (parseInt(p.cantidad) || 1), 0) || 1;
+      if (!carga[d]) carga[d] = { pz: 0, clientes: [], extras: 0 };
+      carga[d].pz += pzEx;
+      carga[d].extras += pzEx;
     });
   } catch(e) { console.warn('carga extras:', e.message); }
 
   // 3) Render ordenado por carga descendente
-  const entries = Object.entries(carga).sort((a,b) => b[1].pts - a[1].pts);
+  const entries = Object.entries(carga).sort((a,b) => b[1].pz - a[1].pz);
   if (entries.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--txt3);font-size:12px;">Sin diseñadores asignados este mes</div>';
     return;
   }
   grid.innerHTML = entries.map(([nombre, c]) => {
-    const pct = Math.round((c.pts / CAPACIDAD_MENSUAL) * 100);
+    const pct = Math.round((c.pz / CAPACIDAD_PIEZAS) * 100);
     let semBg, semTxt, semLbl;
     if (pct < 70)      { semBg = 'var(--green-bg)'; semTxt = 'var(--green)'; semLbl = '🟢 Con espacio'; }
     else if (pct <= 90){ semBg = 'var(--amber-bg)'; semTxt = 'var(--amber)'; semLbl = '🟡 Cerca del límite'; }
@@ -2087,7 +2092,7 @@ async function openCargaModal() {
         <div class="d-dot" style="background:${color};width:9px;height:9px;border-radius:50%;"></div>
         <div class="carga-name">${nombre}</div>
       </div>
-      <div class="carga-pts">${c.pts} pts / ${CAPACIDAD_MENSUAL} · ${c.clientes.length} cliente${c.clientes.length!==1?'s':''}${c.extras>0 ? ` · +${c.extras} pts extra` : ''}</div>
+      <div class="carga-pts">${c.pz} piezas / ${CAPACIDAD_PIEZAS} · ${c.clientes.length} cuenta${c.clientes.length!==1?'s':''}${c.extras>0 ? ` · +${c.extras} de extras` : ''}</div>
       <div class="carga-bar-bg"><div class="carga-bar" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span class="carga-sem" style="background:${semBg};color:${semTxt}">${semLbl} · ${pct}%</span>
@@ -2146,7 +2151,7 @@ async function confirmAddInflu() {
       cliente_id: cl?.id || null,
       nombre,
       handle: document.getElementById('pi-handle')?.value?.trim() || null,
-      red_social: document.getElementById('pi-red')?.value || 'Instagram',
+      red_social: (document.getElementById('pi-red')?.value || 'instagram').toLowerCase(),
       telefono: document.getElementById('pi-tel')?.value?.trim() || null,
       monto_aprobado: parseFloat(document.getElementById('pi-monto')?.value) || 0,
       fecha_entrega_contenido: document.getElementById('pi-fecha')?.value || null,
@@ -2167,7 +2172,7 @@ async function confirmAddInflu() {
         cliente_id: cl?.id || null,
         nombre,
         handle: document.getElementById('pi-handle')?.value?.trim() || null,
-        red_social: document.getElementById('pi-red')?.value || 'Instagram',
+        red_social: (document.getElementById('pi-red')?.value || 'instagram').toLowerCase(),
         telefono: document.getElementById('pi-tel')?.value?.trim() || null,
         monto_aprobado: parseFloat(document.getElementById('pi-monto')?.value) || 0,
         fecha_entrega_contenido: document.getElementById('pi-fecha')?.value || null,

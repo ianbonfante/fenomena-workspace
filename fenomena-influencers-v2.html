@@ -219,7 +219,9 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--tx
     <div class="sb-section">Planning</div>
     <a class="ni" href="fenomena-planning-v5.html"><span class="ni-icon">📋</span>Tablero</a>
     <a class="ni active"><span class="ni-icon">👥</span>Influencers</a>
+    <!-- Pipeline oculto por ahora — descomentar para reactivar
     <a class="ni" href="fenomena-pipeline-v2.html"><span class="ni-icon">🎯</span>Pipeline</a>
+    -->
     <div class="sb-section" style="margin-top:8px">Agencia</div>
     <a class="ni" href="fenomena-media-v2.html"><span class="ni-icon">📇</span>Cheat Sheet</a>
     <a class="ni" href="fenomena-admin-v2.html"><span class="ni-icon">🔒</span>Admin</a>
@@ -793,7 +795,7 @@ async function saveInfluEdit() {
       nombre, handle, telefono,
       email, manager_nombre: managerNombre, manager_contacto: managerContacto,
       tarifa, notas,
-      redes, red_social: redes ? redes.split(',')[0].trim() : undefined,
+      redes, red_social: redes ? redes.split(',')[0].trim().toLowerCase() : undefined,
       piezas_cantidad: piezasCant,
       meses_activos: mesesAct,
       monto_aprobado: monto,
@@ -815,7 +817,7 @@ async function saveInfluEdit() {
     closeModal('modal-influ-edit');
     showToast('✓ Influencer actualizado');
   } catch(e) {
-    showToast('Error al guardar');
+    showToast('Error: ' + (e.message || 'al guardar'));
     console.error(e);
   }
 }
