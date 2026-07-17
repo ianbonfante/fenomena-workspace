@@ -908,9 +908,9 @@ body {
         <span class="tb-search-icon">🔍</span>
         <input type="text" placeholder="Buscar cliente..." oninput="searchClients(this.value)"/>
       </div>
-      <button class="alert-btn" onclick="openContracts()">
+      <button class="alert-btn" onclick="openContracts()" id="contracts-btn">
         <div class="alert-dot"></div>
-        2 contratos pendientes
+        <span id="contracts-count">— contratos pendientes</span>
       </button>
       <button class="directors-btn" onclick="openDirModal()">👥 Directoras</button>
     </div>
@@ -1058,24 +1058,15 @@ body {
   <div class="modal">
     <div class="m-title">✍️ Contratos pendientes</div>
     <div class="m-sub">Influencers que requieren tu firma</div>
-    <div class="contract-list">
-      <div class="cl-row">
-        <div><div class="cl-client">Sofía Reyes — Relojín</div><div class="cl-type">Contrato de influencer · Junio 2026</div></div>
-        <div class="cl-due">Vence 10 mayo</div>
-        <button class="cl-sign">✍️ Firmar</button>
-      </div>
-      <div class="cl-row">
-        <div><div class="cl-client">Valentina Cruz — Bella Holandesa</div><div class="cl-type">Contrato de influencer · Junio 2026</div></div>
-        <div class="cl-due">Vence 18 mayo</div>
-        <button class="cl-sign">✍️ Firmar</button>
-      </div>
+    <div class="contract-list" id="contract-list">
+      <div style="text-align:center;padding:14px;color:var(--txt3);font-size:12px;">Cargando...</div>
     </div>
     <div class="mf" style="margin-top:16px">
       <label class="ml">Agregar contrato pendiente</label>
       <div style="display:flex;gap:6px">
-        <input class="mi" type="text" placeholder="Influencer — Cliente" style="flex:2;font-size:12px;padding:7px 10px"/>
-        <input class="mi" type="date" style="flex:1;font-size:12px;padding:7px 10px"/>
-        <button class="btn b-brand" style="white-space:nowrap">+ Agregar</button>
+        <input class="mi" type="text" id="ct-titulo" placeholder="Influencer — Cliente" style="flex:2;font-size:12px;padding:7px 10px"/>
+        <input class="mi" type="date" id="ct-vence" style="flex:1;font-size:12px;padding:7px 10px"/>
+        <button class="btn b-brand" style="white-space:nowrap" onclick="addContrato()">+ Agregar</button>
       </div>
     </div>
     <div class="m-acts"><button class="btn b-ghost" onclick="closeModal('modal-contracts')">Cerrar</button></div>
@@ -1162,7 +1153,7 @@ body {
     <div class="mf"><label class="ml">Principal</label>
       <div class="ds-grid">
         <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#c084fc">D</div>Didi</div>
-        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--cyan)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--cyan)">A</div>Alejandro</div>
         <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--green)">G</div>Gian</div>
         <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:var(--amber)">A</div>Andreina</div>
         <div class="ds-opt" onclick="selDs(this,'main')"><div class="ds-av" style="background:#ec4899">AG</div>Ana G.</div>
@@ -1175,7 +1166,7 @@ body {
     <div class="mf"><label class="ml">Apoyo (opcional — carga se divide)</label>
       <div class="ds-grid">
         <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:#c084fc">D</div>Didi</div>
-        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--cyan)">W</div>Willcy</div>
+        <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--cyan)">A</div>Alejandro</div>
         <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--green)">G</div>Gian</div>
         <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:var(--amber)">A</div>Andreina</div>
         <div class="ds-opt" onclick="selDs(this,'sup')"><div class="ds-av" style="background:#ec4899">AG</div>Ana G.</div>
@@ -1258,7 +1249,7 @@ body {
       </div>
     </div>
     <div class="mrow" id="ex-designer-row">
-      <div class="mf"><label class="ml">Diseñador asignado</label><select class="mi" id="ex-designer"><option>Didi</option><option>Willcy</option><option>Gian</option><option>Andreina</option><option>Ana G.</option><option>Salomón</option><option>Verónica</option><option>Monica</option><option>Por contratar</option></select></div>
+      <div class="mf"><label class="ml">Diseñador asignado</label><select class="mi" id="ex-designer"><option>Didi</option><option>Alejandro</option><option>Gian</option><option>Andreina</option><option>Ana G.</option><option>Salomón</option><option>Verónica</option><option>Monica</option><option>Por contratar</option></select></div>
       <div class="mf"><label class="ml">Deadline</label><input class="mi" type="date" id="ex-deadline"/></div>
     </div>
     <div class="mrow" id="ex-plan-row" style="display:none">
@@ -1310,7 +1301,7 @@ body {
       <div class="mf"><label class="ml">Diseñador</label>
         <select class="mi" id="edit-ex-designer">
           <option value="">— Sin diseñador</option>
-          <option>Didi</option><option>Willcy</option><option>Gian</option>
+          <option>Didi</option><option>Alejandro</option><option>Gian</option>
           <option>Andreina</option><option>Ana Gabriela</option><option>Salomón</option>
           <option>Verónica</option><option>Monica</option><option>Sonia</option>
         </select>
@@ -1845,7 +1836,7 @@ async function deleteExtra(id) {
 // ══ DIRECTORS DATA ═════════════════════════════════════════════
 const directors = {
   ian:      { name:'Ian',      role:'Director Planning', team:['Shelsea','Megan'], h30:12, hPro:26, hMax:40, color:'linear-gradient(135deg,#00AFEC,#B2F56A)' },
-  andreina: { name:'Andreina', role:'Directora Creativa', team:['Didi','Gian','Willcy','Salomón','Verónica'], h30:12, hPro:32, hMax:40, color:'linear-gradient(135deg,#c084fc,#EEB1D7)' },
+  andreina: { name:'Andreina', role:'Directora Creativa', team:['Didi','Gian','Alejandro','Salomón','Verónica'], h30:12, hPro:32, hMax:40, color:'linear-gradient(135deg,#c084fc,#EEB1D7)' },
   valeria:  { name:'Valeria',  role:'Directora Creativa', team:['Monica','Ana Gabriela','Sonia'], h30:12, hPro:10, hMax:40, color:'linear-gradient(135deg,#B2F56A,#00AFEC)' },
   belkys:   { name:'Belkys',   role:'Directora Media', team:['Christian'], h30:12, hPro:6, hMax:40, color:'linear-gradient(135deg,#f4d03f,#ff9f43)' }
 };
@@ -2285,7 +2276,70 @@ function searchClients(q) {
 }
 
 // ══ CONTRACTS ══════════════════════════════════════════════════
-function openContracts() { document.getElementById('modal-contracts').classList.add('open'); }
+// ══ CONTRATOS PENDIENTES ════════════════════════════════════════
+let contratosCache = [];
+
+async function loadContratos() {
+  try {
+    const { data } = await sb.from('contratos').select('*').eq('firmado', false).order('vence');
+    contratosCache = data || [];
+    const n = contratosCache.length;
+    const el = document.getElementById('contracts-count');
+    if (el) el.textContent = `${n} contrato${n!==1?'s':''} pendiente${n!==1?'s':''}`;
+    const btn = document.getElementById('contracts-btn');
+    if (btn) btn.style.display = '';
+  } catch(e) { console.warn('loadContratos:', e.message); }
+}
+
+function renderContratos() {
+  const list = document.getElementById('contract-list');
+  if (!list) return;
+  if (contratosCache.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:14px;color:var(--txt3);font-size:12px;">🎉 Sin contratos pendientes</div>';
+    return;
+  }
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  list.innerHTML = contratosCache.map(c => {
+    const vence = c.vence ? new Date(c.vence + 'T00:00:00') : null;
+    const vencido = vence && vence < hoy;
+    const venceLbl = vence ? 'Vence ' + vence.toLocaleDateString('es-PA',{day:'numeric',month:'short'}) : 'Sin fecha';
+    return `<div class="cl-row">
+      <div><div class="cl-client">${c.titulo}</div><div class="cl-type">Contrato de influencer</div></div>
+      <div class="cl-due" style="${vencido ? 'color:var(--red);font-weight:800;' : ''}">${vencido ? '⚠️ ' : ''}${venceLbl}</div>
+      <button class="cl-sign" onclick="firmarContrato('${c.id}')">✍️ Firmado</button>
+    </div>`;
+  }).join('');
+}
+
+async function addContrato() {
+  const titulo = document.getElementById('ct-titulo')?.value?.trim();
+  const vence = document.getElementById('ct-vence')?.value || null;
+  if (!titulo) { alert('Escribe el nombre del contrato (Influencer — Cliente)'); return; }
+  try {
+    const { data, error } = await sb.from('contratos').insert({ titulo, vence, firmado: false, creado_por: currentUserName }).select().single();
+    if (error) throw error;
+    contratosCache.push(data);
+    contratosCache.sort((a,b) => (a.vence||'9999') < (b.vence||'9999') ? -1 : 1);
+    document.getElementById('ct-titulo').value = '';
+    document.getElementById('ct-vence').value = '';
+    renderContratos();
+    loadContratos();
+    showSaveToast('✓ Contrato agregado');
+  } catch(e) { console.warn('addContrato:', e.message); showSaveToast('Error: ' + e.message); }
+}
+
+async function firmarContrato(id) {
+  try {
+    const { error } = await sb.from('contratos').update({ firmado: true, firmado_fecha: new Date().toISOString(), firmado_por: currentUserName }).eq('id', id);
+    if (error) throw error;
+    contratosCache = contratosCache.filter(c => c.id !== id);
+    renderContratos();
+    loadContratos();
+    showSaveToast('✓ Contrato marcado como firmado');
+  } catch(e) { console.warn('firmarContrato:', e.message); showSaveToast('Error: ' + e.message); }
+}
+
+function openContracts() { renderContratos(); document.getElementById('modal-contracts').classList.add('open'); }
 
 // ══ MODALS ═════════════════════════════════════════════════════
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -2306,7 +2360,7 @@ async function doLogout() {
 
 // ══ DYNAMIC CLIENT RENDERING ═══════════════════════════════════
 const DESIGNERS_COLOR = {
-  'Didi':'#c084fc','Willcy':'#00AFEC','Gian':'#16a34a',
+  'Didi':'#c084fc','Alejandro':'#00AFEC','Gian':'#16a34a',
   'Andreina':'#d97706','Ana Gabriela':'#ec4899','Salomón':'#7c3aed',
   'Verónica':'#f43f5e','Monica':'#0ea5e9','Sonia':'#8b5cf6',
   'Por contratar':'#9590AB'
@@ -2801,7 +2855,7 @@ async function saveQuickNote(clientName, value) {
 }
 
 // ══ EDIT DESIGNER NAME INLINE ══════════════════════════════════
-const KNOWN_DESIGNERS = ['Didi','Willcy','Gian','Andreina','Ana Gabriela','Salomón','Verónica','Monica','Sonia','Por contratar'];
+const KNOWN_DESIGNERS = ['Didi','Alejandro','Gian','Andreina','Ana Gabriela','Salomón','Verónica','Monica','Sonia','Por contratar'];
 
 function editDesignerName(el, clienteId, clientName) {
   if (el.querySelector('.designer-input')) return; // already editing
@@ -2939,6 +2993,7 @@ window.addEventListener('load', async () => {
   await renderClientes();
   await loadExtras();
   updateTopCounters();
+  loadContratos();
   setTimeout(() => {
     applyDataToCards();
     document.querySelectorAll('.cc').forEach((c, i) => { c.style.animationDelay = (i * 0.05) + 's'; });
